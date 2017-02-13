@@ -6,6 +6,6 @@ special clients.
 
 ## Build info and licenses
 Created with Python 3.6.0 and:
-	* Pixi.js (MIT License)
+* Pixi.js (MIT License)
 
 Check the requirements.txt for further dependencies
