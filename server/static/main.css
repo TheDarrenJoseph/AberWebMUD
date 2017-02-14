@@ -1,0 +1,10 @@
+#main-window{
+	position: absolute;
+	top: 0%;
+}
+
+#message-box{
+	position: relative;
+	left:50%;
+	bottom:0%;
+}
