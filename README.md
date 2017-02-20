@@ -6,6 +6,7 @@ special clients.
 
 ## Build info and licenses
 Created with Python 3.6.0 and:
-* Pixi.js (MIT License)
+* [Pixi.js (MIT License)] (http://www.pixijs.com/)
+* ["Zelda-like tilesets and sprites" by ArMM1998] (http://opengameart.org/content/zelda-like-tilesets-and-sprites)
 
 Check the requirements.txt for further dependencies

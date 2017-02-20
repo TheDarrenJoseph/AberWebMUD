@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, send, emit
 
 #Create the app with our module name
 app = Flask(__name__) 
@@ -22,9 +22,12 @@ def play():
 #@socketServer.on('new-message', namespace='/')	
 
 @socketServer.on('new-chat-message')	
-def send_message(text, namespace='/') :
-	print('new message!')
-	emit('chat-message-response', {'data': text})
+def send_message(message, namespace='/') :
+	print("new message with keys: %s" % message.keys())
+	print('message data:'+message['data'])
+	#Rebroadcast the message dict 
+	emit('chat-message-response', message, broadcast=True)
+
 
 @socketServer.on('connect')	
 def handle_connect() :

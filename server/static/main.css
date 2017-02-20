@@ -8,3 +8,17 @@
 	left:50%;
 	bottom:0%;
 }
+
+#message-log{
+	overflow: scroll;
+	width: 30%;
+	height: 20%;
+}
+
+#console-button {
+	width: 20px;
+	height: 20px;
+	position: relative;
+	bottom: 0%;
+	left: 0%;
+}
