@@ -1,0 +1,17 @@
+{
+	"frames": {
+		"chest-single": {
+			"frame":{"x":32,"y":0,"w":16,"h":16},
+			"spriteSourceSize":{"x":0,"y":0,"w":16,"h":16},
+			"sourceSize":{"w":16,"h":16}
+		},
+		"chat-bubble-blank": {
+			"frame":{"x":32,"y":0,"w":16,"h":16},
+			"spriteSourceSize":{"w":16,"h":16},
+			"sourceSize":{"w":16,"h":16}
+		}
+	},
+	"meta": {
+		"image": "./objects.png"
+	}
+}

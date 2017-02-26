@@ -2,47 +2,44 @@
 
 <html>
 	<!-- SocketIO library for talking to the server -->
-	<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+	 <script src='/static/libs/socket.io-1.4.5.js'></script>
 	<!-- PixiJS for 2D HTML5/WebGL rendering with fallbacks-->
-	<script src='/static/pixi.min-4-3-4.js'></script>
+	<script src='/static/libs/pixi.min-4-3-4.js'></script>
 	<!-- jquery just to make DOM element access easier -->
-	<script src="https://code.jquery.com/jquery-3.1.1.js"
-			integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="
-			crossorigin="anonymous"></script>
-	
-	<link rel="stylesheet" type="text/css" href="/static/main.css" />
-	
-	<!-- Script for handling messaging and UI input -->
-	<script src='/static/handle-ui.js'></script> 
+	<script src='/static/libs/jquery-3.1.1.js'></script>
+
+	<link rel='stylesheet' type='text/css' href='/static/css/main.css' />
+
+
 <head>
   <title>AberWebMUD Web Client</title>
 </head>
 
 <body>
-	
+
 	<div id='main-window'>
-		<!-- Run our Pixi.JS UI creation script-->
-		<script src='/static/draw-ui.js'></script>
-		
 		<div id='message-window'>
 			<textarea id='message-log' disabled='true'></textarea>
 			<input type='text' id='message-input'>
 			<input type='submit' id='send-message-button' value='Send'>
 		</div>
-		
+
+		<!-- Run our Pixi.JS UI creation and handling script-->
+		<script src='/static/setup-ui.js'></script>
+		<!-- Script for handling messaging and chat input -->
+		<script src='/static/handle-chat.js'></script>
 	</div>
-	
+
 	<div id='console-button'>
 	</div>
-	
+
 	<div id='context-buttons'>
-	</div>	
-	
+	</div>
 
 		<!-- </textarea type='text' id='message-box'> -->
-		
-		
+
+
 	</div>
-</body>	
+</body>
 
 </html>
