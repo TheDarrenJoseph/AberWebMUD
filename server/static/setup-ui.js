@@ -1,4 +1,4 @@
-var titleText = 'AberWebMUD';
+titleText = 'AberWebMUD';
 var zeldaAssetPath = 'static/assets/gfx/';
 var overworldAtlasPath = zeldaAssetPath + 'overworld-texture-atlas.json';
 var zeldaObjectsAtlasPath = zeldaAssetPath + 'zelda-objects-texture-atlas.json';
@@ -7,6 +7,9 @@ var characterAtlasPath = zeldaAssetPath + 'character-texture-atlas.json';
 var messageWindowId = '#message-window';
 
 var tileSize = 40;
+var thisPlayer;
+
+var tileMappings = ['grass-plain','barn-front'];
 
 // Set our mapWindowSize to the smallest of our page dimensions
 // Using the smallest dimension to get a square
@@ -20,14 +23,37 @@ if (window.innerHeight < window.innerWidth) {
 // Rounding down (floor) to get a good tile count
 var tileCount = Math.floor(mapWindowSize / tileSize);
 mapWindowSize = tileCount * tileSize; // Update mapWindowSize to fit the tileCount snugly!
-
 var halfMapWindowSize = Math.floor(mapWindowSize / 2);
 var thirdMapWindowSize = Math.floor(mapWindowSize / 3);
+
+//These are the start co-ords of our map window (tile view) to allow map scrolling
+var mapGridStartX = 0;
+var mapGridStartY = 0;
+
+var overworldMap = [];
+var overworldMapX = 0; //Sizes of the map
+var overworldMapY = 0;
 
 // resolution 1 for now as default (handles element scaling)
 var renderingOptions = {
 	resolution: 1
 };
+
+var gridCharacter = {
+	charactername: null,
+	posX: null,
+	posY: null,
+	sprite: null
+};
+
+function GridCharacter (charname, x, y, sprite) {
+	var thisCharacter = new gridCharacter();
+	thisCharacter.charname = charname;
+	thisCharacter.posX = x;
+	thisCharacter.posY = y;
+	thisCharacter.sprite = sprite;
+	return thisCharacter;
+}
 
 // Create our PixiJS renderer space
 // var renderer = PIXI.autoDetectRenderer(500, 500, renderingOptions);
@@ -35,24 +61,43 @@ var renderer = PIXI.autoDetectRenderer(mapWindowSize, mapWindowSize);
 renderer.autoresize = true;
 
 var stage = new PIXI.Container();
-var mapContainer = new PIXI.ParticleContainer(); // Using spritebatch for large amounts of sprites
+
 var dialogContainer = new PIXI.Container();
+var controlsContainer = new PIXI.Container();
+
+// Using ParticleContainer for large amounts of sprites
+var mapContainer = new PIXI.ParticleContainer();
+var characterContainer = new PIXI.ParticleContainer();
+
+var tileSpriteArray; //	Sprites for the map view
+var mapCharacterArray = [tileCount]; //	Sprites for the players in the current map view
+
 stage.addChild(mapContainer);
 stage.addChild(dialogContainer);
+stage.addChild(controlsContainer);
+stage.addChild(characterContainer);
 
 var dialogBackground;
-var healthBar;
-var healthBarInner;
 
-// Creates a new PIXI.Sprite from a tileset  loaded in by Pixi's resource loader
-//function makeSpriteFromTileset (tilesetPath, offsetX, offsetY, tileSizeX, tileSizeY) {
-	//var tileTexture = new PIXI.Texture(PIXI.loader.resources[tilesetPath].texture);
+function getAtlasSubtexture(tileAtlasPath, subtileName) {
+	var atlasTexture = PIXI.loader.resources[tileAtlasPath];
 
-	//console.log(tileTexture);
+	//Check the texture
+	if (atlasTexture  != null) {
+		var subTexture = atlasTexture.textures[subtileName];
 
-	//tileTexture.frame = new PIXI.Rectangle(offsetX, offsetY, tileSizeX, tileSizeY); //	Using a rectangle to frame our texture area
-	//return new PIXI.Sprite(tileTexture);
-//}
+		if (subTexture != null) {
+			return subTexture;
+		} else {
+			console.log('No tile atlas subtile (not in tile atlas JSON?): ' + subtileName);
+		}
+
+	} else {
+		console.log('Error loading tile atlas (not known to loader?): ' + tileAtlasPath);
+	}
+
+	return null;
+}
 
 // Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
 function makeSpriteFromAtlas (tileAtlasPath, subtileName) {
@@ -63,7 +108,10 @@ function makeSpriteFromAtlas (tileAtlasPath, subtileName) {
 		var subTexture = atlasTexture.textures[subtileName];
 
 		if (subTexture != null) {
-			return new PIXI.Sprite(subTexture);
+			var thisSprite =  new PIXI.Sprite(subTexture);
+			thisSprite.height = tileSize;
+			thisSprite.width = tileSize;
+			return thisSprite;
 
 		} else {
 			console.log('No tile atlas subtile (not in tile atlas JSON?): ' + subtileName);
@@ -76,41 +124,33 @@ function makeSpriteFromAtlas (tileAtlasPath, subtileName) {
 	return null;
 }
 
-function MapTileSprite () {
+function PlayerSprite () {
+		return makeSpriteFromAtlas (characterAtlasPath, 'player');
+}
+
+function MapTileSprite (textureReference) {
 	// var MapTileSprite = new PIXI.Sprite(PIXI.loader.resources[chestPath].texture);
 	//var MapTileSprite = makeSpriteFromAtlas(overworldTilesetPath, 0, 0, 16, 16);
 	//var MapTileSprite = makeSpriteFromAtlas(overworldAtlasPath, 'grass-plain');
-	var MapTileSprite = PIXI.Sprite.fromFrame('grass-plain');
-
-	MapTileSprite.height = tileSize;
-	MapTileSprite.width = tileSize;
-
-	return MapTileSprite;
+	return makeSpriteFromAtlas (overworldAtlasPath, textureReference);
 }
 
-// Allocates a tile array for the map view
-function MapArray (tileCount) {
-	var tileArray = Array(tileCount);
+// 	1. Allocates a tile array for the map view and character views,
+//	2. creates sprites for each array space
+//	3. adds each of these sprites to our mapContainer
+//	returns the final array
+function setupMapUI () {
+	var tileSpriteArray = Array(tileCount);
+	var tileSprite;
 
 	for (var x = 0; x < tileCount; x++) {
-		tileArray[x] = Array(tileCount); // 2nd array dimension per row
+		tileSpriteArray[x] = Array(tileCount); // 2nd array dimension per row
 		for (var y = 0; y < tileCount; y++) {
-			tileArray[x][y] = MapTileSprite(); // Allocate a new tile
-		}
-	}
-
-	return tileArray;
-}
-
-// Write our MapArray to the PixiJS stage
-function setupMapUI (tileSpriteArray, tileCount) {
-	for (var x = 0; x < tileCount; x++) {
-		for (var y = 0; y < tileCount; y++) {
-			var tileSprite = tileSpriteArray[x][y]; // Reference to new tile in the array
+			tileSpriteArray[x][y] = MapTileSprite('grass-plain'); // Allocate a new tile
+			tileSprite = tileSpriteArray[x][y]; // Reference to new tile in the array
 
 			// tileSprite.anchor.x = x*tileSize;
 			// tileSprite.anchor.y = y*tileSize;
-
 			tileSprite.position.x = x * tileSize;
 			tileSprite.position.y = y * tileSize;
 			tileSprite.interactive = true;
@@ -118,42 +158,27 @@ function setupMapUI (tileSpriteArray, tileCount) {
 
 			mapContainer.addChild(tileSprite);
 			// tileSprite.click = function() {return objectClicked(tileSprite);}
-
-
 		}
 	}
+
+	return tileSpriteArray;
 }
 
-function stageClicked () {
-	var mouseEvent = renderer.plugins.interaction.pointer.originalEvent;
+//Creates an empty 2D array to store players in our view
+function createMapCharacterArray () {
+	var mapCharacterArray = Array(tileCount);
+	for (var x = 0; x < tileCount; x++) {
+		mapCharacterArray[x] = Array(tileCount); // 2nd array dimension per row
+	}
 
-	var clientX = Math.floor(mouseEvent.clientX / tileSize);
-	var clientY = Math.floor(mouseEvent.clientY / tileSize);
-
-	var zeroIndexedTileCount = tileCount - 1;
-
-	// Sanity check to make sure we can't click over the boundary
-	if (clientX > zeroIndexedTileCount) clientX = zeroIndexedTileCount;
-	if (clientY > zeroIndexedTileCount) clientY = zeroIndexedTileCount;
-
-	console.log(clientX + ' ' + clientY);
+	return mapCharacterArray;
 }
 
-function objectClicked (object) {
-	// console.log(object.name+" clicked");
-	// object.x += 50;
-
-	// renderer.render(stage);
-}
-
-function toggleConsoleVisibility() {
-	$(messageWindowId).toggle();
-}
 
 function setupConsoleButton () {
 	//var consoleButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 16, 16, 16);
 	//var consoleButtonSprite = PIXI.Sprite.fromImage(zeldaAssetPath+'chat-bubble-blank.png');
-	var consoleButtonSprite = PIXI.Sprite.fromFrame('player-attacking');
+	var consoleButtonSprite = makeSpriteFromAtlas (zeldaObjectsAtlasPath, 'chat-bubble-blank');
 
 	consoleButtonSprite.height = tileSize;
 	consoleButtonSprite.width = tileSize;
@@ -163,13 +188,13 @@ function setupConsoleButton () {
 
 	consoleButtonSprite.interactive = true;
 
-	stage.addChild(consoleButtonSprite);
+	controlsContainer.addChild(consoleButtonSprite);
 	consoleButtonSprite.on ('click', toggleConsoleVisibility);
 }
 
 function setupContextButtons () {
 	//var inventoryButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 0, 16, 16);
-	var inventoryButtonSprite = PIXI.Sprite.fromFrame('player');
+	var inventoryButtonSprite = makeSpriteFromAtlas (zeldaObjectsAtlasPath, 'chest-single');
 
 	//inventoryButtonSprite.height = tileSize;
 	//inventoryButtonSprite.width = tileSize * 2;
@@ -184,10 +209,10 @@ function setupContextButtons () {
 	inventoryButtonSprite.position.y = mapWindowSize - tileSize;
 	inventoryButtonSprite.interactive = true;
 
-	stage.addChild(inventoryButtonSprite);
+	controlsContainer.addChild(inventoryButtonSprite);
 	inventoryButtonSprite.on ('click', showDialog);
 
-	var statsButtonSprite = PIXI.Sprite.fromFrame('player');
+	var statsButtonSprite = makeSpriteFromAtlas (characterAtlasPath, 'player');
 
 	statsButtonSprite.height = tileSize;
 	statsButtonSprite.width = tileSize;
@@ -195,7 +220,7 @@ function setupContextButtons () {
 	statsButtonSprite.position.y = mapWindowSize - tileSize;
 	statsButtonSprite.interactive = true;
 
-	stage.addChild(statsButtonSprite);
+	controlsContainer.addChild(statsButtonSprite);
 
 	return[inventoryButtonSprite,statsButtonSprite];
 }
@@ -212,14 +237,6 @@ function setupDialogWindow () {
 	dialogContainer.addChild(dialogBackground);
 
 	dialogContainer.overflow = 'scroll';
-}
-
-function updateStatBar(statbar) {
- //	var valueBar = statbar.innerBar;
-
-	//valueBar.beginFill(0x000000);
-	//valueBar.drawRect(statbar.x, statbar.y, statbar.innerSizeX, statbar.innerSizeY);
-	//valueBar.endFill();
 }
 
 function StatBar (name, posX, posY) {
@@ -263,31 +280,61 @@ function StatBar (name, posX, posY) {
 function setupStatBars () {
 	var healthBar = new StatBar('health-bar', mapWindowSize - thirdMapWindowSize - 2, 0);
 
-	stage.addChild(healthBar.backgroundBar);
-	stage.addChild(healthBar.innerBar);
+	controlsContainer.addChild(healthBar.backgroundBar);
+	controlsContainer.addChild(healthBar.innerBar);
 	//	dialogBackground.visible = false; //Hidden until we need it
 
 	return [healthBar];
 }
 
-function showDialog () {
-	dialogBackground.visible = !dialogBackground.visible;
-	renderer.render(stage); //	update the view to show this
+function characterSpriteExists(charactername, x,y) {
+	var character = mapCharacterArray[x][y];
+	//if ()
 }
 
-function makeTestSquare () {
-	var testSquare = new PIXI.Graphics();
+function isPositionInMapView(x, y) {
+	//Check whether or not the character is within our map view window
+	if (x <= (mapGridStartX+tileCount) &&  x >= mapGridStartX &&  y <= (mapGridStartY + tileCount) &&  y >= mapGridStartY) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
-	testSquare.beginFill(0xFFFFFF);
-	testSquare.lineStyle(2, 0xFFFFFF, 1);
-	testSquare.drawRect(20, 20, 200, 200);
-	testSquare.endFill();
-	stage.addChild(testSquare);
+//	We only view the map through our view window,
+//	This function adjusts the globalX to a value relative to the grid view
+function globalTilePosToLocal(globalX,globalY) {
 
-	testSquare.interactive = true;
+}
 
-	// Assigning a click event using a callback function to pass the object as params
-	testSquare.on('click', function callbackWithTheObject () { return objectClicked(testSquare); });
+
+//Creates a character sprite on-the-fly to represent another character
+//gridX, gridY are UI co-ords from 0-tileCount
+function newCharacterOnMap (charactername, gridX, gridY) {
+	if (isPositionInMapView(gridX,gridY)) {
+			var characterSprite = makeSpriteFromAtlas(characterAtlasPath, 'player');
+			var pixiPos = coordToPixiPosition(gridX, gridY);
+			characterSprite.x = pixiPos[0];
+			characterSprite.y = pixiPos[1];
+			characterContainer.addChild(characterSprite);
+
+			mapCharacterArray[gridX][gridY] = GridCharacter(charactername, gridX, gridY, characterSprite);
+
+			return characterSprite;
+	} else {
+		console.log('New player not in view '+gridX+' '+gridY);
+	}
+
+	return false;
+}
+
+function updateCharacterSpritePos(oldX, oldY, x, y) {
+	var sprite = mapCharacterArray[oldX][oldY];
+
+	var characterPos = coordToPixiPosition(x, y);
+	sprite.x = characterPos[0];
+	sprite.y = characterPos[1];
+	characterContainer.addChild(sprite);
 }
 
 function assetsLoaded () {
@@ -303,10 +350,9 @@ function assetsLoaded () {
 	$('#main-window').append(renderer.view);
 
 	// console.log ("Using grid size of "+mapWindowSize);
-	setupConsoleButton();
-	var contextButtons = setupContextButtons();
 
 	setupDialogWindow();
+	mapCharacterArray = createMapCharacterArray();
 
 	var statBars = setupStatBars();
 	console.log(statBars);
@@ -314,28 +360,27 @@ function assetsLoaded () {
 	statBars[0].drawBackgroundBar();
 	statBars[0].drawInnerBar();
 
-	var tileSpriteArray = MapArray(tileCount);
-	setupMapUI(tileSpriteArray, tileCount);
+	tileSpriteArray = setupMapUI();
+	console.log(tileSpriteArray );
+
+	  drawMapToGrid();
 
 	$('console-button').append(contextButtons);
 
-	renderer.render(stage);
+	setupConsoleButton();
+	var contextButtons = setupContextButtons();
+
+	//renderer.render(stage);
 }
 
-function bindEvents(){
-	$('#send-message-button').click(sendMessage);
-	$('#main-window').on('click', function () { return stageClicked(renderer); });
-}
-
-
-
-function setupPage () {
+function setupPageUI() {
 	//$('#message-window').hide();
 
 	// Arbitrary assignment of message log window size for now
 	//$('#message-log').rows = 5;
 	//$('#message-log').cols = 100;
 	$('#message-log').val('');
+	$('#password-input').hide();
 
 	// Callback for after assets have loaded (for drawing)
 	PIXI.loader.add([overworldAtlasPath,
@@ -344,6 +389,3 @@ function setupPage () {
 
 	bindEvents();
 }
-
-// wait until our document is ready
-$(document).ready(setupPage);

@@ -26,6 +26,13 @@
 	bottom:0%;
 }
 
+#password-input{
+	position: absolute;
+	width: 80%;
+	height: 20%;
+	bottom:0%;
+}
+
 #send-message-button {
 	position: absolute;
 	width: 20%;
