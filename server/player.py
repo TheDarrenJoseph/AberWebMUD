@@ -1,14 +1,15 @@
-import character
+import character, database
+from pony.orm import *
 
-class Player(character.Character):
+class Player(database.DatabaseHandler._database.Entity):
+    character = Required(character.Character)
+    username = PrimaryKey(str)
+    #passwordSalt = Required(str, unique=True)
+    password = Required(str)
 
-    def __init__ (self, username: str, charname: str):
-        self.character = super().__init__(charname)
-        self.username = username
-        self.logged_in = False
-        self.session = None
-        self.pos_x = 0
-        self.pos_y = 0
-
+    @db_session
     def create_player_status_response(self):
-        return {'player':self.username ,'logged-in':self.logged_in,'active-session':False}
+    #    return None
+        print('RESPONSE: '+self.username)
+        #print ({'player':self.username, 'charname':self.character.charname})
+        #return {'player':self.username, 'charname':self.character.charname, 'pos_x':self.character.posX, 'pos_y':self.character.posY }

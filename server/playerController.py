@@ -1,43 +1,42 @@
-import player
-import userInput
+import player, character, userInput, database, crypto, overworld
+from pony.orm.core import ObjectNotFound
+from pony.orm import db_session
 
-#username to Player mappings
-players = {}
+#Checks for the Character in the DB using PonyORM
+@db_session
+def find_character(charname:str):
+    try:
+        return character.Character[charname]
 
-#Creates a player if they don't exist, returns true if success, false if user exists
-def create_player(username, charname) -> bool:
-    if username not in players:
-        print ('creating user with uname '+username+' and charname '+charname)
-        new_player = player.Player(username, charname)
-        players[username] = new_player # {username: Player} mapping
-        return True
-    return False
-
-def is_logged_in(username: str) -> bool:
-    if username in players:
-        return players[username].logged_in
-    else: return False
-
-def log_in(username: str) -> bool:
-    if username in players:
-        if (not is_logged_in(username)) :
-            players[username].logged_in = True
-            return True
-    return False
-
-def log_out(username: str) -> bool:
-    if username in players:
-        if (players[username].logged_in == True) :
-            players[username].logged_in = False
-            return True
-    return False
-
-def find_player(username) -> player.Player:
-    if username in players.keys():
-        print ('finding user '+username)
-        return players[username]
-    else:
+    except ObjectNotFound:
+        print('Character not found: '+charname)
         return None
+
+#Checks for the Player in the DB using PonyORM
+@db_session
+def find_player(username:str):
+    try:
+        return player.Player[username]
+
+    except ObjectNotFound:
+        print('User not found: '+username)
+        return None
+
+
+#Creates a new player database object
+def new_player(charname, username, password) -> player.Player:
+    if find_character(charname) is None:
+        startPos = overworld.get_starting_pos()
+
+        #Create a new Character in the DB for the player to reference (PonyORM)
+        thisCharacter = character.Character(charname=charname, posX=startPos[0], posY=startPos[1])
+        passwordHashString = crypto.hash_password(password) #hashes and salts the pass for storage
+
+        if find_player(username) is None:
+            #Creating a new Player Entity through PonyORM
+            thisPlayer = player.Player(character=thisCharacter, username=username, password=passwordHashString)
+            return thisPlayer
+    return None
 
 def move_player(command: dict) -> None:
     print('MOVEMENT COMMAND TO FOLLOW')

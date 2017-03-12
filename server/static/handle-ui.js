@@ -145,12 +145,14 @@ function bindStageClick() {
 //data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 function handlePlayerLogin(data){
 	renderer.render(stage); //finally draw the game stage for the user
-	var character = data['character'];
+	console.log(data);
+	var character = JSON.parse(data['character']);
 	console.log(character);
+	//console.log(character);
+	//Creates the new character to represent the player
 	newCharacterOnMap (character['charname'], character['pos_x'], character['pos_y']);
 	//bindStageClick();
 	console.log('Logged in! Welcome!');
-	renderer.render(stage);
 }
 
 function bindEvents () {

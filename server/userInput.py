@@ -6,7 +6,7 @@ def parse_command(text) -> list:
     return commands
 
 
-def check__chat_input(text: str) -> None:
+def check_chat_input(text: str) -> None:
     #print("Input check for: "+text)
     print ( re.match(r"say\s[\w\s,.!()]{1,140}", text) )
 

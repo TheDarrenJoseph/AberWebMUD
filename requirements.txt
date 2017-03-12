@@ -5,3 +5,4 @@ jsonpickle >= 0.9.4
 passlib >= 1.7.1
 psycopg2 >= 2.7
 argon2_cffi
+pony >= 0.7.1

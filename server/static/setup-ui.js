@@ -311,7 +311,7 @@ function globalTilePosToLocal(globalX,globalY) {
 //Creates a character sprite on-the-fly to represent another character
 //gridX, gridY are UI co-ords from 0-tileCount
 function newCharacterOnMap (charactername, gridX, gridY) {
-	if (isPositionInMapView(gridX,gridY)) {
+	if (isPositionInMapView(gridX, gridY)) {
 			var characterSprite = makeSpriteFromAtlas(characterAtlasPath, 'player');
 			var pixiPos = coordToPixiPosition(gridX, gridY);
 			characterSprite.x = pixiPos[0];
