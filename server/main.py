@@ -33,6 +33,9 @@ def main():
 
 #@socketServer.on('new-message', namespace='/')
 def check_message(message: dict) -> None:
+    sid = request.sid
+
+
     inputParams = userInput.check_chat_input(message['data'])
     userChoice = inputParams['choice']
     userData = inputParams['data']

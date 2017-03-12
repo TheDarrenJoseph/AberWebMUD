@@ -14,27 +14,31 @@ function stageClicked (renderer) {
 
 //tileSpriteArray -- the grid array of sprites available to the UI
 //mapData -- the JSON response from the server describing the area
-function drawMapToGrid () {
+//startX/Y - the start areas to draw from
+function drawMapToGrid (startX, startY) {
 	console.log('drawing map to grid: '+overworldMap.length);
 
 	//Check there's at least enough tiles to fill our grid
 	if (overworldMap.length >= tileCount) {
-		for (var x = 0; x < tileCount; x++) {
-			for (var y = 0; y < tileCount; y++) {
-					var tileSprite = tileSpriteArray[x][y]; // Reference to new tile in the array
-					var tileFromServer = overworldMap[x][y];
+			if (isPositionInMapView(startX, startY)) {
+				for (var x = startX; x < tileCount; x++) {
+					for (var y = 0; startY < tileCount; y++) {
+							var tileSprite = tileSpriteArray[x][y]; // Reference to new tile in the array
+							var tileFromServer = overworldMap[x][y];
 
-					if (tileSprite != null &&  tileFromServer != null){ //Check the data for this tile exists
-						//var thisSprite = mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
-						var subTexture =  getAtlasSubtexture(overworldAtlasPath, tileMappings[tileFromServer.tileType]);
+							if (tileSprite != null &&  tileFromServer != null){ //Check the data for this tile exists
+								//var thisSprite = mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
+								var subTexture =  getAtlasSubtexture(overworldAtlasPath, tileMappings[tileFromServer.tileType]);
 
-						if (subTexture != null) {
-							tileSprite.texture = subTexture;
-							mapContainer.addChild(tileSprite);
-						}
+								if (subTexture != null) {
+									tileSprite.texture = subTexture;
+									mapContainer.addChild(tileSprite);
+								}
+							}
 					}
-			}
+				}
 		}
+
 	} else {
 		console.log('overworld map data from remote is missing.');
 	}
@@ -146,11 +150,12 @@ function bindStageClick() {
 function handlePlayerLogin(data){
 	renderer.render(stage); //finally draw the game stage for the user
 	console.log(data);
-	var character = JSON.parse(data['character']);
-	console.log(character);
+	var playerStatus = data['player-status']
+
 	//console.log(character);
 	//Creates the new character to represent the player
-	newCharacterOnMap (character['charname'], character['pos_x'], character['pos_y']);
+	showMapPosition(playerStatus['pos_x'], playerStatus['pos_y']);
+	newCharacterOnMap (playerStatus['charname'], playerStatus['pos_x'], playerStatus['pos_y']);
 	//bindStageClick();
 	console.log('Logged in! Welcome!');
 }

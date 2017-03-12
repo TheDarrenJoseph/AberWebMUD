@@ -1,4 +1,4 @@
-titleText = 'AberWebMUD';
+var titleText = 'AberWebMUD';
 var zeldaAssetPath = 'static/assets/gfx/';
 var overworldAtlasPath = zeldaAssetPath + 'overworld-texture-atlas.json';
 var zeldaObjectsAtlasPath = zeldaAssetPath + 'zelda-objects-texture-atlas.json';
@@ -6,134 +6,26 @@ var characterAtlasPath = zeldaAssetPath + 'character-texture-atlas.json';
 
 var messageWindowId = '#message-window';
 
-var tileSize = 40;
-var thisPlayer;
-
 var tileMappings = ['grass-plain','barn-front'];
 
 // Set our mapWindowSize to the smallest of our page dimensions
 // Using the smallest dimension to get a square
 // Then use 90% of this value to leave some space
-var mapWindowSize = window.innerWidth;
+mapWindowSize = window.innerWidth;
+
 if (window.innerHeight < window.innerWidth) {
 	mapWindowSize = window.innerHeight;
 }
-
-// tileCount is the number of tiles we can fit into this square area
-// Rounding down (floor) to get a good tile count
-var tileCount = Math.floor(mapWindowSize / tileSize);
-mapWindowSize = tileCount * tileSize; // Update mapWindowSize to fit the tileCount snugly!
-var halfMapWindowSize = Math.floor(mapWindowSize / 2);
-var thirdMapWindowSize = Math.floor(mapWindowSize / 3);
-
-//These are the start co-ords of our map window (tile view) to allow map scrolling
-var mapGridStartX = 0;
-var mapGridStartY = 0;
-
-var overworldMap = [];
-var overworldMapX = 0; //Sizes of the map
-var overworldMapY = 0;
 
 // resolution 1 for now as default (handles element scaling)
 var renderingOptions = {
 	resolution: 1
 };
 
-var gridCharacter = {
-	charactername: null,
-	posX: null,
-	posY: null,
-	sprite: null
-};
-
-function GridCharacter (charname, x, y, sprite) {
-	var thisCharacter = new gridCharacter();
-	thisCharacter.charname = charname;
-	thisCharacter.posX = x;
-	thisCharacter.posY = y;
-	thisCharacter.sprite = sprite;
-	return thisCharacter;
-}
-
 // Create our PixiJS renderer space
 // var renderer = PIXI.autoDetectRenderer(500, 500, renderingOptions);
 var renderer = PIXI.autoDetectRenderer(mapWindowSize, mapWindowSize);
 renderer.autoresize = true;
-
-var stage = new PIXI.Container();
-
-var dialogContainer = new PIXI.Container();
-var controlsContainer = new PIXI.Container();
-
-// Using ParticleContainer for large amounts of sprites
-var mapContainer = new PIXI.ParticleContainer();
-var characterContainer = new PIXI.ParticleContainer();
-
-var tileSpriteArray; //	Sprites for the map view
-var mapCharacterArray = [tileCount]; //	Sprites for the players in the current map view
-
-stage.addChild(mapContainer);
-stage.addChild(dialogContainer);
-stage.addChild(controlsContainer);
-stage.addChild(characterContainer);
-
-var dialogBackground;
-
-function getAtlasSubtexture(tileAtlasPath, subtileName) {
-	var atlasTexture = PIXI.loader.resources[tileAtlasPath];
-
-	//Check the texture
-	if (atlasTexture  != null) {
-		var subTexture = atlasTexture.textures[subtileName];
-
-		if (subTexture != null) {
-			return subTexture;
-		} else {
-			console.log('No tile atlas subtile (not in tile atlas JSON?): ' + subtileName);
-		}
-
-	} else {
-		console.log('Error loading tile atlas (not known to loader?): ' + tileAtlasPath);
-	}
-
-	return null;
-}
-
-// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
-function makeSpriteFromAtlas (tileAtlasPath, subtileName) {
-	var atlasTexture = PIXI.loader.resources[tileAtlasPath];
-
-	//Check the texture
-	if (atlasTexture  != null) {
-		var subTexture = atlasTexture.textures[subtileName];
-
-		if (subTexture != null) {
-			var thisSprite =  new PIXI.Sprite(subTexture);
-			thisSprite.height = tileSize;
-			thisSprite.width = tileSize;
-			return thisSprite;
-
-		} else {
-			console.log('No tile atlas subtile (not in tile atlas JSON?): ' + subtileName);
-		}
-
-	} else {
-		console.log('Error loading tile atlas (not known to loader?): ' + tileAtlasPath);
-	}
-
-	return null;
-}
-
-function PlayerSprite () {
-		return makeSpriteFromAtlas (characterAtlasPath, 'player');
-}
-
-function MapTileSprite (textureReference) {
-	// var MapTileSprite = new PIXI.Sprite(PIXI.loader.resources[chestPath].texture);
-	//var MapTileSprite = makeSpriteFromAtlas(overworldTilesetPath, 0, 0, 16, 16);
-	//var MapTileSprite = makeSpriteFromAtlas(overworldAtlasPath, 'grass-plain');
-	return makeSpriteFromAtlas (overworldAtlasPath, textureReference);
-}
 
 // 	1. Allocates a tile array for the map view and character views,
 //	2. creates sprites for each array space
@@ -173,7 +65,6 @@ function createMapCharacterArray () {
 
 	return mapCharacterArray;
 }
-
 
 function setupConsoleButton () {
 	//var consoleButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 16, 16, 16);
@@ -239,42 +130,6 @@ function setupDialogWindow () {
 	dialogContainer.overflow = 'scroll';
 }
 
-function StatBar (name, posX, posY) {
-	this.name = name;
-	this.backgroundBar = new PIXI.Graphics();
-	this.innerBar = new PIXI.Graphics();
-
-	this.innerSizeX = thirdMapWindowSize - 9;
-	this.innerSizeY = tileSize / 3 - 6;
-	this.value = 100;
-
-	StatBar.prototype.drawBackgroundBar = function() {
-		this.backgroundBar.beginFill(0x000000);
-		this.backgroundBar.lineStyle(2, 0xFFFFFF, 1);
-
-		this.backgroundBar = this.backgroundBar.drawRoundedRect(posX, posY, thirdMapWindowSize, tileSize / 2, 4);
-		this.backgroundBar.endFill();
-	}
-
-	StatBar.prototype.drawInnerBar = function()  {
-		this.innerBar.beginFill(0xFF0000);
-		this.innerBar = this.innerBar.drawRoundedRect(posX + 6, posY + 6, this.innerSizeX, this.innerSizeY, 4);
-		this.innerBar.endFill();
-	}
-
-	//	Sets a statbar's indicated value using a 1-100 value
-	//	Returns true if changes made, false otherwise
-	StatBar.prototype.setValue = function (value) {
-		if (this.value == value) return false;
-
-		if (value <= 100 && value >= 0) {
-			this.value = value;
-			this.innerSizeX = ((this.innerSizeX / 100) * value); //	Simple percentage adjustment for Y size
-
-		} else return false;
-	}
-}
-
 //	Creates the needed stat bars
 //	Returns an array of these statbars for later adjustment
 function setupStatBars () {
@@ -301,16 +156,34 @@ function isPositionInMapView(x, y) {
 	}
 }
 
+function isPositionInOverworld(x, y) {
+	if (x <= (overworldMapX) &&  x >= 0 &&  y <= (overworldMapY) &&  y >= 0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 //	We only view the map through our view window,
 //	This function adjusts the globalX to a value relative to the grid view
 function globalTilePosToLocal(globalX,globalY) {
 
 }
 
+function showMapPosition(gridX,gridY){
+	if (isPositionInOverworld(gridX, gridY)) {
+		mapGridStartX = gridX;
+		mapGridStartY = gridY;
+
+		drawMapToGrid (gridX, gridY); //Draw the view at this position
+	}
+}
 
 //Creates a character sprite on-the-fly to represent another character
 //gridX, gridY are UI co-ords from 0-tileCount
 function newCharacterOnMap (charactername, gridX, gridY) {
+	console.log('new char.. ' + charactername + gridX + gridY);
+
 	if (isPositionInMapView(gridX, gridY)) {
 			var characterSprite = makeSpriteFromAtlas(characterAtlasPath, 'player');
 			var pixiPos = coordToPixiPosition(gridX, gridY);
@@ -318,6 +191,9 @@ function newCharacterOnMap (charactername, gridX, gridY) {
 			characterSprite.y = pixiPos[1];
 			characterContainer.addChild(characterSprite);
 
+			console.log(mapCharacterArray);
+
+			console.log(mapCharacterArray[gridX][gridY] );
 			mapCharacterArray[gridX][gridY] = GridCharacter(charactername, gridX, gridY, characterSprite);
 
 			return characterSprite;
