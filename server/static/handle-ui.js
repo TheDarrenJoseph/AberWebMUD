@@ -1,3 +1,5 @@
+var htmlWindows = {messageWindowId: '#message-window', statWindowId: '#stat-window', inventoryWindowId: '#inventory-window'};
+
 function stageDoubleClicked (mouseEvent) {
 	if (renderer.plugins.interaction.pointer.originalEvent.type === 'pointerdown') {
 		console.log('movement click!');
@@ -7,6 +9,8 @@ function stageDoubleClicked (mouseEvent) {
 }
 
 function stageClicked (renderer) {
+	hideWindows(); //Minimises all dialog windows to give the screen focus
+
 	var mouseEvent = renderer.plugins.interaction.pointer.originalEvent;
 	//console.log(pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY));
 	setTimeout(function () { return stageDoubleClicked(mouseEvent); }, 150);
@@ -52,8 +56,25 @@ function objectClicked (object) {
 	// renderer.render(stage);
 }
 
+function hideWindows() {
+
+	for (win in htmlWindows) {
+		console.log(win);
+		$(htmlWindows[win]).hide();
+	}
+}
+
+function toggleStatWinVisibility () {
+	$(htmlWindows['statWindowId']).toggle();
+}
+
+
+function toggleIventoryWinVisibility () {
+	$(htmlWindows['inventoryWindowId']).toggle();
+}
+
 function toggleConsoleVisibility () {
-	$(messageWindowId).toggle();
+	$(htmlWindows['messageWindowId']).toggle();
 }
 
 function updateStatBar (statbar) {
@@ -69,18 +90,6 @@ function showDialog () {
 	renderer.render(stage); //	update the view to show this
 }
 
-function pixiPosToTileCoord (x,y) {
-	var clientX = Math.floor(x / tileSize);
-	var clientY = Math.floor(y / tileSize);
-
-	var zeroIndexedTileCount = tileCount - 1;
-
-	// Sanity check to make sure we can't click over the boundary
-	if (clientX > zeroIndexedTileCount) clientX = zeroIndexedTileCount;
-	if (clientY > zeroIndexedTileCount) clientY = zeroIndexedTileCount;
-
-	return{'x':clientX,'y':clientY}
-}
 
 //Triggered once a user sends a login message, asks for user password
 //username is a username string
@@ -98,13 +107,6 @@ function requestUserPassword (username) {
 		bindMessageButton(false,username);
 }
 
-//Converts tile coords from 0,0 - X,X based on tilecount to a Pixi stage pixel position
-//Returns an array of len 2 [x,y]
-function coordToPixiPosition (x,y) {
-	var posX = x*tileSize-tileSize;
-	var posY = y*tileSize-tileSize;
-	return [posX, posY];
-}
 
 function showControls (show) {
 	controlsContainer.visisble = show;
@@ -156,7 +158,7 @@ function handlePlayerLogin(data){
 	//Creates the new character to represent the player
 	showMapPosition(playerStatus['pos_x'], playerStatus['pos_y']);
 	newCharacterOnMap (playerStatus['charname'], playerStatus['pos_x'], playerStatus['pos_y']);
-	//bindStageClick();
+	bindStageClick(); //Activate movement click input
 	console.log('Logged in! Welcome!');
 }
 

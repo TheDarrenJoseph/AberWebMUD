@@ -1,6 +1,4 @@
-
-
-updateInputField = (character) ->
+this.updateInputField = (character) ->
 	# console.log("Received: "+character.data);
 	inputField = $('#message-input');
 
@@ -13,11 +11,11 @@ updateInputField = (character) ->
 		$('#message-input .user-input').append(character.data);
 
 
-setMessageLog = (text) ->
+this.setMessageLog = (text) ->
 	$('#message-log').val(text);
 
 
-updateMessageLog = (msg) ->
+this.updateMessageLog = (msg) ->
 	console.log("Received: "+msg['messageData']);
 	logVal = $('#message-log').val();
 
@@ -27,5 +25,5 @@ updateMessageLog = (msg) ->
 	#}
 
 
-clearMessageInputField = () ->
+this.clearMessageInputField = () ->
 	$('#message-input').val('');

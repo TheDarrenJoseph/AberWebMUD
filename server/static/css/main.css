@@ -50,5 +50,83 @@
 }
 
 #context-buttons {
-top: 0%;
+	top: 0%;
+}
+
+
+#inventory-window{
+	overflow: scroll;
+}
+
+.inventoryItem:hover{
+	background-color: grey;
+	color: white;
+}
+
+#strNumbert::before{
+	text-align: right;
+	content: "STRENGTH";
+}
+#dexNumber::before{
+	content: "DEXTERITY";
+}
+#conNumber::before{
+	content: "CONSTITUTION";
+}
+#intNumber::before{
+	content: "INTELLIGENCE";
+}
+#wisNumber::before{
+	content: "WISDOM";
+}
+#chaNumber::before{
+	content: "CHARISMA";
+}
+
+#statTable,td {
+	border-style: solid;
+	border-color: black;
+	border-width: 1px;
+}
+
+.thead{
+	table-layout: fixed;
+}
+
+#th{
+	border-style: solid;
+	border-color: red;
+	border-width: 1px;
+
+}
+
+
+.dialog {
+
+	position: absolute;
+	background-color: white;
+
+	padding: 5px;
+
+	border-style: solid;
+	border-color: black;
+	border-width: 2px;
+	left:25%;
+	top:25%;
+	width:50%;
+	height:50%;
+}
+
+
+
+.attrText {
+
+	width:50%;
+
+}
+
+.attrVal {
+
+	width:10%;
+
 }

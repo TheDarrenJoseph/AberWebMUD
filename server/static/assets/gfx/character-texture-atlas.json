@@ -1,9 +1,9 @@
 {
 	"frames": {
 		"player":{
-			"frame":{"x":0,"y":0,"w":18,"h":28},
-			"spriteSourceSize": {"x":0,"y":0,"w":18,"h":28},
-			"sourceSize": {"w":18,"h":28}
+			"frame":{"x":0,"y":0,"w":17,"h":28},
+			"spriteSourceSize": {"x":0,"y":0,"w":17,"h":28},
+			"sourceSize": {"w":17,"h":28}
 		},
 		"player-attacking":{
 			"frame":{"x":103,"y":135,"w":18,"h":28},

@@ -142,17 +142,30 @@ def handle_movement(message: dict):
     username = message['username']
     sessionId = message['sessionId']
 
-    if (sessionId in activeSessions and activeSessions[sessionId] == username):
-        if playerController.move_player(message):
-            movedPlayer = playerController.find_player(username) #Grab the username to check their updated details
+    print(activeSessions[sessionId])
 
-            #Update every client to the new movement
-            emit('movement-response', {'success':True,'posX':movedPlayer.posX,'posY':movedPlayer.posY}, broadcast=False)
-            emit('movement-update', {'charname':message['username'],'posX':movedPlayer.posX,'posY':movedPlayer.posY}, broadcast=True)
-            print('movement success for'+movedPlayer.username)
-        else :
-            #Send a failed response back to that one user
-            emit('movement-response', {'success':False}, broadcast=False)
+    if (sessionId in activeSessions and activeSessions[sessionId] == username):
+        movedPlayer = playerController.find_player(username)
+
+        if (movedPlayer is not None) :
+            playerPos = playerController.get_player_pos(username)
+
+            if playerPos is not None:
+                oldX = playerPos[0]
+                oldY = playerPos[1]
+                movementSuccess = False
+                print('Character move made from location'+str(oldX)+' '+str(oldY))
+
+                if playerController.move_player(message):
+                    movementSuccess = True
+                    newPos = playerController.get_player_pos(username)
+
+                    #Update every client to the new movement
+                    emit('movement-update', {'charname':message['username'],'oldX':oldX, 'oldY':oldY,'posX':newPos[0],'posY':newPos[1]}, broadcast=True)
+                    print('movement success for'+movedPlayer.username)
+
+        #Send a failed response back to that one user
+        emit('movement-response', {'success':movementSuccess}, broadcast=False)
     else:
         print(username+' not logged in')
 

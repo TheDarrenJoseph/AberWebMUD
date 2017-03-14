@@ -8,7 +8,7 @@ var mapContainer = new PIXI.ParticleContainer();
 var characterContainer = new PIXI.ParticleContainer();
 
 var tileSpriteArray; //	Sprites for the map view
-var mapCharacterArray = [tileCount]; //	Sprites for the players in the current map view
+var mapCharacterArray; //	Sprites for the players in the current map view
 
 stage.addChild(mapContainer);
 stage.addChild(dialogContainer);
@@ -150,5 +150,106 @@ function StatBar (name, posX, posY) {
 			this.innerSizeX = ((this.innerSizeX / 100) * value); //	Simple percentage adjustment for Y size
 
 		} else return false;
+	}
+}
+
+function isPositionRelativeToView(x,y) {
+	//Check whether or not this position is a view-relative one using x/y from 0 - tileCount
+	if (x <= tileCount-1 &&  x >= 0 &&  y <= tileCount-1 &&  y >= 0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function isPositionInMapView(x, y) {
+	//Check whether or not the character is within our map view window
+	if (x <= (mapGridStartX+tileCount) &&  x >= mapGridStartX &&  y <= (mapGridStartY + tileCount) &&  y >= mapGridStartY) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function isPositionInOverworld(x, y) {
+	if (x <= (overworldMapX) &&  x >= 0 &&  y <= (overworldMapY) &&  y >= 0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+//	We only view the map through our view window,
+//	This function adjusts the globalX to a value relative to the grid view
+function globalTilePosToLocal(globalX, globalY) {
+	return[0,0];
+
+	if (isPositionInOverworld(globalX, globalY)) {
+		if (isPositionInMapView(globalX, globalY)) return [globalX, globalY]; //	No change needed
+
+		//Minus the start co-ord offset to reduce back to 0 indexing
+		var thisX = globalX - mapGridStartX;
+		var thisY = globalY - mapGridStartY;
+
+		//if (x <= (mapGridStartX+tileCount) &&  x >= mapGridStartX &&  y <= (mapGridStartY + tileCount) &&  y >= mapGridStartY) {
+		//}
+
+		return [thisX,thisY];
+	} else {
+		return [0,0]; //return false instead for more clarity?
+	}
+}
+
+//	Converts tile coords from 0,0 - X,X based on tilecount to a Pixi stage pixel position
+//		-This takes a global position (say the map is 20 tiles, so from 0-19)
+//		-that position is then converted to a pixel amount based:
+//				--tile size
+//				--how many tiles are in the UI
+//				--where the view window is
+//		-Returns an array of len 2 [x,y]
+function coordToPixiPosition (x,y) {
+	//Firstly we need to adjust for what tile the top-left of our view is on
+	//This can then be used to
+
+	//mapGridStartX - top-left index for where our view is globally
+	//tileCount - the amount of tiles shown for x and y
+	//overworldMapX - the actual tile size of the map
+
+	if (!isPositionRelativeToView(x,y)) return; //Sanity check
+
+	var offsetX = 0;
+	var offsetY = 0;
+
+
+	var posX = (x*tileSize)
+	var posY = (y*tileSize)
+
+	console.log('Tilesize: '+tileSize+'Co-ord pos: '+x+' '+y+'\n'+'Pixi pos: '+posX+' '+posY);
+
+	return [posX, posY];
+}
+
+function pixiPosToTileCoord (x,y) {
+	var clientX = Math.floor(x / tileSize);
+	var clientY = Math.floor(y / tileSize);
+
+	var zeroIndexedTileCount = tileCount - 1;
+
+	// Sanity check to make sure we can't click over the boundary
+	if (clientX > zeroIndexedTileCount) clientX = zeroIndexedTileCount;
+	if (clientY > zeroIndexedTileCount) clientY = zeroIndexedTileCount;
+
+	console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
+
+	return{'x':clientX,'y':clientY}
+}
+
+//Moves the UI to a new position and draws the map there
+function showMapPosition(gridX,gridY){
+	if (isPositionInOverworld(gridX, gridY)) {
+		mapGridStartX = gridX;
+		mapGridStartY = gridY;
+
+		drawMapToGrid (gridX, gridY); //Draw the view at this position
 	}
 }

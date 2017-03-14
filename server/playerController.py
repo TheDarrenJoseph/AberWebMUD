@@ -22,6 +22,17 @@ def find_player(username:str):
         print('User not found: '+username)
         return None
 
+@db_session
+def get_player_pos(username:str):
+    thisPlayer = player.Player[username]
+
+    if (thisPlayer is not None):
+
+        posX = thisPlayer.character.posX
+        posY = thisPlayer.character.posY
+        return(posX,posY)
+
+    return None
 
 #Creates a new player database object
 def new_player(charname, username, password) -> player.Player:

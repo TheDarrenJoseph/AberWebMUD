@@ -4,9 +4,8 @@ var overworldAtlasPath = zeldaAssetPath + 'overworld-texture-atlas.json';
 var zeldaObjectsAtlasPath = zeldaAssetPath + 'zelda-objects-texture-atlas.json';
 var characterAtlasPath = zeldaAssetPath + 'character-texture-atlas.json';
 
-var messageWindowId = '#message-window';
 
-var tileMappings = ['grass-plain','barn-front'];
+var tileMappings = ['grass-plain', 'barn-front'];
 
 // Set our mapWindowSize to the smallest of our page dimensions
 // Using the smallest dimension to get a square
@@ -56,7 +55,23 @@ function setupMapUI () {
 	return tileSpriteArray;
 }
 
-//Creates an empty 2D array to store players in our view
+function drawMapCharacterArray () {
+	for (var x = 0; x < tileCount; x++) {
+		for (var y = 0; y < tileCount; y++) {
+			var thisCharacter = mapCharacterArray[x][y];
+
+			if (thisCharacter != null && thisCharacter.sprite != null) {
+				console.log('drawing tile..');
+				characterContainer.addChild(thisCharacter.sprite);
+
+			}
+		}
+	}
+
+	renderer.render(stage);
+}
+
+//	Creates an empty 2D array to store players in our view
 function createMapCharacterArray () {
 	var mapCharacterArray = Array(tileCount);
 	for (var x = 0; x < tileCount; x++) {
@@ -66,52 +81,62 @@ function createMapCharacterArray () {
 	return mapCharacterArray;
 }
 
+function createSprite(atlasPath, subtileName, tileHeight, tileWidth, x, y, interactive) {
+	var thisSprite = makeSpriteFromAtlas(atlasPath, subtileName);
+
+	thisSprite.height = tileHeight;
+	thisSprite.width = tileWidth;
+
+	thisSprite.x = x;
+	thisSprite.y = y;
+
+	thisSprite.interactive = interactive;
+	return thisSprite;
+}
+
 function setupConsoleButton () {
-	//var consoleButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 16, 16, 16);
-	//var consoleButtonSprite = PIXI.Sprite.fromImage(zeldaAssetPath+'chat-bubble-blank.png');
-	var consoleButtonSprite = makeSpriteFromAtlas (zeldaObjectsAtlasPath, 'chat-bubble-blank');
-
-	consoleButtonSprite.height = tileSize;
-	consoleButtonSprite.width = tileSize;
-
-	consoleButtonSprite.x = 0;
-	consoleButtonSprite.y = mapWindowSize - tileSize;
-
-	consoleButtonSprite.interactive = true;
+	//	var consoleButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 16, 16, 16);
+	//	var consoleButtonSprite = PIXI.Sprite.fromImage(zeldaAssetPath+'chat-bubble-blank.png');
+	var consoleButtonSprite = createSprite(	zeldaObjectsAtlasPath,
+																					'chat-bubble-blank',
+																					tileSize,
+																					tileSize,
+																					0 ,
+																					mapWindowSize - tileSize,
+																					true);
 
 	controlsContainer.addChild(consoleButtonSprite);
 	consoleButtonSprite.on ('click', toggleConsoleVisibility);
 }
 
 function setupContextButtons () {
-	//var inventoryButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 0, 16, 16);
-	var inventoryButtonSprite = makeSpriteFromAtlas (zeldaObjectsAtlasPath, 'chest-single');
+	//	var inventoryButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 0, 16, 16);
+	var inventoryButtonSprite = createSprite(	zeldaObjectsAtlasPath,
+																						'chest-single',
+																						tileSize,
+																						tileSize*2,
+																						mapWindowSize - (tileSize * 2),
+																						mapWindowSize - tileSize,
+																						true
+																					);
 
-	//inventoryButtonSprite.height = tileSize;
-	//inventoryButtonSprite.width = tileSize * 2;
-	//inventoryButtonSprite.position.x = mapWindowSize - (tileSize * 2);
-	//inventoryButtonSprite.position.y = mapWindowSize - tileSize;
-
-	inventoryButtonSprite.x = 10;
-	inventoryButtonSprite.y = 10;
-	inventoryButtonSprite.height = tileSize;
-	inventoryButtonSprite.width = tileSize * 2;
-	inventoryButtonSprite.position.x = mapWindowSize - (tileSize * 2);
-	inventoryButtonSprite.position.y = mapWindowSize - tileSize;
-	inventoryButtonSprite.interactive = true;
 
 	controlsContainer.addChild(inventoryButtonSprite);
-	inventoryButtonSprite.on ('click', showDialog);
+	inventoryButtonSprite.on ('click', toggleIventoryWinVisibility);
 
-	var statsButtonSprite = makeSpriteFromAtlas (characterAtlasPath, 'player');
-
-	statsButtonSprite.height = tileSize;
-	statsButtonSprite.width = tileSize;
-	statsButtonSprite.position.x = mapWindowSize - (tileSize * 3);
-	statsButtonSprite.position.y = mapWindowSize - tileSize;
-	statsButtonSprite.interactive = true;
+	var statsButtonSprite = createSprite(	zeldaObjectsAtlasPath,
+																				'chest-single',
+																				tileSize,
+																				tileSize*2,
+																				mapWindowSize - tileSize*4,
+																				mapWindowSize - tileSize,
+																				true
+																			);
 
 	controlsContainer.addChild(statsButtonSprite);
+	statsButtonSprite.on ('click', toggleStatWinVisibility);
+
+	renderer.render(stage);
 
 	return[inventoryButtonSprite,statsButtonSprite];
 }
@@ -142,63 +167,44 @@ function setupStatBars () {
 	return [healthBar];
 }
 
-function characterSpriteExists(charactername, x,y) {
-	var character = mapCharacterArray[x][y];
-	//if ()
-}
-
-function isPositionInMapView(x, y) {
-	//Check whether or not the character is within our map view window
-	if (x <= (mapGridStartX+tileCount) &&  x >= mapGridStartX &&  y <= (mapGridStartY + tileCount) &&  y >= mapGridStartY) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-function isPositionInOverworld(x, y) {
-	if (x <= (overworldMapX) &&  x >= 0 &&  y <= (overworldMapY) &&  y >= 0) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-//	We only view the map through our view window,
-//	This function adjusts the globalX to a value relative to the grid view
-function globalTilePosToLocal(globalX,globalY) {
-
-}
-
-function showMapPosition(gridX,gridY){
-	if (isPositionInOverworld(gridX, gridY)) {
-		mapGridStartX = gridX;
-		mapGridStartY = gridY;
-
-		drawMapToGrid (gridX, gridY); //Draw the view at this position
-	}
-}
 
 //Creates a character sprite on-the-fly to represent another character
-//gridX, gridY are UI co-ords from 0-tileCount
+//gridX, gridY are character positions on the map
 function newCharacterOnMap (charactername, gridX, gridY) {
 	console.log('new char.. ' + charactername + gridX + gridY);
+	if (!isPositionInOverworld(gridX, gridY)) return; //	Do nothing if the coordinates don't exist on the map
 
-	if (isPositionInMapView(gridX, gridY)) {
+	//Convert global co-ords to local view ones so we can modify the UI
+	var localPos = globalTilePosToLocal(gridX, gridY);
+	var localX = localPos[0];
+	var localY = localPos[1];
+
+	console.log('new char at:'+localX+' '+localY);
+
+	if (isPositionRelativeToView(localX, localY)) {
 			var characterSprite = makeSpriteFromAtlas(characterAtlasPath, 'player');
-			var pixiPos = coordToPixiPosition(gridX, gridY);
+
+			var pixiPos = coordToPixiPosition(localX, localX);
+			console.log('PIXI POS for new char: '+pixiPos[0]+' '+pixiPos[1]);
 			characterSprite.x = pixiPos[0];
 			characterSprite.y = pixiPos[1];
 			characterContainer.addChild(characterSprite);
 
-			console.log(mapCharacterArray);
+			renderer.render(stage);
 
-			console.log(mapCharacterArray[gridX][gridY] );
-			mapCharacterArray[gridX][gridY] = GridCharacter(charactername, gridX, gridY, characterSprite);
+			//console.log(mapCharacterArray);
+			// mapCharacterArray
+
+			mapCharacterArray[localX][localY] = new GridCharacter(charactername, pixiPos[0], pixiPos[1], characterSprite);
+
+			console.log('new char at:');
+			console.log(mapCharacterArray[localX][localY]);
+
+			drawMapCharacterArray ();
 
 			return characterSprite;
 	} else {
-		console.log('New player not in view '+gridX+' '+gridY);
+		console.log('New player not in our view at this position: ' + gridX + ' ' + gridY);
 	}
 
 	return false;
@@ -207,10 +213,12 @@ function newCharacterOnMap (charactername, gridX, gridY) {
 function updateCharacterSpritePos(oldX, oldY, x, y) {
 	var sprite = mapCharacterArray[oldX][oldY];
 
-	var characterPos = coordToPixiPosition(x, y);
-	sprite.x = characterPos[0];
-	sprite.y = characterPos[1];
-	characterContainer.addChild(sprite);
+	if (sprite != null){
+		var characterPos = coordToPixiPosition(x, y);
+		sprite.x = characterPos[0];
+		sprite.y = characterPos[1];
+		characterContainer.addChild(sprite);
+	}
 }
 
 function assetsLoaded () {
@@ -245,6 +253,8 @@ function assetsLoaded () {
 
 	setupConsoleButton();
 	var contextButtons = setupContextButtons();
+
+	hideWindows();
 
 	//renderer.render(stage);
 }

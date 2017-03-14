@@ -49,7 +49,7 @@ function connectSocket() {
 
 function setupStatusUpdates (movementResponseCallback, movementUpdateCallback) {
     socket.on('movement-response', movementResponseCallback);
-    //socket.on('movement-update', movementUpdateCallback);
+    socket.on('movement-update', movementUpdateCallback);
 }
 
 function saveMapUpdate (mapData) {
