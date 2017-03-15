@@ -9,8 +9,6 @@ function stageDoubleClicked (mouseEvent) {
 }
 
 function stageClicked (renderer) {
-	hideWindows(); //Minimises all dialog windows to give the screen focus
-
 	var mouseEvent = renderer.plugins.interaction.pointer.originalEvent;
 	//console.log(pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY));
 	setTimeout(function () { return stageDoubleClicked(mouseEvent); }, 150);
@@ -56,25 +54,30 @@ function objectClicked (object) {
 	// renderer.render(stage);
 }
 
-function hideWindows() {
+function hideWindows(dialog) {
+	var dialog = $(htmlWindows[dialog]);
+	var toHide = dialog.is(':visible'); //Check if the dialog is visible to begin with
 
-	for (win in htmlWindows) {
-		console.log(win);
-		$(htmlWindows[win]).hide();
+	$('.dialog:visible').hide();
+
+	if (toHide) {
+		console.log('vis');
+		dialog.hide();
+	} else {
+		dialog.show();
 	}
 }
 
 function toggleStatWinVisibility () {
-	$(htmlWindows['statWindowId']).toggle();
+	hideWindows('statWindowId');
 }
 
-
 function toggleIventoryWinVisibility () {
-	$(htmlWindows['inventoryWindowId']).toggle();
+	hideWindows('inventoryWindowId');
 }
 
 function toggleConsoleVisibility () {
-	$(htmlWindows['messageWindowId']).toggle();
+	hideWindows('messageWindowId');
 }
 
 function updateStatBar (statbar) {
