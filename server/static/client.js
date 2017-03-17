@@ -16,7 +16,18 @@ function updateMessageLog (msg) {
     var logVal;
     console.log("Received: " + msg['messageData']);
     logVal = $('#message-log').val();
-    return $('#message-log').val(logVal + msg['messageData'] + '\n');
+
+
+
+    if (logVal != '') {
+      //Add a newline before the message
+      $('#message-log').val(logVal + '\n' +msg['messageData'] + '\n');
+    } else {
+      //First message line, no need for a newline prior
+      $('#message-log').val(logVal + msg['messageData'] + '\n');
+    }
+
+
 };
 
 function clearMessageInputField () {
@@ -30,11 +41,22 @@ var clientSession = {
   sessionId: null
 }
 
+function getSessionInfoJSON(){
+  var username = clientSession.username;
+  var sessionId = clientSession.sessionId;
+
+  return {sessionId: sessionId, username: username}
+}
+
 function sendNewChatMessage() {
   var userInput = $('#message-input').val();
 	//console.log('message sent!: \''+userInput+'\'');
+  sessionJson = getSessionInfoJSON();
+
+  //console.log(sessionJson)
+
   if (userInput !== '') {
-	   socket.emit('new-chat-message', {data: userInput});
+	   socket.emit('new-chat-message', {data: userInput, sessionJson});
   }
 }
 
@@ -71,17 +93,21 @@ function connectSocket() {
   //socket = io.connect('https://localhost');
 }
 
-function setupStatusUpdates (movementResponseCallback, movementUpdateCallback) {
+function setStatusUpdateCallbacks (movementResponseCallback, movementUpdateCallback) {
     socket.on('movement-response', movementResponseCallback);
     socket.on('movement-update', movementUpdateCallback);
 }
 
 function saveMapUpdate (mapData) {
   overworldMap = JSON.parse(mapData['data']);
-  overworldMapX = mapData['map-size-x'];
-  overworldMapY = mapData['map-size-y'];
+  overworldMapSizeX = mapData['map-size-x'];
+  overworldMapSizeY = mapData['map-size-y'];
   console.log('MAP DATA RECEIVED');
   drawMapToGrid ();
+}
+
+function handleSessionError () {
+  console.log('Session Error!');
 }
 
 function setupChat () {
@@ -96,6 +122,7 @@ function setupChat () {
 
   //emit('login-success', userData['username'])
   socket.on('login-success', handlePlayerLogin);
+  socket.on('session-error', handleSessionError);
 }
 var htmlWindows = {messageWindowId: '#message-window', statWindowId: '#stat-window', inventoryWindowId: '#inventory-window'};
 
@@ -118,27 +145,28 @@ function stageClicked (renderer) {
 //startX/Y - the start areas to draw from
 function drawMapToGrid (startX, startY) {
 	console.log('drawing map to grid: '+overworldMap.length);
+	console.log('from '+startX+' '+startY+' to '+tileCount)
 
-	//Check there's at least enough tiles to fill our grid
+	//Check there's at least enough tiles to fill our grid (square map)
 	if (overworldMap.length >= tileCount) {
-			if (isPositionInMapView(startX, startY)) {
+				var endX = startX+tileCount;
+
 				for (var x = startX; x < tileCount; x++) {
-					for (var y = 0; startY < tileCount; y++) {
+					for (var y = startY; y < tileCount; y++) {
 							var tileSprite = tileSpriteArray[x][y]; // Reference to new tile in the array
 							var tileFromServer = overworldMap[x][y];
 
-							if (tileSprite != null &&  tileFromServer != null){ //Check the data for this tile exists
-								//var thisSprite = mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
-								var subTexture =  getAtlasSubtexture(overworldAtlasPath, tileMappings[tileFromServer.tileType]);
+								if (tileSprite != null &&  tileFromServer != null){ //Check the data for this tile exists
+									//var thisSprite = mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
+									var subTexture =  getAtlasSubtexture(overworldAtlasPath, tileMappings[tileFromServer.tileType]);
 
-								if (subTexture != null) {
-									tileSprite.texture = subTexture;
-									mapContainer.addChild(tileSprite);
+									if (subTexture != null) {
+										tileSprite.texture = subTexture;
+										mapContainer.addChild(tileSprite);
+									}
 								}
-							}
 					}
 				}
-		}
 
 	} else {
 		console.log('overworld map data from remote is missing.');
@@ -242,26 +270,55 @@ function bindMessageButton(isText,username){
 	}
 }
 
-function bindStageClick() {
-	$('#main-window').on('click',
-			function () {
-				return stageClicked(renderer);
-			}
-		);
+function bindStageClick(enabled) {
+	var mainWindow = $('#main-window');
+	if(enabled){
+		mainWindow.on('click',
+				function () {
+					return stageClicked(renderer);
+				}
+			);
+	} else {
+		mainWindow.unbind('click');
+	}
+}
+
+function disableUI() {
+	bindStageClick(false); //Turns off stage-click input
+	showControls (false);
+	renderer.render(stage);
+}
+
+function enableUI() {
+	bindStageClick(true); //Activate movement click input
+	showControls (true);
+	renderer.render(stage);
 }
 
 //data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 function handlePlayerLogin(data){
-	renderer.render(stage); //finally draw the game stage for the user
-	console.log(data);
+	//console.log(data);
 	var playerStatus = data['player-status']
+	console.log('Login data received: ');
+	console.log(data);
 
-	//console.log(character);
+	//Update the client session to contain our new data
+	clientSession.username = playerStatus['username'];
+	clientSession.character.charname = playerStatus['charname'];
+	clientSession.character.posX = playerStatus['pos_x'];
+	clientSession.character.posX = playerStatus['pos_y'];
+	clientSession.sessionId = data['sessionId'];
+	console.log('Saved session object: ');
+	console.log(clientSession);
+
+	enableUI();
+	showMapPosition(clientSession.character.posX, clientSession.character.posY);
+
 	//Creates the new character to represent the player
-	showMapPosition(playerStatus['pos_x'], playerStatus['pos_y']);
-	newCharacterOnMap (playerStatus['charname'], playerStatus['pos_x'], playerStatus['pos_y']);
-	bindStageClick(); //Activate movement click input
+	newCharacterOnMap (clientSession.character.charname , 	clientSession.character.posX, clientSession.character.posX);
+
 	console.log('Logged in! Welcome!');
+
 }
 
 function bindEvents () {
@@ -284,13 +341,17 @@ function handleMovementResponse (responseJSON) {
 }
 
 //Handles a movement
+// 'movement-update', {'username':message['username'],'oldX':oldX, 'oldY':oldY,'posX':posX,'posY':posY}
 function handleMovementUpdate (updateJSON) {
     //console.log(updateJSON);
-    var charname = updateJSON['charname'];
+    var username = updateJSON['username'];
+    var oldX = updateJSON['posX'];
+    var oldY = updateJSON['posY'];
     var posX = updateJSON['posX'];
     var posY = updateJSON['posY'];
 
-    console.log('Another player has moved.. \nCharacter:' + charname + ' at ' + posX + ' ' + posY);
+    console.log('Another player has moved.. \nUser:' + username + ' to ' + posX + ' ' + posY);
+    updateCharacterSpritePos(username, oldX, oldY, posX, posY); 
 }
 
 function performSetup () {
@@ -299,7 +360,9 @@ function performSetup () {
   connectSocket();
   setupPageUI();
   setupChat();
-  setupStatusUpdates(handleMovementResponse);
+
+  setStatusUpdateCallbacks (handleMovementResponse, handleMovementUpdate);
+
   socket.emit('map-data-request');
   //console.log('spriteArray '+tileSpriteArray);
 
@@ -351,8 +414,8 @@ var mapGridStartX = 0;
 var mapGridStartY = 0;
 
 var overworldMap = [];
-var overworldMapX = 0; //Sizes of the map
-var overworldMapY = 0;
+var overworldMapSizeX = 0; //Sizes of the map
+var overworldMapSizeY = 0;
 
 var gridCharacter = {
 	charactername: null,
@@ -463,8 +526,8 @@ function StatBar (name, posX, posY) {
 	}
 }
 
+//Check whether or not this position is a view-relative one using x/y from 0 - tileCount
 function isPositionRelativeToView(x,y) {
-	//Check whether or not this position is a view-relative one using x/y from 0 - tileCount
 	if (x <= tileCount-1 &&  x >= 0 &&  y <= tileCount-1 &&  y >= 0) {
 		return true;
 	} else {
@@ -472,8 +535,8 @@ function isPositionRelativeToView(x,y) {
 	}
 }
 
-function isPositionInMapView(x, y) {
 	//Check whether or not the character is within our map view window
+function isPositionInMapView(x, y) {
 	if (x <= (mapGridStartX+tileCount) &&  x >= mapGridStartX &&  y <= (mapGridStartY + tileCount) &&  y >= mapGridStartY) {
 		return true;
 	} else {
@@ -482,7 +545,7 @@ function isPositionInMapView(x, y) {
 }
 
 function isPositionInOverworld(x, y) {
-	if (x <= (overworldMapX) &&  x >= 0 &&  y <= (overworldMapY) &&  y >= 0) {
+	if (x <= (overworldMapSizeX) &&  x >= 0 &&  y <= (overworldMapSizeY) &&  y >= 0) {
 		return true;
 	} else {
 		return false;
@@ -523,7 +586,7 @@ function coordToPixiPosition (x,y) {
 
 	//mapGridStartX - top-left index for where our view is globally
 	//tileCount - the amount of tiles shown for x and y
-	//overworldMapX - the actual tile size of the map
+	//overworldMapSizeX - the actual tile size of the map
 
 	if (!isPositionRelativeToView(x,y)) return; //Sanity check
 
@@ -737,52 +800,73 @@ function setupStatBars () {
 //gridX, gridY are character positions on the map
 function newCharacterOnMap (charactername, gridX, gridY) {
 	console.log('new char.. ' + charactername + gridX + gridY);
-	if (!isPositionInOverworld(gridX, gridY)) return; //	Do nothing if the coordinates don't exist on the map
 
-	//Convert global co-ords to local view ones so we can modify the UI
-	var localPos = globalTilePosToLocal(gridX, gridY);
-	var localX = localPos[0];
-	var localY = localPos[1];
-
-	console.log('new char at:'+localX+' '+localY);
-
-	if (isPositionRelativeToView(localX, localY)) {
-			var characterSprite = makeSpriteFromAtlas(characterAtlasPath, 'player');
-
-			var pixiPos = coordToPixiPosition(localX, localX);
-			console.log('PIXI POS for new char: '+pixiPos[0]+' '+pixiPos[1]);
-			characterSprite.x = pixiPos[0];
-			characterSprite.y = pixiPos[1];
-			characterContainer.addChild(characterSprite);
-
-			renderer.render(stage);
-
-			//console.log(mapCharacterArray);
-			// mapCharacterArray
-
-			mapCharacterArray[localX][localY] = new GridCharacter(charactername, pixiPos[0], pixiPos[1], characterSprite);
-
-			console.log('new char at:');
-			console.log(mapCharacterArray[localX][localY]);
-
-			drawMapCharacterArray ();
-
-			return characterSprite;
+	if (!isPositionInOverworld(gridX, gridY)) {
+		console.log('bad pos: '+gridX+' '+gridY);
+		return false; //	Do nothing if the coordinates don't exist on the map
 	} else {
-		console.log('New player not in our view at this position: ' + gridX + ' ' + gridY);
+		//Convert global co-ords to local view ones so we can modify the UI
+		var localPos = globalTilePosToLocal(gridX, gridY);
+		var localX = localPos[0];
+		var localY = localPos[1];
+
+		console.log('new char at:'+localX+' '+localY);
+
+		if (isPositionRelativeToView(localX, localY)) {
+				var characterSprite = makeSpriteFromAtlas(characterAtlasPath, 'player');
+
+				var pixiPos = coordToPixiPosition(localX, localX);
+				console.log('PIXI POS for new char: '+pixiPos[0]+' '+pixiPos[1]);
+				characterSprite.x = pixiPos[0];
+				characterSprite.y = pixiPos[1];
+				characterContainer.addChild(characterSprite);
+
+				renderer.render(stage);
+
+				//console.log(mapCharacterArray);
+				// mapCharacterArray
+
+				mapCharacterArray[localX][localY] = new GridCharacter(charactername, pixiPos[0], pixiPos[1], characterSprite);
+
+				console.log('new char at:');
+				console.log(mapCharacterArray[localX][localY]);
+
+				drawMapCharacterArray ();
+
+				return characterSprite;
+		} else {
+			console.log('New player not in our view at this position: ' + gridX + ' ' + gridY);
+		}
+
+		return false;
 	}
 
-	return false;
 }
 
-function updateCharacterSpritePos(oldX, oldY, x, y) {
-	var sprite = mapCharacterArray[oldX][oldY];
+function updateCharacterSpritePos(charname, oldX, oldY, x, y) {
+	//Have they only moved within the screen?
+	if (isPositionInMapView(oldX, oldY)) {
+		//Moves the sprite to the new position
+		if (isPositionInMapView(x, y)) {
+			console.log('Moving '+charname+'!');
+			var sprite = mapCharacterArray[oldX][oldY];
 
-	if (sprite != null){
-		var characterPos = coordToPixiPosition(x, y);
-		sprite.x = characterPos[0];
-		sprite.y = characterPos[1];
-		characterContainer.addChild(sprite);
+			if (sprite != null){
+				var characterPos = coordToPixiPosition(x, y);
+				sprite.x = characterPos[0];
+				sprite.y = characterPos[1];
+				characterContainer.addChild(sprite);
+				renderer.render(stage);
+			}
+		} else {
+			//Moved out of screen
+			//Remove the sprite at oldX, oldY
+			console.log(charname+' walked out of view!');
+		}
+
+	} else if (isPositionInMapView(x, y)) { //Moved into screen from
+		newCharacterOnMap (charactername, x, y); //Create a sprite to show them!
+		console.log(charname+' has walked into view!');
 	}
 }
 

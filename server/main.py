@@ -1,14 +1,8 @@
 from flask import Flask, request, render_template, session
 from flask_socketio import SocketIO, send, emit
 
-import userInput, playerController, player, overworld, database, crypto
+from pyfiles import userInput, playerController, player, overworld, database, crypto
 import jsonpickle, threading, passlib, ssl
-
-
-#from argon2 import PasswordHasher
-
-#Setup our argon2 hasher
-#hasher = PasswordHasher()
 
 #Using TLS for HTTPS Support
 #context = ssl.SSLContext(ssl.PROTOCOL_TLS)
@@ -25,42 +19,83 @@ connectedSessions = []
 #Dict mapping of session IDs to usernames once authenticated/logged_in
 activeSessions = {}
 
+#This is our PonyORM db handler
 _dbHandler = None
 
 @app.route("/", methods=['GET'])
 def main():
     return render_template('play.html') #Renders the game page from a file
 
+#Sanity checks the JSON protocol message send from the client
+def check_message_params(message: dict):
+    print('CHECKING..')
+    print(message)
+    dataTag = 'data'
+    paramTag = 'sessionJson'
+
+    if dataTag in message:
+        #Send the 'data' from the input to be checked
+        inputParams = userInput.check_chat_input(message[dataTag])
+
+        if inputParams is None:
+            print('Missing input param data from protocol message')
+        else:
+            if ('choice' not in inputParams or dataTag not in inputParams):
+                print('Missing user input paramaters in protocol message')
+            elif (inputParams['choice'] == 1):
+                #Checking our parsed data exists
+                if (inputParams['data'] is None or 'username' not in inputParams['data'] or inputParams['data']['username'] is None):
+                    print('Missing username in protocol  message (Probably not logged in)')
+                else:
+                    return (True, inputParams)
+            elif (inputParams['choice'] == 2):
+                print('User has sent a message')
+                if ('data' in inputParams and 'messageData' in inputParams['data'] and inputParams['data']['messageData'] is not None):
+                    return (True, inputParams)
+                else:
+                    print('No message data.')
+
+    return (False,None)
+
 #@socketServer.on('new-message', namespace='/')
 def check_message(message: dict) -> None:
+    print(message)
+
     sid = request.sid
+    messageDetails = check_message_params(message)
 
+    #True if the the message was properly formatted
+    if (messageDetails[0] == True):
+        inputParams = messageDetails[1]
+        userChoice = inputParams['choice']
+        userData = inputParams['data']
 
-    inputParams = userInput.check_chat_input(message['data'])
-    userChoice = inputParams['choice']
-    userData = inputParams['data']
+        if userChoice == 0:
+            return
+        elif userChoice == 1:
+            username = inputParams['data']['username'] #user inputted username from client message
+            foundPlayer = playerController.find_player(username)
 
-    username = userData['username']
+            if foundPlayer is not None:
+                if foundPlayer.username not in activeSessions:
+                    print ('Requesting authentication for existing user..')
+                    print(userData)
+                    emit('request-password', username) #Send the password request for existing user
+                else:
+                    print('User already logged in..')
+            else :
+                print('User does not exist'+username)
+                emit('request-new-password', username) #Send the password creation request for a new account
 
-    if userChoice == 0:
-        return
-    elif userChoice == 1:
-        foundPlayer = playerController.find_player(username)
+        elif userChoice == 2:
+            username = message['sessionJson']['username'] #user inputted username from client message
+            foundPlayer = playerController.find_player(username)
 
-        if foundPlayer is not None:
-            if foundPlayer.username not in activeSessions:
-                print ('Requesting authentication for existing user..')
-                print(userData)
-                emit('request-password', username) #Send the password request for existing user
+            if foundPlayer is not None:
+                print (inputParams['data']['messageData'])
+                send_message(userData)
             else:
-                print('User already logged in..')
-        else :
-            print('User does not exist'+username)
-            emit('request-new-password', username) #Send the password creation request for a new account
-
-    elif userChoice == 2:
-        print (inputParams['data']['messageData'])
-        send_message(userData)
+                print('User must be logged in to message')
 
 def send_message(message: dict) -> None:
     #DEBUG
@@ -135,16 +170,30 @@ def handle_disconnect() -> None:
 #    message = {'success':True, 'posX':player.pos_x, 'posY':player.pos_y}
 #    send_message(message)
 
+def check_session(sessionId, username):
+        if (sessionId in activeSessions) :
+            if (activeSessions[sessionId] == username):
+                print(activeSessions[sessionId])
+                return True
+            else:
+                print('SessionID / Username mismatch! ('+sessionId+','+username+')')
+        else:
+            print(username+' not logged in or session not active')
+
+        #Send a session-error event to the client
+        emit('session-error')
+        return False
+
 def handle_movement(message: dict):
     #If the movment returns True, all is good and we can send back a movement response
     #move_player also checks if the username exists for us
+    print('MOVEMENT MESSAGE: ')
     print(message)
+
     username = message['username']
     sessionId = message['sessionId']
 
-    print(activeSessions[sessionId])
-
-    if (sessionId in activeSessions and activeSessions[sessionId] == username):
+    if(check_session(sessionId,username)):
         movedPlayer = playerController.find_player(username)
 
         if (movedPlayer is not None) :
@@ -161,13 +210,13 @@ def handle_movement(message: dict):
                     newPos = playerController.get_player_pos(username)
 
                     #Update every client to the new movement
-                    emit('movement-update', {'charname':message['username'],'oldX':oldX, 'oldY':oldY,'posX':newPos[0],'posY':newPos[1]}, broadcast=True)
+                    emit('movement-update', {'username':message['username'],'oldX':oldX, 'oldY':oldY,'posX':newPos[0],'posY':newPos[1]}, broadcast=True)
                     print('movement success for'+movedPlayer.username)
-
-        #Send a failed response back to that one user
-        emit('movement-response', {'success':movementSuccess}, broadcast=False)
-    else:
-        print(username+' not logged in')
+                    print(str(oldX)+str(oldY)+" "+str(newPos[0])+str(newPos[1]))
+                else:
+                    #Send a failed response back to that one user
+                    emit('movement-response', {'success':movementSuccess}, broadcast=False)
+                    pass
 
 #Sets up players, maps, etc
 def setup_instance():

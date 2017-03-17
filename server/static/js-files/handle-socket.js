@@ -6,11 +6,22 @@ var clientSession = {
   sessionId: null
 }
 
+function getSessionInfoJSON(){
+  var username = clientSession.username;
+  var sessionId = clientSession.sessionId;
+
+  return {sessionId: sessionId, username: username}
+}
+
 function sendNewChatMessage() {
   var userInput = $('#message-input').val();
 	//console.log('message sent!: \''+userInput+'\'');
+  sessionJson = getSessionInfoJSON();
+
+  //console.log(sessionJson)
+
   if (userInput !== '') {
-	   socket.emit('new-chat-message', {data: userInput});
+	   socket.emit('new-chat-message', {data: userInput, sessionJson});
   }
 }
 
@@ -47,17 +58,21 @@ function connectSocket() {
   //socket = io.connect('https://localhost');
 }
 
-function setupStatusUpdates (movementResponseCallback, movementUpdateCallback) {
+function setStatusUpdateCallbacks (movementResponseCallback, movementUpdateCallback) {
     socket.on('movement-response', movementResponseCallback);
     socket.on('movement-update', movementUpdateCallback);
 }
 
 function saveMapUpdate (mapData) {
   overworldMap = JSON.parse(mapData['data']);
-  overworldMapX = mapData['map-size-x'];
-  overworldMapY = mapData['map-size-y'];
+  overworldMapSizeX = mapData['map-size-x'];
+  overworldMapSizeY = mapData['map-size-y'];
   console.log('MAP DATA RECEIVED');
   drawMapToGrid ();
+}
+
+function handleSessionError () {
+  console.log('Session Error!');
 }
 
 function setupChat () {
@@ -72,4 +87,5 @@ function setupChat () {
 
   //emit('login-success', userData['username'])
   socket.on('login-success', handlePlayerLogin);
+  socket.on('session-error', handleSessionError);
 }

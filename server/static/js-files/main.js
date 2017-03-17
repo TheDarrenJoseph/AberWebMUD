@@ -15,13 +15,17 @@ function handleMovementResponse (responseJSON) {
 }
 
 //Handles a movement
+// 'movement-update', {'username':message['username'],'oldX':oldX, 'oldY':oldY,'posX':posX,'posY':posY}
 function handleMovementUpdate (updateJSON) {
     //console.log(updateJSON);
-    var charname = updateJSON['charname'];
+    var username = updateJSON['username'];
+    var oldX = updateJSON['posX'];
+    var oldY = updateJSON['posY'];
     var posX = updateJSON['posX'];
     var posY = updateJSON['posY'];
 
-    console.log('Another player has moved.. \nCharacter:' + charname + ' at ' + posX + ' ' + posY);
+    console.log('Another player has moved.. \nUser:' + username + ' to ' + posX + ' ' + posY);
+    updateCharacterSpritePos(username, oldX, oldY, posX, posY); 
 }
 
 function performSetup () {
@@ -30,7 +34,9 @@ function performSetup () {
   connectSocket();
   setupPageUI();
   setupChat();
-  setupStatusUpdates(handleMovementResponse);
+
+  setStatusUpdateCallbacks (handleMovementResponse, handleMovementUpdate);
+
   socket.emit('map-data-request');
   //console.log('spriteArray '+tileSpriteArray);
 

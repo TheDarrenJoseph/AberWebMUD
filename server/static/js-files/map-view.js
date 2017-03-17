@@ -41,8 +41,8 @@ var mapGridStartX = 0;
 var mapGridStartY = 0;
 
 var overworldMap = [];
-var overworldMapX = 0; //Sizes of the map
-var overworldMapY = 0;
+var overworldMapSizeX = 0; //Sizes of the map
+var overworldMapSizeY = 0;
 
 var gridCharacter = {
 	charactername: null,
@@ -153,8 +153,8 @@ function StatBar (name, posX, posY) {
 	}
 }
 
+//Check whether or not this position is a view-relative one using x/y from 0 - tileCount
 function isPositionRelativeToView(x,y) {
-	//Check whether or not this position is a view-relative one using x/y from 0 - tileCount
 	if (x <= tileCount-1 &&  x >= 0 &&  y <= tileCount-1 &&  y >= 0) {
 		return true;
 	} else {
@@ -162,8 +162,8 @@ function isPositionRelativeToView(x,y) {
 	}
 }
 
-function isPositionInMapView(x, y) {
 	//Check whether or not the character is within our map view window
+function isPositionInMapView(x, y) {
 	if (x <= (mapGridStartX+tileCount) &&  x >= mapGridStartX &&  y <= (mapGridStartY + tileCount) &&  y >= mapGridStartY) {
 		return true;
 	} else {
@@ -172,7 +172,7 @@ function isPositionInMapView(x, y) {
 }
 
 function isPositionInOverworld(x, y) {
-	if (x <= (overworldMapX) &&  x >= 0 &&  y <= (overworldMapY) &&  y >= 0) {
+	if (x <= (overworldMapSizeX) &&  x >= 0 &&  y <= (overworldMapSizeY) &&  y >= 0) {
 		return true;
 	} else {
 		return false;
@@ -213,7 +213,7 @@ function coordToPixiPosition (x,y) {
 
 	//mapGridStartX - top-left index for where our view is globally
 	//tileCount - the amount of tiles shown for x and y
-	//overworldMapX - the actual tile size of the map
+	//overworldMapSizeX - the actual tile size of the map
 
 	if (!isPositionRelativeToView(x,y)) return; //Sanity check
 

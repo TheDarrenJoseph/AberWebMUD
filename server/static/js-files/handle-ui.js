@@ -19,27 +19,28 @@ function stageClicked (renderer) {
 //startX/Y - the start areas to draw from
 function drawMapToGrid (startX, startY) {
 	console.log('drawing map to grid: '+overworldMap.length);
+	console.log('from '+startX+' '+startY+' to '+tileCount)
 
-	//Check there's at least enough tiles to fill our grid
+	//Check there's at least enough tiles to fill our grid (square map)
 	if (overworldMap.length >= tileCount) {
-			if (isPositionInMapView(startX, startY)) {
+				var endX = startX+tileCount;
+
 				for (var x = startX; x < tileCount; x++) {
-					for (var y = 0; startY < tileCount; y++) {
+					for (var y = startY; y < tileCount; y++) {
 							var tileSprite = tileSpriteArray[x][y]; // Reference to new tile in the array
 							var tileFromServer = overworldMap[x][y];
 
-							if (tileSprite != null &&  tileFromServer != null){ //Check the data for this tile exists
-								//var thisSprite = mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
-								var subTexture =  getAtlasSubtexture(overworldAtlasPath, tileMappings[tileFromServer.tileType]);
+								if (tileSprite != null &&  tileFromServer != null){ //Check the data for this tile exists
+									//var thisSprite = mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
+									var subTexture =  getAtlasSubtexture(overworldAtlasPath, tileMappings[tileFromServer.tileType]);
 
-								if (subTexture != null) {
-									tileSprite.texture = subTexture;
-									mapContainer.addChild(tileSprite);
+									if (subTexture != null) {
+										tileSprite.texture = subTexture;
+										mapContainer.addChild(tileSprite);
+									}
 								}
-							}
 					}
 				}
-		}
 
 	} else {
 		console.log('overworld map data from remote is missing.');
@@ -143,26 +144,55 @@ function bindMessageButton(isText,username){
 	}
 }
 
-function bindStageClick() {
-	$('#main-window').on('click',
-			function () {
-				return stageClicked(renderer);
-			}
-		);
+function bindStageClick(enabled) {
+	var mainWindow = $('#main-window');
+	if(enabled){
+		mainWindow.on('click',
+				function () {
+					return stageClicked(renderer);
+				}
+			);
+	} else {
+		mainWindow.unbind('click');
+	}
+}
+
+function disableUI() {
+	bindStageClick(false); //Turns off stage-click input
+	showControls (false);
+	renderer.render(stage);
+}
+
+function enableUI() {
+	bindStageClick(true); //Activate movement click input
+	showControls (true);
+	renderer.render(stage);
 }
 
 //data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 function handlePlayerLogin(data){
-	renderer.render(stage); //finally draw the game stage for the user
-	console.log(data);
+	//console.log(data);
 	var playerStatus = data['player-status']
+	console.log('Login data received: ');
+	console.log(data);
 
-	//console.log(character);
+	//Update the client session to contain our new data
+	clientSession.username = playerStatus['username'];
+	clientSession.character.charname = playerStatus['charname'];
+	clientSession.character.posX = playerStatus['pos_x'];
+	clientSession.character.posX = playerStatus['pos_y'];
+	clientSession.sessionId = data['sessionId'];
+	console.log('Saved session object: ');
+	console.log(clientSession);
+
+	enableUI();
+	showMapPosition(clientSession.character.posX, clientSession.character.posY);
+
 	//Creates the new character to represent the player
-	showMapPosition(playerStatus['pos_x'], playerStatus['pos_y']);
-	newCharacterOnMap (playerStatus['charname'], playerStatus['pos_x'], playerStatus['pos_y']);
-	bindStageClick(); //Activate movement click input
+	newCharacterOnMap (clientSession.character.charname , 	clientSession.character.posX, clientSession.character.posX);
+
 	console.log('Logged in! Welcome!');
+
 }
 
 function bindEvents () {

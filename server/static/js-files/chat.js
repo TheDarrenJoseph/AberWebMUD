@@ -16,7 +16,18 @@ function updateMessageLog (msg) {
     var logVal;
     console.log("Received: " + msg['messageData']);
     logVal = $('#message-log').val();
-    return $('#message-log').val(logVal + msg['messageData'] + '\n');
+
+
+
+    if (logVal != '') {
+      //Add a newline before the message
+      $('#message-log').val(logVal + '\n' +msg['messageData'] + '\n');
+    } else {
+      //First message line, no need for a newline prior
+      $('#message-log').val(logVal + msg['messageData'] + '\n');
+    }
+
+
 };
 
 function clearMessageInputField () {
