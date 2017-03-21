@@ -117,8 +117,8 @@ function setupChat () {
   //socket.on('status-response', updateMessageLog);
   socket.on('map-data-response', saveMapUpdate);
 
-  socket.on('request-password', requestUserPassword); //Request for existing password
-  socket.on('request-new-password', requestUserPassword); //Request for new password
+  socket.on('request-password', requestUserPassword); //  Request for existing password
+  socket.on('request-new-password', requestUserPassword); //  Request for new password
 
   //emit('login-success', userData['username'])
   socket.on('login-success', handlePlayerLogin);
@@ -130,41 +130,57 @@ function stageDoubleClicked (mouseEvent) {
 	if (renderer.plugins.interaction.pointer.originalEvent.type === 'pointerdown') {
 		console.log('movement click!');
 		var coords = pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY);
-		sendMovementCommand(coords['x'], coords['y']);
+		coords = localTilePosToGlobal (coords[0], coords[1]);
+		console.log(coords);
+
+		sendMovementCommand(coords[0], coords[1]);
 	}
 }
 
 function stageClicked (renderer) {
 	var mouseEvent = renderer.plugins.interaction.pointer.originalEvent;
-	//console.log(pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY));
+	//	console.log(pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY));
 	setTimeout(function () { return stageDoubleClicked(mouseEvent); }, 150);
 }
 
-//tileSpriteArray -- the grid array of sprites available to the UI
-//mapData -- the JSON response from the server describing the area
-//startX/Y - the start areas to draw from
+//	tileSpriteArray -- the grid array of sprites available to the UI
+//	mapData -- the JSON response from the server describing the area
+//	startX/Y - the start areas to draw from
 function drawMapToGrid (startX, startY) {
 	console.log('drawing map to grid: '+overworldMap.length);
 	console.log('from '+startX+' '+startY+' to '+tileCount)
 
-	//Check there's at least enough tiles to fill our grid (square map)
+	//	Check there's at least enough tiles to fill our grid (square map)
 	if (overworldMap.length >= tileCount) {
 				var endX = startX+tileCount;
+				var endY = startY+tileCount;
 
-				for (var x = startX; x < tileCount; x++) {
-					for (var y = startY; y < tileCount; y++) {
-							var tileSprite = tileSpriteArray[x][y]; // Reference to new tile in the array
-							var tileFromServer = overworldMap[x][y];
+				//	Local looping to iterate over the view tiles
+				for (var x = 0; x < tileCount; x++) {
+					for (var y = 0; y < tileCount; y++) {
+							//	Accessing one of the window tiles
+							var tileSprite = tileSpriteArray[x][y];
 
-								if (tileSprite != null &&  tileFromServer != null){ //Check the data for this tile exists
-									//var thisSprite = mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
-									var subTexture =  getAtlasSubtexture(overworldAtlasPath, tileMappings[tileFromServer.tileType]);
+							var globalXY = localTilePosToGlobal(x, y);
+							var globalX = globalXY[0];
+							var globalY = globalXY[1];
 
-									if (subTexture != null) {
-										tileSprite.texture = subTexture;
-										mapContainer.addChild(tileSprite);
+							if (isPositionInOverworld(globalX, globalY)) {
+								var tileFromServer = overworldMap[globalX][globalY];
+
+									if (tileSprite != null && tileFromServer != null) { //	Check the data for this tile exists
+										//	var thisSprite = mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
+										var subTexture = getAtlasSubtexture(overworldAtlasPath, tileMappings[tileFromServer.tileType]);
+
+										//If the texture exists, set this sprite's texture,
+										// and add it back to the container
+										if (subTexture != null) {
+											tileSprite.texture = subTexture;
+											mapContainer.addChild(tileSprite);
+										}
 									}
-								}
+
+							}
 					}
 				}
 
@@ -172,13 +188,6 @@ function drawMapToGrid (startX, startY) {
 		console.log('overworld map data from remote is missing.');
 	}
 
-}
-
-function objectClicked (object) {
-	// console.log(object.name+" clicked");
-	// object.x += 50;
-
-	// renderer.render(stage);
 }
 
 function hideWindows(dialog) {
@@ -207,19 +216,10 @@ function toggleConsoleVisibility () {
 	hideWindows('messageWindowId');
 }
 
-function updateStatBar (statbar) {
- //	var valueBar = statbar.innerBar;
-
-	//valueBar.beginFill(0x000000);
-	//valueBar.drawRect(statbar.x, statbar.y, statbar.innerSizeX, statbar.innerSizeY);
-	//valueBar.endFill();
-}
-
 function showDialog () {
 	dialogBackground.visible = !dialogBackground.visible;
 	renderer.render(stage); //	update the view to show this
 }
-
 
 //Triggered once a user sends a login message, asks for user password
 //username is a username string
@@ -284,30 +284,32 @@ function bindStageClick(enabled) {
 }
 
 function disableUI() {
-	bindStageClick(false); //Turns off stage-click input
+	bindStageClick(false); //	Turns off stage-click input
 	showControls (false);
 	renderer.render(stage);
 }
 
 function enableUI() {
-	bindStageClick(true); //Activate movement click input
+	bindStageClick(true); //	Activate movement click input
 	showControls (true);
 	renderer.render(stage);
 }
 
-//data -- 'username':username,'sessionId':sid, 'character':thisPlayer
+//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 function handlePlayerLogin(data){
-	//console.log(data);
-	var playerStatus = data['player-status']
+	//	console.log(data);
+	var playerStatus = data['player-status'];
 	console.log('Login data received: ');
 	console.log(data);
 
-	//Update the client session to contain our new data
+	//	Update the client session to contain our new data
+	clientSession.sessionId = data['sessionId'];
+
 	clientSession.username = playerStatus['username'];
 	clientSession.character.charname = playerStatus['charname'];
 	clientSession.character.posX = playerStatus['pos_x'];
 	clientSession.character.posX = playerStatus['pos_y'];
-	clientSession.sessionId = data['sessionId'];
+
 	console.log('Saved session object: ');
 	console.log(clientSession);
 
@@ -315,7 +317,7 @@ function handlePlayerLogin(data){
 	showMapPosition(clientSession.character.posX, clientSession.character.posY);
 
 	//Creates the new character to represent the player
-	newCharacterOnMap (clientSession.character.charname , 	clientSession.character.posX, clientSession.character.posX);
+	newCharacterOnMap (clientSession.character.charname , clientSession.character.posX, clientSession.character.posY);
 
 	console.log('Logged in! Welcome!');
 
@@ -351,7 +353,7 @@ function handleMovementUpdate (updateJSON) {
     var posY = updateJSON['posY'];
 
     console.log('Another player has moved.. \nUser:' + username + ' to ' + posX + ' ' + posY);
-    updateCharacterSpritePos(username, oldX, oldY, posX, posY); 
+    updateCharacterSpritePos(username, oldX, oldY, posX, posY);
 }
 
 function performSetup () {
@@ -553,10 +555,25 @@ function isPositionInOverworld(x, y) {
 }
 
 //	We only view the map through our view window,
+//	This function adjusts a local position 0-tileCount (window co-ord), to a real position on the map
+function localTilePosToGlobal (localX, localY) {
+	if (isPositionInMapView(localX, localY)) {
+		//Shift each of these positions by the starting position of our map view
+		localX += mapGridStartX;
+		localY += mapGridStartY;
+
+		if (isPositionInOverworld(localX, localY)) return [localX, localY];
+
+	} else {
+		return [0,0];
+	}
+
+}
+
+
+//	We only view the map through our view window,
 //	This function adjusts the globalX to a value relative to the grid view
 function globalTilePosToLocal(globalX, globalY) {
-	return[0,0];
-
 	if (isPositionInOverworld(globalX, globalY)) {
 		if (isPositionInMapView(globalX, globalY)) return [globalX, globalY]; //	No change needed
 
@@ -580,19 +597,8 @@ function globalTilePosToLocal(globalX, globalY) {
 //				--how many tiles are in the UI
 //				--where the view window is
 //		-Returns an array of len 2 [x,y]
-function coordToPixiPosition (x,y) {
-	//Firstly we need to adjust for what tile the top-left of our view is on
-	//This can then be used to
-
-	//mapGridStartX - top-left index for where our view is globally
-	//tileCount - the amount of tiles shown for x and y
-	//overworldMapSizeX - the actual tile size of the map
-
+function tileCoordToPixiPos (x,y) {
 	if (!isPositionRelativeToView(x,y)) return; //Sanity check
-
-	var offsetX = 0;
-	var offsetY = 0;
-
 
 	var posX = (x*tileSize)
 	var posY = (y*tileSize)
@@ -614,16 +620,22 @@ function pixiPosToTileCoord (x,y) {
 
 	console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
 
-	return{'x':clientX,'y':clientY}
+	return[clientX,clientY]
 }
 
 //Moves the UI to a new position and draws the map there
 function showMapPosition(gridX,gridY){
+	console.log('Showing map position: '+gridX+' '+gridY);
+
 	if (isPositionInOverworld(gridX, gridY)) {
+		//Adjusting the start values for drawing the map
 		mapGridStartX = gridX;
 		mapGridStartY = gridY;
 
+		console.log('Drawing from this position');
 		drawMapToGrid (gridX, gridY); //Draw the view at this position
+	} else {
+		console.log('Position not in overworld');
 	}
 }
 var titleText = 'AberWebMUD';
@@ -815,7 +827,7 @@ function newCharacterOnMap (charactername, gridX, gridY) {
 		if (isPositionRelativeToView(localX, localY)) {
 				var characterSprite = makeSpriteFromAtlas(characterAtlasPath, 'player');
 
-				var pixiPos = coordToPixiPosition(localX, localX);
+				var pixiPos = tileCoordToPixiPos(localX, localX);
 				console.log('PIXI POS for new char: '+pixiPos[0]+' '+pixiPos[1]);
 				characterSprite.x = pixiPos[0];
 				characterSprite.y = pixiPos[1];
@@ -852,7 +864,8 @@ function updateCharacterSpritePos(charname, oldX, oldY, x, y) {
 			var sprite = mapCharacterArray[oldX][oldY];
 
 			if (sprite != null){
-				var characterPos = coordToPixiPosition(x, y);
+				var characterPos = tileCoordToPixiPos(x, y);
+				
 				sprite.x = characterPos[0];
 				sprite.y = characterPos[1];
 				characterContainer.addChild(sprite);

@@ -25,7 +25,7 @@ function handleMovementUpdate (updateJSON) {
     var posY = updateJSON['posY'];
 
     console.log('Another player has moved.. \nUser:' + username + ' to ' + posX + ' ' + posY);
-    updateCharacterSpritePos(username, oldX, oldY, posX, posY); 
+    updateCharacterSpritePos(username, oldX, oldY, posX, posY);
 }
 
 function performSetup () {

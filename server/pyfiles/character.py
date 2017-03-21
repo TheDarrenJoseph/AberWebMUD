@@ -6,4 +6,4 @@ class Character(database.DatabaseHandler._database.Entity):
     #Positions are stored relative to the map
     posX = Required(int)
     posY = Required(int)
-    player=Optional('Player')
+    player = Optional('Player')

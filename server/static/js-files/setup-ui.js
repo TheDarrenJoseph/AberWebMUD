@@ -187,7 +187,7 @@ function newCharacterOnMap (charactername, gridX, gridY) {
 		if (isPositionRelativeToView(localX, localY)) {
 				var characterSprite = makeSpriteFromAtlas(characterAtlasPath, 'player');
 
-				var pixiPos = coordToPixiPosition(localX, localX);
+				var pixiPos = tileCoordToPixiPos(localX, localX);
 				console.log('PIXI POS for new char: '+pixiPos[0]+' '+pixiPos[1]);
 				characterSprite.x = pixiPos[0];
 				characterSprite.y = pixiPos[1];
@@ -224,7 +224,8 @@ function updateCharacterSpritePos(charname, oldX, oldY, x, y) {
 			var sprite = mapCharacterArray[oldX][oldY];
 
 			if (sprite != null){
-				var characterPos = coordToPixiPosition(x, y);
+				var characterPos = tileCoordToPixiPos(x, y);
+				
 				sprite.x = characterPos[0];
 				sprite.y = characterPos[1];
 				characterContainer.addChild(sprite);

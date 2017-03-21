@@ -1,3 +1,4 @@
+import logging
 from pyfiles import character, database
 from pony.orm import *
 
@@ -9,20 +10,17 @@ class Player(database.DatabaseHandler._database.Entity):
 
     @db_session
     def create_player_status_response(self):
-        #we should return data to fill this object client-side
-        #clientSession = {
-        #  username: null,
-        #  character: {charname: null, posX: null, posY: null},
-        #  sessionId: null
+        """ Returns player data needed for the client as a dict/JSON format
+            This gets given to the client as a status response for a player
+        """
 
-    #    return None
-        print('RESPONSE: '+self.username)
-        thisPlayer = Player[self.username] #find the database entity for this (allows db_session)
+        this_player = Player[self.username] #find the database entity for this (allows db_session)
 
-        return {'username':thisPlayer.username,
-            'charname':thisPlayer.character.charname,
-            'pos_x':thisPlayer.character.posX,
-            'pos_y':thisPlayer.character.posY
-        }
-        #print ({'player':self.username, 'charname':self.character.charname})
-        #return {'player':self.username, 'charname':self.character.charname, 'pos_x':self.character.posX, 'pos_y':self.character.posY }
+        response = {'username':this_player.username,
+                    'charname':this_player.character.charname,
+                    'pos_x':this_player.character.posX,
+                    'pos_y':this_player.character.posY
+                   }
+
+        logging.info('PLAYER STATUS RESPONSE: '+str(response))
+        return response

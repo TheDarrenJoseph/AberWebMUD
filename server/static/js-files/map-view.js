@@ -180,10 +180,25 @@ function isPositionInOverworld(x, y) {
 }
 
 //	We only view the map through our view window,
+//	This function adjusts a local position 0-tileCount (window co-ord), to a real position on the map
+function localTilePosToGlobal (localX, localY) {
+	if (isPositionInMapView(localX, localY)) {
+		//Shift each of these positions by the starting position of our map view
+		localX += mapGridStartX;
+		localY += mapGridStartY;
+
+		if (isPositionInOverworld(localX, localY)) return [localX, localY];
+
+	} else {
+		return [0,0];
+	}
+
+}
+
+
+//	We only view the map through our view window,
 //	This function adjusts the globalX to a value relative to the grid view
 function globalTilePosToLocal(globalX, globalY) {
-	return[0,0];
-
 	if (isPositionInOverworld(globalX, globalY)) {
 		if (isPositionInMapView(globalX, globalY)) return [globalX, globalY]; //	No change needed
 
@@ -207,19 +222,8 @@ function globalTilePosToLocal(globalX, globalY) {
 //				--how many tiles are in the UI
 //				--where the view window is
 //		-Returns an array of len 2 [x,y]
-function coordToPixiPosition (x,y) {
-	//Firstly we need to adjust for what tile the top-left of our view is on
-	//This can then be used to
-
-	//mapGridStartX - top-left index for where our view is globally
-	//tileCount - the amount of tiles shown for x and y
-	//overworldMapSizeX - the actual tile size of the map
-
+function tileCoordToPixiPos (x,y) {
 	if (!isPositionRelativeToView(x,y)) return; //Sanity check
-
-	var offsetX = 0;
-	var offsetY = 0;
-
 
 	var posX = (x*tileSize)
 	var posY = (y*tileSize)
@@ -241,15 +245,21 @@ function pixiPosToTileCoord (x,y) {
 
 	console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
 
-	return{'x':clientX,'y':clientY}
+	return[clientX,clientY]
 }
 
 //Moves the UI to a new position and draws the map there
 function showMapPosition(gridX,gridY){
+	console.log('Showing map position: '+gridX+' '+gridY);
+
 	if (isPositionInOverworld(gridX, gridY)) {
+		//Adjusting the start values for drawing the map
 		mapGridStartX = gridX;
 		mapGridStartY = gridY;
 
+		console.log('Drawing from this position');
 		drawMapToGrid (gridX, gridY); //Draw the view at this position
+	} else {
+		console.log('Position not in overworld');
 	}
 }

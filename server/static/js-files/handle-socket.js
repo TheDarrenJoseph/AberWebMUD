@@ -82,8 +82,8 @@ function setupChat () {
   //socket.on('status-response', updateMessageLog);
   socket.on('map-data-response', saveMapUpdate);
 
-  socket.on('request-password', requestUserPassword); //Request for existing password
-  socket.on('request-new-password', requestUserPassword); //Request for new password
+  socket.on('request-password', requestUserPassword); //  Request for existing password
+  socket.on('request-new-password', requestUserPassword); //  Request for new password
 
   //emit('login-success', userData['username'])
   socket.on('login-success', handlePlayerLogin);

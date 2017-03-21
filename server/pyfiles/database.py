@@ -1,9 +1,10 @@
 import psycopg2
+import logging
 from pyfiles import player, character, playerController, crypto
 from pony.orm import *
 
 class DatabaseHandler:
-    #_databaseConnection = None #Shared class variable to prevent multiple instanciations
+    #Shared class variable to prevent multiple instanciations
     _database = Database()
 
     #Creates a test record for a Player
@@ -12,26 +13,26 @@ class DatabaseHandler:
         return playerController.new_player('bar','foo', 'test')
 
     #Checks an unhashed password against the salt/hash in the DB using passlib
-    @pony.orm.db_session
-    def check_player_password(self, username, password) -> bool:
-        foundPlayer = playerController.find_player(username)
+    @staticmethod
+    def check_player_password(username, password) -> bool:
+        found_player = playerController.find_player(username)
 
-        if foundPlayer is not None:
-            return crypto.verify_password(password, foundPlayer.password)
+        if found_player is not None:
+            return crypto.verify_password(password, found_player.password)
         return False
 
     #Prints DB build info
     @pony.orm.db_session
     def print_version(self):
         if self._database is not None:
-            print(self._database.select("select version()"))
+            logging.info(self._database.select("select version()"))
 
     #Prints the current state of the tables for development debug
     @pony.orm.db_session
     def show_tables(self):
         if self._database is not None:
-            print(self._database.select("select * from Player"))
-            print(self._database.select("select * from Character"))
+            logging.info(str(self._database.select("select * from Player")))
+            logging.info(str(self._database.select("select * from Character")))
 
     def clear_db(self, allData:bool):
         self._database.drop_all_tables(with_all_data=allData)
@@ -45,19 +46,19 @@ class DatabaseHandler:
         if self._database is not None:
             try:
                 #self._databaseConnection = psycopg2.connect(database='aber-web-mud-db', user='webmud')
-                self._database.bind('postgres',database='aber-web-mud-db', user='webmud')
-                print('--DB-OPEN--')
+                self._database.bind('postgres', database='aber-web-mud-db', user='webmud')
+                logging.info('--DB-OPEN--')
                 self.map_db()
-                print('--DB--MAPPED--')
+                logging.info('--DB--MAPPED--')
                 self.print_version()
                 self.show_tables()
 
 
             except psycopg2.DatabaseError:
-                print('--DB-ERROR--| while opening DB.')
+                logging.critical('--DB-ERROR--| while opening DB.')
 
 
     def close_db(self):
         if self._database is not None:
             self._database.disconnect()
-            print('--DB-CLOSED--: ')
+            logging.info('--DB-CLOSED--: ')
