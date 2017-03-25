@@ -103,7 +103,6 @@ function saveMapUpdate (mapData) {
   overworldMapSizeX = mapData['map-size-x'];
   overworldMapSizeY = mapData['map-size-y'];
   console.log('MAP DATA RECEIVED');
-  drawMapToGrid ();
 }
 
 function handleSessionError () {
@@ -131,7 +130,8 @@ function stageDoubleClicked (mouseEvent) {
 		console.log('movement click!');
 		var coords = pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY);
 		coords = localTilePosToGlobal (coords[0], coords[1]);
-		console.log(coords);
+
+		console.log('GLOBAL POSITION CLICKED: '+coords);
 
 		sendMovementCommand(coords[0], coords[1]);
 	}
@@ -147,13 +147,12 @@ function stageClicked (renderer) {
 //	mapData -- the JSON response from the server describing the area
 //	startX/Y - the start areas to draw from
 function drawMapToGrid (startX, startY) {
-	console.log('drawing map to grid: '+overworldMap.length);
-	console.log('from '+startX+' '+startY+' to '+tileCount)
-
 	//	Check there's at least enough tiles to fill our grid (square map)
 	if (overworldMap.length >= tileCount) {
 				var endX = startX+tileCount;
 				var endY = startY+tileCount;
+
+				console.log('MAP DRAWING| to grid from: '+startX+' '+startY+' to '+endX+' '+endY);
 
 				//	Local looping to iterate over the view tiles
 				for (var x = 0; x < tileCount; x++) {
@@ -185,7 +184,7 @@ function drawMapToGrid (startX, startY) {
 				}
 
 	} else {
-		console.log('overworld map data from remote is missing.');
+		console.log('MAP DRAWING| overworld map data from remote is missing.');
 	}
 
 }
@@ -308,7 +307,7 @@ function handlePlayerLogin(data){
 	clientSession.username = playerStatus['username'];
 	clientSession.character.charname = playerStatus['charname'];
 	clientSession.character.posX = playerStatus['pos_x'];
-	clientSession.character.posX = playerStatus['pos_y'];
+	clientSession.character.posY = playerStatus['pos_y'];
 
 	console.log('Saved session object: ');
 	console.log(clientSession);
@@ -357,8 +356,6 @@ function handleMovementUpdate (updateJSON) {
 }
 
 function performSetup () {
-  mapCharacterArray = createMapCharacterArray ();
-
   connectSocket();
   setupPageUI();
   setupChat();
@@ -383,7 +380,7 @@ var mapContainer = new PIXI.ParticleContainer();
 var characterContainer = new PIXI.ParticleContainer();
 
 var tileSpriteArray; //	Sprites for the map view
-var mapCharacterArray; //	Sprites for the players in the current map view
+var mapCharacterArray = createMapCharacterArray(); //	Sprites for the players in the current map view
 
 stage.addChild(mapContainer);
 stage.addChild(dialogContainer);
@@ -427,6 +424,7 @@ var gridCharacter = {
 };
 
 function GridCharacter (charname, x, y, sprite) {
+	if (!isPositionInOverworld(x, y)) throw Error('Invalid position for GridCharacter! (must be valid overworld co-ord)');
 	return {
 		charname: charname,
 		posX: x,
@@ -530,11 +528,8 @@ function StatBar (name, posX, posY) {
 
 //Check whether or not this position is a view-relative one using x/y from 0 - tileCount
 function isPositionRelativeToView(x,y) {
-	if (x <= tileCount-1 &&  x >= 0 &&  y <= tileCount-1 &&  y >= 0) {
-		return true;
-	} else {
-		return false;
-	}
+	if (x < tileCount &&  x >= 0 &&  y < tileCount &&  y >= 0) return true;
+	return false;
 }
 
 	//Check whether or not the character is within our map view window
@@ -546,8 +541,9 @@ function isPositionInMapView(x, y) {
 	}
 }
 
+// Checks whether the position is valid in the range of 0 - < mapSizeXorY
 function isPositionInOverworld(x, y) {
-	if (x <= (overworldMapSizeX) &&  x >= 0 &&  y <= (overworldMapSizeY) &&  y >= 0) {
+	if (x < overworldMapSizeX &&  x >= 0 &&  y < overworldMapSizeY &&  y >= 0) {
 		return true;
 	} else {
 		return false;
@@ -557,17 +553,20 @@ function isPositionInOverworld(x, y) {
 //	We only view the map through our view window,
 //	This function adjusts a local position 0-tileCount (window co-ord), to a real position on the map
 function localTilePosToGlobal (localX, localY) {
-	if (isPositionInMapView(localX, localY)) {
+
+	//	Ensure these are view tile co-ordinates
+	if (isPositionRelativeToView(localX,localY)) {
 		//Shift each of these positions by the starting position of our map view
 		localX += mapGridStartX;
 		localY += mapGridStartY;
 
 		if (isPositionInOverworld(localX, localY)) return [localX, localY];
-
+		console.log('Local tile pos for conversion plus offset, not in the overworld.');
 	} else {
-		return [0,0];
+		console.log('Local tile pos for conversion, not relative to the view.');
 	}
 
+	return [0,0];
 }
 
 
@@ -576,15 +575,7 @@ function localTilePosToGlobal (localX, localY) {
 function globalTilePosToLocal(globalX, globalY) {
 	if (isPositionInOverworld(globalX, globalY)) {
 		if (isPositionInMapView(globalX, globalY)) return [globalX, globalY]; //	No change needed
-
-		//Minus the start co-ord offset to reduce back to 0 indexing
-		var thisX = globalX - mapGridStartX;
-		var thisY = globalY - mapGridStartY;
-
-		//if (x <= (mapGridStartX+tileCount) &&  x >= mapGridStartX &&  y <= (mapGridStartY + tileCount) &&  y >= mapGridStartY) {
-		//}
-
-		return [thisX,thisY];
+		return [globalX - mapGridStartX,globalY - mapGridStartY];
 	} else {
 		return [0,0]; //return false instead for more clarity?
 	}
@@ -625,17 +616,15 @@ function pixiPosToTileCoord (x,y) {
 
 //Moves the UI to a new position and draws the map there
 function showMapPosition(gridX,gridY){
-	console.log('Showing map position: '+gridX+' '+gridY);
-
 	if (isPositionInOverworld(gridX, gridY)) {
 		//Adjusting the start values for drawing the map
 		mapGridStartX = gridX;
 		mapGridStartY = gridY;
 
-		console.log('Drawing from this position');
+		console.log('Drawing map from this position: '+gridX+' '+gridY);
 		drawMapToGrid (gridX, gridY); //Draw the view at this position
 	} else {
-		console.log('Position not in overworld');
+		console.log('Position not in overworld: '+gridX+' '+gridY);
 	}
 }
 var titleText = 'AberWebMUD';
@@ -865,7 +854,7 @@ function updateCharacterSpritePos(charname, oldX, oldY, x, y) {
 
 			if (sprite != null){
 				var characterPos = tileCoordToPixiPos(x, y);
-				
+
 				sprite.x = characterPos[0];
 				sprite.y = characterPos[1];
 				characterContainer.addChild(sprite);
@@ -908,8 +897,6 @@ function assetsLoaded () {
 
 	tileSpriteArray = setupMapUI();
 	console.log(tileSpriteArray );
-
-	  drawMapToGrid();
 
 	$('console-button').append(contextButtons);
 

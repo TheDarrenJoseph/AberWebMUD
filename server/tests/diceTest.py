@@ -1,5 +1,5 @@
 import unittest
-import dice
+from server.pyfiles import dice
 
 class diceRollGood(unittest.TestCase):
     def test_dice_roll_single(self):
@@ -14,11 +14,12 @@ class diceRollGood(unittest.TestCase):
             self.fail('Bad dice value: '+dice_value)
 
     def test_dice_roll_many_max(self):
-
+        pass
 
     def test_dice_roll_min(self):
+        pass
 
     def test_dice_roll_max(self):
-
+        pass
 
 #Add a bad class

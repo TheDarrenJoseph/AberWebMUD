@@ -8,7 +8,7 @@ var mapContainer = new PIXI.ParticleContainer();
 var characterContainer = new PIXI.ParticleContainer();
 
 var tileSpriteArray; //	Sprites for the map view
-var mapCharacterArray; //	Sprites for the players in the current map view
+var mapCharacterArray = createMapCharacterArray(); //	Sprites for the players in the current map view
 
 stage.addChild(mapContainer);
 stage.addChild(dialogContainer);
@@ -52,6 +52,7 @@ var gridCharacter = {
 };
 
 function GridCharacter (charname, x, y, sprite) {
+	if (!isPositionInOverworld(x, y)) throw new RangeError('Invalid position for GridCharacter! (must be valid overworld co-ord)');
 	return {
 		charname: charname,
 		posX: x,
@@ -155,11 +156,8 @@ function StatBar (name, posX, posY) {
 
 //Check whether or not this position is a view-relative one using x/y from 0 - tileCount
 function isPositionRelativeToView(x,y) {
-	if (x <= tileCount-1 &&  x >= 0 &&  y <= tileCount-1 &&  y >= 0) {
-		return true;
-	} else {
-		return false;
-	}
+	if (x < tileCount &&  x >= 0 &&  y < tileCount &&  y >= 0) return true;
+	return false;
 }
 
 	//Check whether or not the character is within our map view window
@@ -171,8 +169,9 @@ function isPositionInMapView(x, y) {
 	}
 }
 
+// Checks whether the position is valid in the range of 0 - < mapSizeXorY
 function isPositionInOverworld(x, y) {
-	if (x <= (overworldMapSizeX) &&  x >= 0 &&  y <= (overworldMapSizeY) &&  y >= 0) {
+	if (x < overworldMapSizeX &&  x >= 0 &&  y < overworldMapSizeY &&  y >= 0) {
 		return true;
 	} else {
 		return false;
@@ -182,15 +181,21 @@ function isPositionInOverworld(x, y) {
 //	We only view the map through our view window,
 //	This function adjusts a local position 0-tileCount (window co-ord), to a real position on the map
 function localTilePosToGlobal (localX, localY) {
-	if (isPositionInMapView(localX, localY)) {
+
+	//	Ensure these are view tile co-ordinates
+	if (!isPositionRelativeToView(localX,localY)) {
+		 throw new RangeError('Local tile pos for conversion not relative to the map view');
+	} else {
 		//Shift each of these positions by the starting position of our map view
 		localX += mapGridStartX;
 		localY += mapGridStartY;
 
-		if (isPositionInOverworld(localX, localY)) return [localX, localY];
-
-	} else {
-		return [0,0];
+		//Double check we're returning a sane overworld position
+		if (!isPositionInOverworld(localX, localY)) {
+			throw new RangeError ('Local tile pos for conversion plus offset, not in the overworld.');
+		} else {
+			return [localX, localY];
+		}
 	}
 
 }
@@ -199,19 +204,11 @@ function localTilePosToGlobal (localX, localY) {
 //	We only view the map through our view window,
 //	This function adjusts the globalX to a value relative to the grid view
 function globalTilePosToLocal(globalX, globalY) {
-	if (isPositionInOverworld(globalX, globalY)) {
-		if (isPositionInMapView(globalX, globalY)) return [globalX, globalY]; //	No change needed
-
-		//Minus the start co-ord offset to reduce back to 0 indexing
-		var thisX = globalX - mapGridStartX;
-		var thisY = globalY - mapGridStartY;
-
-		//if (x <= (mapGridStartX+tileCount) &&  x >= mapGridStartX &&  y <= (mapGridStartY + tileCount) &&  y >= mapGridStartY) {
-		//}
-
-		return [thisX,thisY];
+	if (!isPositionInOverworld(globalX, globalY)) {
+		throw new RangeError('Global tile pos for conversion not in the overworld');
 	} else {
-		return [0,0]; //return false instead for more clarity?
+		if (isPositionInMapView(globalX, globalY)) return [globalX, globalY]; //	No change needed
+		return [globalX - mapGridStartX, globalY - mapGridStartY];
 	}
 }
 
@@ -250,16 +247,14 @@ function pixiPosToTileCoord (x,y) {
 
 //Moves the UI to a new position and draws the map there
 function showMapPosition(gridX,gridY){
-	console.log('Showing map position: '+gridX+' '+gridY);
-
 	if (isPositionInOverworld(gridX, gridY)) {
 		//Adjusting the start values for drawing the map
 		mapGridStartX = gridX;
 		mapGridStartY = gridY;
 
-		console.log('Drawing from this position');
+		console.log('Drawing map from this position: '+gridX+' '+gridY);
 		drawMapToGrid (gridX, gridY); //Draw the view at this position
 	} else {
-		console.log('Position not in overworld');
+		console.log('Position not in overworld: '+gridX+' '+gridY);
 	}
 }

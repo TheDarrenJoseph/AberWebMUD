@@ -5,7 +5,8 @@ function stageDoubleClicked (mouseEvent) {
 		console.log('movement click!');
 		var coords = pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY);
 		coords = localTilePosToGlobal (coords[0], coords[1]);
-		console.log(coords);
+
+		console.log('GLOBAL POSITION CLICKED: '+coords);
 
 		sendMovementCommand(coords[0], coords[1]);
 	}
@@ -21,13 +22,12 @@ function stageClicked (renderer) {
 //	mapData -- the JSON response from the server describing the area
 //	startX/Y - the start areas to draw from
 function drawMapToGrid (startX, startY) {
-	console.log('drawing map to grid: '+overworldMap.length);
-	console.log('from '+startX+' '+startY+' to '+tileCount)
-
 	//	Check there's at least enough tiles to fill our grid (square map)
 	if (overworldMap.length >= tileCount) {
 				var endX = startX+tileCount;
 				var endY = startY+tileCount;
+
+				console.log('MAP DRAWING| to grid from: '+startX+' '+startY+' to '+endX+' '+endY);
 
 				//	Local looping to iterate over the view tiles
 				for (var x = 0; x < tileCount; x++) {
@@ -59,7 +59,7 @@ function drawMapToGrid (startX, startY) {
 				}
 
 	} else {
-		console.log('overworld map data from remote is missing.');
+		console.log('MAP DRAWING| overworld map data from remote is missing.');
 	}
 
 }
@@ -182,7 +182,7 @@ function handlePlayerLogin(data){
 	clientSession.username = playerStatus['username'];
 	clientSession.character.charname = playerStatus['charname'];
 	clientSession.character.posX = playerStatus['pos_x'];
-	clientSession.character.posX = playerStatus['pos_y'];
+	clientSession.character.posY = playerStatus['pos_y'];
 
 	console.log('Saved session object: ');
 	console.log(clientSession);

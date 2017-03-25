@@ -29,8 +29,6 @@ function handleMovementUpdate (updateJSON) {
 }
 
 function performSetup () {
-  mapCharacterArray = createMapCharacterArray ();
-
   connectSocket();
   setupPageUI();
   setupChat();

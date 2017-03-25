@@ -10,12 +10,11 @@ from flask_socketio import SocketIO
 #Sets up players, maps, etc
 def setup_instance(_dbHandler):
     overworld.create_map() #instanciate mapTiles
-    print('MAP LOADED')
+    logging.info('MAP LOADED')
 
     this_player = _dbHandler.make_test_player()
 
-    print('TEST PLAYER:')
-    print(this_player)
+    logging.info('TEST PLAYER:'+str(this_player))
 
 def hookup_callbacks(socket_server):
     #SocketsIO setup

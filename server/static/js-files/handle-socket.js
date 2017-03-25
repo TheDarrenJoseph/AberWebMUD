@@ -68,7 +68,6 @@ function saveMapUpdate (mapData) {
   overworldMapSizeX = mapData['map-size-x'];
   overworldMapSizeY = mapData['map-size-y'];
   console.log('MAP DATA RECEIVED');
-  drawMapToGrid ();
 }
 
 function handleSessionError () {

@@ -225,7 +225,7 @@ function updateCharacterSpritePos(charname, oldX, oldY, x, y) {
 
 			if (sprite != null){
 				var characterPos = tileCoordToPixiPos(x, y);
-				
+
 				sprite.x = characterPos[0];
 				sprite.y = characterPos[1];
 				characterContainer.addChild(sprite);
@@ -268,8 +268,6 @@ function assetsLoaded () {
 
 	tileSpriteArray = setupMapUI();
 	console.log(tileSpriteArray );
-
-	  drawMapToGrid();
 
 	$('console-button').append(contextButtons);
 

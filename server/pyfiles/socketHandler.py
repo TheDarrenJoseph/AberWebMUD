@@ -9,6 +9,7 @@ from pyfiles import playerController, sessionHandler, userInput, overworld, data
 
 def send_message(message: dict) -> None:
     #"""Broadcasts a chat-message-response to all connected users """
+    logging.debug('OUT| chat message RESPONSE')
     emit('chat-message-response', message, broadcast=True)
 
 def send_login_success(session_id, status_response):
