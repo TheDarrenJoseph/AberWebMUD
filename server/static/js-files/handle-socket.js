@@ -2,7 +2,7 @@ var socket = null;
 
 var clientSession = {
   username: null,
-  character: {charname: null, posX: null, posY: null},
+  character: {charname: null, pos_x: null, pos_y: null},
   sessionId: null
 }
 
@@ -58,9 +58,9 @@ function connectSocket() {
   //socket = io.connect('https://localhost');
 }
 
-function setStatusUpdateCallbacks (movementResponseCallback, movementUpdateCallback) {
-    socket.on('movement-response', movementResponseCallback);
-    socket.on('movement-update', movementUpdateCallback);
+function setStatusUpdateCallbacks () {
+    socket.on('movement-response', handleMovementResponse);
+    socket.on('movement-update', handleMovementUpdate);
 }
 
 function saveMapUpdate (mapData) {

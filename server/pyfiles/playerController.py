@@ -28,8 +28,8 @@ def get_player_pos(username:str):
     thisPlayer = player.Player[username]
 
     if thisPlayer is not None:
-        pos_x = thisPlayer.character.posX
-        pos_y = thisPlayer.character.posY
+        pos_x = thisPlayer.character.pos_x
+        pos_y = thisPlayer.character.pos_y
         return(pos_x, pos_y)
     return None
 
@@ -38,8 +38,8 @@ def set_player_pos(username:str, x:int, y:int):
     thisPlayer = player.Player[username]
 
     if thisPlayer is not None:
-        thisPlayer.character.posX = x
-        thisPlayer.character.posY = y
+        thisPlayer.character.pos_x = x
+        thisPlayer.character.pos_y = y
         return True
     return False
 
@@ -58,8 +58,8 @@ def new_player(charname, username, password) -> player.Player:
 
         #Create a new Character in the DB for the player to reference (PonyORM)
         this_character = character.Character(charname=charname,
-                                             posX=start_pos[0],
-                                             posY=start_pos[1])
+                                             pos_x=start_pos[0],
+                                             pos_y=start_pos[1])
         password_hash_string = crypto.hash_password(password) #hashes and salts the pass for storage
 
         if find_player(username) is None:

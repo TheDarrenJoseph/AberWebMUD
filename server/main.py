@@ -12,7 +12,7 @@ def setup_instance(_dbHandler):
     overworld.create_map() #instanciate mapTiles
     logging.info('MAP LOADED')
 
-    this_player = _dbHandler.make_test_player()
+    this_player = _dbHandler.make_player('too', 'foo','test')
 
     logging.info('TEST PLAYER:'+str(this_player))
 
@@ -36,7 +36,8 @@ if __name__ == "__main__":
     #Instanciate our database handler to allow lookups and creation
     DB_HANDLER = database.DatabaseHandler()
     DB_HANDLER.open_db()
-    #_dbHandler.clear_db(True) #DANGEROUS, resets all DB data for development
+
+    #DB_HANDLER.clear_db(True) #DANGEROUS, resets all DB data for development
 
     setup_instance(DB_HANDLER) #Run DB and data setup
 
@@ -49,6 +50,7 @@ if __name__ == "__main__":
 
     #MAIN LOOP
     #app.run()
+    DB_HANDLER.show_tables()
     SOCKET_HANDLER.run(flaskHandler._APP)
 
     #Cleanup

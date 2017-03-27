@@ -8,13 +8,22 @@ special clients.
 Created with Python 3.6.0 and packaged with:
 * [Pixi.js (MIT License)] (http://www.pixijs.com/)
 * [Flask-SocketIO (MIT License)] (https://github.com/miguelgrinberg/Flask-SocketIO)
+* [QUnit (JS Foundation License)] (http://qunitjs.com/)
 * ["Zelda-like tilesets and sprites" by ArMM1998 (CC0 1.0)] (http://opengameart.org/content/zelda-like-tilesets-and-sprites)
 
 Other technologies used:
 * [Flask (BSD License)] (http://flask.pocoo.org/)
 * [SocketsIO (MIT License)] (http://socket.io/)
+* [PostgreSQL] (https://www.postgresql.org/)
 * Texture atlas creation using ["Leshy SpriteSheet Tool - Online Sprite Sheet, Texture Atlas Packer"]
  (https://www.leshylabs.com/apps/sstool/)
 
 Check the requirements.txt for dependancy version details
 Check the LICENSE file for the project's license
+
+## Running the project
+1. Change your terminal directory to the server folder
+2. To ensure the JavaScript files have been concatted into the client.js file, run build.sh in the scripts folder
+2. Currently the project is run-dependant on a PostgreSQL database, so you must ensure the PostgreSQL database service is running (database.py should detail what is expected if automatic DB 
+creation is not enabled)
+3. Run main.py in Python

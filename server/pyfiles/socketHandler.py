@@ -127,8 +127,8 @@ def handle_movement(message: dict):
                         'username':message['username'],
                         'old_x':old_x,
                         'old_y':old_y,
-                        'posX':new_pos[0],
-                        'posY':new_pos[1]
+                        'pos_x':new_pos[0],
+                        'pos_y':new_pos[1]
                     }, broadcast=True)
 
                     logging.info('movement success for'+moved_player.username)

@@ -56,6 +56,8 @@ function setupMapUI () {
 }
 
 function drawMapCharacterArray () {
+	characterContainer.removeChildren();
+
 	for (var x = 0; x < tileCount; x++) {
 		for (var y = 0; y < tileCount; y++) {
 			var thisCharacter = mapCharacterArray[x][y];
@@ -165,82 +167,6 @@ function setupStatBars () {
 	//	dialogBackground.visible = false; //Hidden until we need it
 
 	return [healthBar];
-}
-
-
-//Creates a character sprite on-the-fly to represent another character
-//gridX, gridY are character positions on the map
-function newCharacterOnMap (charactername, gridX, gridY) {
-	console.log('new char.. ' + charactername + gridX + gridY);
-
-	if (!isPositionInOverworld(gridX, gridY)) {
-		console.log('bad pos: '+gridX+' '+gridY);
-		return false; //	Do nothing if the coordinates don't exist on the map
-	} else {
-		//Convert global co-ords to local view ones so we can modify the UI
-		var localPos = globalTilePosToLocal(gridX, gridY);
-		var localX = localPos[0];
-		var localY = localPos[1];
-
-		console.log('new char at:'+localX+' '+localY);
-
-		if (isPositionRelativeToView(localX, localY)) {
-				var characterSprite = makeSpriteFromAtlas(characterAtlasPath, 'player');
-
-				var pixiPos = tileCoordToPixiPos(localX, localX);
-				console.log('PIXI POS for new char: '+pixiPos[0]+' '+pixiPos[1]);
-				characterSprite.x = pixiPos[0];
-				characterSprite.y = pixiPos[1];
-				characterContainer.addChild(characterSprite);
-
-				renderer.render(stage);
-
-				//console.log(mapCharacterArray);
-				// mapCharacterArray
-
-				mapCharacterArray[localX][localY] = new GridCharacter(charactername, pixiPos[0], pixiPos[1], characterSprite);
-
-				console.log('new char at:');
-				console.log(mapCharacterArray[localX][localY]);
-
-				drawMapCharacterArray ();
-
-				return characterSprite;
-		} else {
-			console.log('New player not in our view at this position: ' + gridX + ' ' + gridY);
-		}
-
-		return false;
-	}
-
-}
-
-function updateCharacterSpritePos(charname, oldX, oldY, x, y) {
-	//Have they only moved within the screen?
-	if (isPositionInMapView(oldX, oldY)) {
-		//Moves the sprite to the new position
-		if (isPositionInMapView(x, y)) {
-			console.log('Moving '+charname+'!');
-			var sprite = mapCharacterArray[oldX][oldY];
-
-			if (sprite != null){
-				var characterPos = tileCoordToPixiPos(x, y);
-
-				sprite.x = characterPos[0];
-				sprite.y = characterPos[1];
-				characterContainer.addChild(sprite);
-				renderer.render(stage);
-			}
-		} else {
-			//Moved out of screen
-			//Remove the sprite at oldX, oldY
-			console.log(charname+' walked out of view!');
-		}
-
-	} else if (isPositionInMapView(x, y)) { //Moved into screen from
-		newCharacterOnMap (charactername, x, y); //Create a sprite to show them!
-		console.log(charname+' has walked into view!');
-	}
 }
 
 function assetsLoaded () {

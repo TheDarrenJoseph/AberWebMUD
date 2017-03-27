@@ -7,10 +7,9 @@ class DatabaseHandler:
     #Shared class variable to prevent multiple instanciations
     _database = Database()
 
-    #Creates a test record for a Player
     @pony.orm.db_session
-    def make_test_player(self):
-        return playerController.new_player('bar','foo', 'test')
+    def make_player(self, charname, username, passwd):
+        return playerController.new_player(charname, username, passwd)
 
     #Checks an unhashed password against the salt/hash in the DB using passlib
     @staticmethod
@@ -45,8 +44,8 @@ class DatabaseHandler:
     def open_db(self):
         if self._database is not None:
             try:
-                #self._databaseConnection = psycopg2.connect(database='aber-web-mud-db', user='webmud')
-                self._database.bind('postgres', database='aber-web-mud-db', user='webmud')
+                self._database.bind('postgres', database='aber-web-mud', user='webmud')
+
                 logging.info('--DB-OPEN--')
                 self.map_db()
                 logging.info('--DB--MAPPED--')

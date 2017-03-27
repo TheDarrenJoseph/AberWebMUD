@@ -31,6 +31,11 @@ if (window.innerHeight < window.innerWidth) {
 // tileCount is the number of tiles we can fit into this square area
 // Rounding down (floor) to get a good tile count
 var tileCount = Math.floor(mapWindowSize / tileSize);
+var halfTileCountFloored = Math.floor(tileCount / 2);
+var halfTileCountCeiled = Math.ceil(tileCount / 2);
+
+if (tileCount%2 == 0) tileCount--; //Ensure we have an even tileCount
+
 
 mapWindowSize = tileCount * tileSize; // Update mapWindowSize to fit the tileCount snugly!
 var halfMapWindowSize = Math.floor(mapWindowSize / 2);
@@ -46,8 +51,8 @@ var overworldMapSizeY = 0;
 
 var gridCharacter = {
 	charactername: null,
-	posX: null,
-	posY: null,
+	pos_x: null,
+	pos_y: null,
 	sprite: null
 };
 
@@ -55,8 +60,8 @@ function GridCharacter (charname, x, y, sprite) {
 	if (!isPositionInOverworld(x, y)) throw new RangeError('Invalid position for GridCharacter! (must be valid overworld co-ord)');
 	return {
 		charname: charname,
-		posX: x,
-		posY: y,
+		pos_x: x,
+		pos_y: y,
 		sprite:sprite
 	}
 }
@@ -82,43 +87,9 @@ function getAtlasSubtexture(tileAtlasPath, subtileName) {
 	return null;
 }
 
-// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
-function makeSpriteFromAtlas (tileAtlasPath, subtileName) {
-	var atlasTexture = PIXI.loader.resources[tileAtlasPath];
 
-	//Check the texture
-	if (atlasTexture  != null) {
-		var subTexture = atlasTexture.textures[subtileName];
 
-		if (subTexture != null) {
-			var thisSprite =  new PIXI.Sprite(subTexture);
-			thisSprite.height = tileSize;
-			thisSprite.width = tileSize;
-			return thisSprite;
-
-		} else {
-			console.log('No tile atlas subtile (not in tile atlas JSON?): ' + subtileName);
-		}
-
-	} else {
-		console.log('Error loading tile atlas (not known to loader?): ' + tileAtlasPath);
-	}
-
-	return null;
-}
-
-function PlayerSprite () {
-		return makeSpriteFromAtlas (characterAtlasPath, 'player');
-}
-
-function MapTileSprite (textureReference) {
-	// var MapTileSprite = new PIXI.Sprite(PIXI.loader.resources[chestPath].texture);
-	//var MapTileSprite = makeSpriteFromAtlas(overworldTilesetPath, 0, 0, 16, 16);
-	//var MapTileSprite = makeSpriteFromAtlas(overworldAtlasPath, 'grass-plain');
-	return makeSpriteFromAtlas (overworldAtlasPath, textureReference);
-}
-
-function StatBar (name, posX, posY) {
+function StatBar (name, pos_x, pos_y) {
 	this.name = name;
 	this.backgroundBar = new PIXI.Graphics();
 	this.innerBar = new PIXI.Graphics();
@@ -131,13 +102,13 @@ function StatBar (name, posX, posY) {
 		this.backgroundBar.beginFill(0x000000);
 		this.backgroundBar.lineStyle(2, 0xFFFFFF, 1);
 
-		this.backgroundBar = this.backgroundBar.drawRoundedRect(posX, posY, thirdMapWindowSize, tileSize / 2, 4);
+		this.backgroundBar = this.backgroundBar.drawRoundedRect(pos_x, pos_y, thirdMapWindowSize, tileSize / 2, 4);
 		this.backgroundBar.endFill();
 	}
 
 	StatBar.prototype.drawInnerBar = function()  {
 		this.innerBar.beginFill(0xFF0000);
-		this.innerBar = this.innerBar.drawRoundedRect(posX + 6, posY + 6, this.innerSizeX, this.innerSizeY, 4);
+		this.innerBar = this.innerBar.drawRoundedRect(pos_x + 6, pos_y + 6, this.innerSizeX, this.innerSizeY, 4);
 		this.innerBar.endFill();
 	}
 
@@ -154,107 +125,29 @@ function StatBar (name, posX, posY) {
 	}
 }
 
-//Check whether or not this position is a view-relative one using x/y from 0 - tileCount
-function isPositionRelativeToView(x,y) {
-	if (x < tileCount &&  x >= 0 &&  y < tileCount &&  y >= 0) return true;
-	return false;
-}
 
-	//Check whether or not the character is within our map view window
-function isPositionInMapView(x, y) {
-	if (x <= (mapGridStartX+tileCount) &&  x >= mapGridStartX &&  y <= (mapGridStartY + tileCount) &&  y >= mapGridStartY) {
-		return true;
+
+function setMapViewPosition(startX,startY) {
+//	var halfTileCount = (tileCount/2); //Always show a position in the middle of the view
+	var halfViewMinus = 0-halfTileCountFloored;
+	var end_view_x = overworldMapSizeX-halfTileCountFloored;
+	var end_view_y = overworldMapSizeY-halfTileCountFloored;
+
+	//if (isPositionInOverworld(startX, startY)) {
+	//Checks that we have half the view out of the map maximum
+	if (startX >= halfViewMinus && startX <= end_view_x && startY >= halfViewMinus && startY <= end_view_y) {
+		//Adjusting the start values for drawing the map
+		mapGridStartX = startX;
+		mapGridStartY = startY;
 	} else {
-		return false;
+		throw new RangeError('Position not in overworld: '+startX+' '+startY);
 	}
-}
-
-// Checks whether the position is valid in the range of 0 - < mapSizeXorY
-function isPositionInOverworld(x, y) {
-	if (x < overworldMapSizeX &&  x >= 0 &&  y < overworldMapSizeY &&  y >= 0) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-//	We only view the map through our view window,
-//	This function adjusts a local position 0-tileCount (window co-ord), to a real position on the map
-function localTilePosToGlobal (localX, localY) {
-
-	//	Ensure these are view tile co-ordinates
-	if (!isPositionRelativeToView(localX,localY)) {
-		 throw new RangeError('Local tile pos for conversion not relative to the map view');
-	} else {
-		//Shift each of these positions by the starting position of our map view
-		localX += mapGridStartX;
-		localY += mapGridStartY;
-
-		//Double check we're returning a sane overworld position
-		if (!isPositionInOverworld(localX, localY)) {
-			throw new RangeError ('Local tile pos for conversion plus offset, not in the overworld.');
-		} else {
-			return [localX, localY];
-		}
-	}
-
-}
-
-
-//	We only view the map through our view window,
-//	This function adjusts the globalX to a value relative to the grid view
-function globalTilePosToLocal(globalX, globalY) {
-	if (!isPositionInOverworld(globalX, globalY)) {
-		throw new RangeError('Global tile pos for conversion not in the overworld');
-	} else {
-		if (isPositionInMapView(globalX, globalY)) return [globalX, globalY]; //	No change needed
-		return [globalX - mapGridStartX, globalY - mapGridStartY];
-	}
-}
-
-//	Converts tile coords from 0,0 - X,X based on tilecount to a Pixi stage pixel position
-//		-This takes a global position (say the map is 20 tiles, so from 0-19)
-//		-that position is then converted to a pixel amount based:
-//				--tile size
-//				--how many tiles are in the UI
-//				--where the view window is
-//		-Returns an array of len 2 [x,y]
-function tileCoordToPixiPos (x,y) {
-	if (!isPositionRelativeToView(x,y)) return; //Sanity check
-
-	var posX = (x*tileSize)
-	var posY = (y*tileSize)
-
-	console.log('Tilesize: '+tileSize+'Co-ord pos: '+x+' '+y+'\n'+'Pixi pos: '+posX+' '+posY);
-
-	return [posX, posY];
-}
-
-function pixiPosToTileCoord (x,y) {
-	var clientX = Math.floor(x / tileSize);
-	var clientY = Math.floor(y / tileSize);
-
-	var zeroIndexedTileCount = tileCount - 1;
-
-	// Sanity check to make sure we can't click over the boundary
-	if (clientX > zeroIndexedTileCount) clientX = zeroIndexedTileCount;
-	if (clientY > zeroIndexedTileCount) clientY = zeroIndexedTileCount;
-
-	console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
-
-	return[clientX,clientY]
 }
 
 //Moves the UI to a new position and draws the map there
 function showMapPosition(gridX,gridY){
-	if (isPositionInOverworld(gridX, gridY)) {
-		//Adjusting the start values for drawing the map
-		mapGridStartX = gridX;
-		mapGridStartY = gridY;
-
-		console.log('Drawing map from this position: '+gridX+' '+gridY);
-		drawMapToGrid (gridX, gridY); //Draw the view at this position
-	} else {
-		console.log('Position not in overworld: '+gridX+' '+gridY);
-	}
+	//This will throw a RangeError if our position is invalid (doubles as a sanity-check)
+	setMapViewPosition(gridX - halfTileCountFloored,gridY - halfTileCountFloored);
+	console.log('Drawing map from this position: '+gridX+' '+gridY);
+	drawMapToGrid (gridX, gridY); //Draw the view at this position
 }

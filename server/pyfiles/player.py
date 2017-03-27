@@ -18,8 +18,8 @@ class Player(database.DatabaseHandler._database.Entity):
 
         response = {'username':this_player.username,
                     'charname':this_player.character.charname,
-                    'pos_x':this_player.character.posX,
-                    'pos_y':this_player.character.posY
+                    'pos_x':this_player.character.pos_x,
+                    'pos_y':this_player.character.pos_y
                    }
 
         logging.info('PLAYER STATUS RESPONSE: '+str(response))
