@@ -13,3 +13,6 @@ class playerLoginBadValues(unittest.TestCase):
     def test_user_login_invalid(self):
         #Call the login function with invalid credentials
         pass
+
+if __name__ == "__main__":
+    unittest.main()

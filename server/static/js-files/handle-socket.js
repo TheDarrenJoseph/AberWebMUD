@@ -1,16 +1,26 @@
 var socket = null;
 
+//Local data stored for your current character
+var charData = {
+  charname: null, pos_x: null, pos_y: null, attributes: null, class: null, health: null
+};
+
 var clientSession = {
   username: null,
-  character: {charname: null, pos_x: null, pos_y: null},
+  character: charData,
   sessionId: null
-}
+};
 
-function getSessionInfoJSON(){
+function getSessionInfoJSON() {
   var username = clientSession.username;
   var sessionId = clientSession.sessionId;
 
   return {sessionId: sessionId, username: username}
+}
+
+function sendCharacterDetails(attrValuesJSON) {
+  sessionJson = getSessionInfoJSON();
+  socket.emit('character-details', {attrValuesJSON, sessionJson});
 }
 
 function sendNewChatMessage() {

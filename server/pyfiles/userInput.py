@@ -68,3 +68,7 @@ def check_message_params(message: dict) -> (bool, dict):
                     logging.info('No (data) in protocol message')
 
     return (False, None)
+
+def validate_character_update() -> bool:
+    """ Checks we've been given valid data, and that any changes are within limits """
+    pass

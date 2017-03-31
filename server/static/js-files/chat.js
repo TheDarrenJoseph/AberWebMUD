@@ -4,7 +4,7 @@ function updateInputField (character) {
     if (inputField.val.length === 0) {
       return inputField.append('<p class=\'user-input\'>' + character.data + '</p>');
     } else {
-      return $('#message-input .user-input').append(character.data);
+      return $('#message-input.user-input').append(character.data);
     }
 };
 

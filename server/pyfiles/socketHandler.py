@@ -20,7 +20,7 @@ def send_login_success(session_id, status_response):
     emit('login-success', {'sessionId':session_id, 'player-status':status_response})
     sessionHandler.list_sessions() #List sessions for debug/info
 
-def send_welcome():
+def send_welcome() -> None:
     """ emits a welcome message to the client
         also sets a 5min timeout to disconnect the session
     """
@@ -35,7 +35,7 @@ def send_welcome():
     connection_timeout = threading.Timer(300, sessionHandler.remove_connected_session(request.sid))
 
 
-def send_map_data():
+def send_map_data() -> None:
     if len(overworld.map_tiles) > 0:
         logging.debug('OUT| map-response')
 
@@ -93,7 +93,7 @@ def handle_message(message: dict) -> None:
             else:
                 logging.info('User must be logged in to message')
 
-def handle_movement(message: dict):
+def handle_movement(message: dict) -> None:
     """ Handles a player movement command message send over SocketsIO """
 
     #If the movment returns True, all is good and we can send back a movement response
@@ -104,9 +104,9 @@ def handle_movement(message: dict):
     username = message['username']
     session_id = message['sessionId']
 
-    moved_player = playerController.find_player(username)
+    found_player = playerController.find_player(username)
 
-    if moved_player is not None:
+    if found_player is not None:
         if sessionHandler.check_active_session(session_id, username):
 
             player_pos = playerController.get_player_pos(username)
@@ -131,7 +131,7 @@ def handle_movement(message: dict):
                         'pos_y':new_pos[1]
                     }, broadcast=True)
 
-                    logging.info('movement success for'+moved_player.username)
+                    logging.info('movement success for'+found_player.username)
                     logging.info(str(old_x)+str(old_y)+" "+str(new_pos[0])+str(new_pos[1]))
                 else:
                     #Send a failed response back to that one user
@@ -141,6 +141,15 @@ def handle_movement(message: dict):
             logging.info('Valid user not in activeSessions, requesting password')
             emit('request-password', username) #Client has a valid user, but not logged in
 
+def handle_char_details(message: dict) -> None:
+    """ Receives character data from the client, validates it, and updates the DB """
+    logging.info('CHAR DETAILS: '+str(message))
+    #found_player = playerController.find_player(username)
+    #if found_player is not None:
+        #Exists but not logged in
+        #if not sessionHandler.check_active_session(sid, found_player.username):
+
+
 def handle_disconnect() -> None:
     """ Automatically removes an active session from our list on disconnect """
     removed_session = sessionHandler.remove_active_session(request.sid)
@@ -149,7 +158,7 @@ def handle_disconnect() -> None:
         print('Active session removed: '+request.sid+' '+removed_session[1])
     print('A session disconnected: '+request.sid)
 
-def authenticate_user(data):
+def authenticate_user(data) -> None:
     """ Authenticates/logs in a user through username and password """
 
     sid = request.sid

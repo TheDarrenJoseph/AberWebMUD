@@ -2,8 +2,8 @@
 #Just using simple test values for now
 from pyfiles import mapTile
 
-map_size_x = 50
-map_size_y = 50
+map_size_x = 20
+map_size_y = 20
 map_tiles = []
 
 #Returns the starting position for all characters on the map

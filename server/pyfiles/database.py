@@ -1,5 +1,5 @@
-import psycopg2
 import logging
+import psycopg2
 from pyfiles import player, character, playerController, crypto
 from pony.orm import *
 
@@ -24,7 +24,8 @@ class DatabaseHandler:
     @pony.orm.db_session
     def print_version(self):
         if self._database is not None:
-            logging.info(self._database.select("select version()"))
+            logging.info('DB INFO: '+str(self._database.select("select sqlite_version();")))
+            #logging.info(self._database.select("select version();")) POSTGRES
 
     #Prints the current state of the tables for development debug
     @pony.orm.db_session
@@ -44,14 +45,16 @@ class DatabaseHandler:
     def open_db(self):
         if self._database is not None:
             try:
-                self._database.bind('postgres', database='aber-web-mud', user='webmud')
+                #SQLite in memory for 'session only' storage (does not persist)
+                self._database.bind('sqlite', ':memory:')
+                #Postgres option (for deployment if needed)
+                #self._database.bind('postgres', database='aber-web-mud', user='webmud')
 
                 logging.info('--DB-OPEN--')
                 self.map_db()
                 logging.info('--DB--MAPPED--')
                 self.print_version()
                 self.show_tables()
-
 
             except psycopg2.DatabaseError:
                 logging.critical('--DB-ERROR--| while opening DB.')

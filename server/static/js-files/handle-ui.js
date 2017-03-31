@@ -153,10 +153,29 @@ function sendPassword(username) {
 	bindMessageButton(true,username); //Set the send button behavior back to normal
 }
 
+//Switches 'Enter' to send message behavior
+function enterKeySendMessage(isText, username){
+	var messageInput = $('#message-input');
+
+	messageInput.on('keyup', function (evnt) {
+		if (evnt.keyCode == 13) { //Enter key check
+
+			if (isText) {
+				sendNewChatMessage();
+				clearMessageInputField();
+			} else {
+				sendPassword(username);
+			}
+		}
+	});
+
+}
+
 //Switches the 'Send' message behavior from message to password sending
-function bindMessageButton(isText,username){
+function bindMessageButton(isText, username){
 	var thisButton = $('#send-message-button');
 	thisButton.unbind('click');
+	enterKeySendMessage(isText, username); //Bind the enter key too
 
 	if(isText) {
 		thisButton.click(
@@ -185,14 +204,14 @@ function bindStageClick(enabled) {
 
 function disableUI() {
 	bindStageClick(false); //	Turns off stage-click input
-	showControls (false);
-	renderer.render(stage);
+	showControls (false); //	Hides major controls
+	renderer.render(stage); // Re-renders the stage to show blank
 }
 
 function enableUI() {
 	bindStageClick(true); //	Activate movement click input
-	showControls (true);
-	renderer.render(stage);
+	showControls (true); //	Shows major controls
+	renderer.render(stage); // Re-renders the stage to show blank
 }
 
 function updateClientData(data){
@@ -229,4 +248,5 @@ function handlePlayerLogin(data){
 
 function bindEvents () {
 	 bindMessageButton(true);
+	 $('save-stats-button').on('click',sendCharacterDetails())
 }

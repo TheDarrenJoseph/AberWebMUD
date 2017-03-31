@@ -40,15 +40,12 @@ function setupMapUI () {
 			tileSpriteArray[x][y] = MapTileSprite('grass-plain'); // Allocate a new tile
 			tileSprite = tileSpriteArray[x][y]; // Reference to new tile in the array
 
-			// tileSprite.anchor.x = x*tileSize;
-			// tileSprite.anchor.y = y*tileSize;
 			tileSprite.position.x = x * tileSize;
 			tileSprite.position.y = y * tileSize;
 			tileSprite.interactive = true;
 			tileSprite.name = '' + x + '' + y;
 
 			mapContainer.addChild(tileSprite);
-			// tileSprite.click = function() {return objectClicked(tileSprite);}
 		}
 	}
 
@@ -97,8 +94,6 @@ function createSprite(atlasPath, subtileName, tileHeight, tileWidth, x, y, inter
 }
 
 function setupConsoleButton () {
-	//	var consoleButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 16, 16, 16);
-	//	var consoleButtonSprite = PIXI.Sprite.fromImage(zeldaAssetPath+'chat-bubble-blank.png');
 	var consoleButtonSprite = createSprite(	zeldaObjectsAtlasPath,
 																					'chat-bubble-blank',
 																					tileSize,
@@ -124,7 +119,6 @@ function setupContextButtons () {
 
 
 	controlsContainer.addChild(inventoryButtonSprite);
-	inventoryButtonSprite.on ('click', toggleIventoryWinVisibility);
 
 	var statsButtonSprite = createSprite(	zeldaObjectsAtlasPath,
 																				'chest-single',
@@ -136,10 +130,6 @@ function setupContextButtons () {
 																			);
 
 	controlsContainer.addChild(statsButtonSprite);
-	statsButtonSprite.on ('click', toggleStatWinVisibility);
-
-	renderer.render(stage);
-
 	return[inventoryButtonSprite,statsButtonSprite];
 }
 
@@ -164,7 +154,6 @@ function setupStatBars () {
 
 	controlsContainer.addChild(healthBar.backgroundBar);
 	controlsContainer.addChild(healthBar.innerBar);
-	//	dialogBackground.visible = false; //Hidden until we need it
 
 	return [healthBar];
 }
@@ -178,10 +167,7 @@ function assetsLoaded () {
 
 	console.log('Using renderer option: ' + rendererType);
 
-	// document.body.appendChild(renderer.view);
 	$('#main-window').append(renderer.view);
-
-	// console.log ("Using grid size of "+mapWindowSize);
 
 	setupDialogWindow();
 	mapCharacterArray = createMapCharacterArray();
@@ -195,24 +181,24 @@ function assetsLoaded () {
 	tileSpriteArray = setupMapUI();
 	console.log(tileSpriteArray );
 
-	$('console-button').append(contextButtons);
+	$('#console-button').append(contextButtons);
 
 	setupConsoleButton();
 	var contextButtons = setupContextButtons();
 
-	hideWindows();
+	contextButtons[0].on ('click', toggleIventoryWinVisibility);
+	contextButtons[1].on ('click', toggleStatWinVisibility);
 
-	//renderer.render(stage);
+
+	hideWindows();
 }
 
 function setupPageUI() {
-	//$('#message-window').hide();
-
-	// Arbitrary assignment of message log window size for now
-	//$('#message-log').rows = 5;
-	//$('#message-log').cols = 100;
 	$('#message-log').val('');
 	$('#password-input').hide();
+
+	var statWindowDiv = generateStatWindow();
+	$('#stat-window').append(statWindowDiv);
 
 	// Callback for after assets have loaded (for drawing)
 	PIXI.loader.add([overworldAtlasPath,

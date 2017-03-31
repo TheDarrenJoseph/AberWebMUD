@@ -26,6 +26,7 @@ def hookup_callbacks(socket_server):
     socket_server.on_event('movement-command', socketHandler.handle_movement)
     socket_server.on_event('client-auth', socketHandler.authenticate_user)
 
+    socket_server.on_event('character-details', socketHandler.handle_char_details)
 
     socket_server.on_event('connect', socketHandler.send_welcome)
     socket_server.on_event('disconnect', socketHandler.handle_disconnect)

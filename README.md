@@ -24,6 +24,15 @@ Check the LICENSE file for the project's license
 ## Running the project
 1. Change your terminal directory to the server folder
 2. To ensure the JavaScript files have been concatted into the client.js file, run build.sh in the scripts folder
-2. Currently the project is run-dependant on a PostgreSQL database, so you must ensure the PostgreSQL database service is running (database.py should detail what is expected if automatic DB 
+3. Currently the project is run-dependant on a PostgreSQL database, so you must ensure the PostgreSQL database service is running (database.py should detail what is expected if automatic DB 
 creation is not enabled)
-3. Run main.py in Python
+4. Run main.py in Python
+5. visit 'localhost:5000' in a browser
+
+
+## Running client tests (QUnit)
+Client tests are available once the server is running (main.py) at 'localhost:5000/test'
+
+## Running server tests (unittest)
+1. change directory to 'server'
+2. Run: 'python -m unittest discover tests "*.py"'
