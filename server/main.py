@@ -1,7 +1,9 @@
 import passlib, ssl, logging
 
 import flaskHandler
-from pyfiles import userInput, playerController, player, overworld, database, crypto, socketHandler, sessionHandler
+from pyfiles import userInput, playerController, overworld, crypto, socketHandler, sessionHandler
+from pyfiles.db import database
+#from pyfiles.db import player
 from flask_socketio import SocketIO
 
 #Using TLS for HTTPS Support
@@ -12,27 +14,18 @@ def setup_instance(_dbHandler):
     overworld.create_map() #instanciate mapTiles
     logging.info('MAP LOADED')
 
-    this_player = _dbHandler.make_player('too', 'foo','test')
+    player1 = _dbHandler.make_player('bar', 'foo','test')
+    player2 = _dbHandler.make_player('too', 'who','test')
 
-    logging.info('TEST PLAYER:'+str(this_player))
-
-def hookup_callbacks(socket_server):
-    #SocketsIO setup
-    engineio_logger = True
-
-    socket_server.on_event('new-chat-message', socketHandler.handle_message)
-    #socketServer.on_event('connect',send_welcome)
-    socket_server.on_event('map-data-request', socketHandler.send_map_data)
-    socket_server.on_event('movement-command', socketHandler.handle_movement)
-    socket_server.on_event('client-auth', socketHandler.authenticate_user)
-
-    socket_server.on_event('character-details', socketHandler.handle_char_details)
-
-    socket_server.on_event('connect', socketHandler.send_welcome)
-    socket_server.on_event('disconnect', socketHandler.handle_disconnect)
+    logging.info('TEST PLAYER 1:'+str(player1))
+    logging.info('TEST PLAYER 2:'+str(player2))
 
 #Checks that this is the first instance/main instance of the module
 if __name__ == "__main__":
+    #Set our default logging level to DEBUG
+    LOGGER = logging.getLogger()
+    LOGGER.setLevel(logging.DEBUG)
+
     #PonyORM Setup
     #Instanciate our database handler to allow lookups and creation
     DB_HANDLER = database.DatabaseHandler()
@@ -42,12 +35,11 @@ if __name__ == "__main__":
 
     setup_instance(DB_HANDLER) #Run DB and data setup
 
-    SOCKET_HANDLER = SocketIO(flaskHandler._APP)
-    hookup_callbacks(SOCKET_HANDLER)
+    #Enable engineIO Logging
+    engineio_logger = True
 
-    #Set our default logging level to DEBUG
-    LOGGER = logging.getLogger()
-    LOGGER.setLevel(logging.DEBUG)
+    SOCKET_HANDLER = SocketIO(flaskHandler._APP)
+    socketHandler.hookup_callbacks(SOCKET_HANDLER)
 
     #MAIN LOOP
     #app.run()

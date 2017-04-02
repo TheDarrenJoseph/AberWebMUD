@@ -1,26 +1,13 @@
 var socket = null;
 
-//Local data stored for your current character
-var charData = {
-  charname: null, pos_x: null, pos_y: null, attributes: null, class: null, health: null
-};
-
-var clientSession = {
-  username: null,
-  character: charData,
-  sessionId: null
-};
-
-function getSessionInfoJSON() {
-  var username = clientSession.username;
-  var sessionId = clientSession.sessionId;
-
-  return {sessionId: sessionId, username: username}
-}
-
-function sendCharacterDetails(attrValuesJSON) {
-  sessionJson = getSessionInfoJSON();
-  socket.emit('character-details', {attrValuesJSON, sessionJson});
+function sendCharacterDetails() {
+  var attrValuesJSON = getStats();
+  var sessionJson = getSessionInfoJSON();
+  if (attrValuesJSON != null && sessionJson != null){
+    socket.emit('character-details', {'data': attrValuesJSON, 'sessionJson': sessionJson});
+    console.log('Character details sent for saving..');
+    updateMessageLog('Character details submitted (unsaved).', 'client');
+  }
 }
 
 function sendNewChatMessage() {
@@ -31,17 +18,16 @@ function sendNewChatMessage() {
   //console.log(sessionJson)
 
   if (userInput !== '') {
-	   socket.emit('new-chat-message', {data: userInput, sessionJson});
+	   socket.emit('new-chat-message', {'data': userInput, 'sessionJson': sessionJson});
   }
 }
 
 //Tries to send movement input for the current user
 function sendMovementCommand(x,y) {
-  var username = clientSession.username;
-  var sessionId = clientSession.sessionId;
+  var sessionJson = getSessionInfoJSON();
 
   if (username != null && sessionId != null) {
-  	socket.emit('movement-command', {sessionId: sessionId, username: username, moveX: x, moveY: y});
+  	socket.emit('movement-command', {'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
   }
 }
 
@@ -84,12 +70,21 @@ function handleSessionError () {
   console.log('Session Error!');
 }
 
+function handleMessageData(data) {
+  var messageData = data['data'];
+  var username = data['sessionJson']['username'];
+  console.log("Received: " + data);
+  updateMessageLog(messageData, username);
+}
+
 function setupChat () {
 	// Socket custom event trigger for message response, passing in our function for a callback
-	socket.on('chat-message-response', updateMessageLog);
+	socket.on('chat-message-response', handleMessageData);
   socket.on('connection-response', link_connection);
   //socket.on('status-response', updateMessageLog);
   socket.on('map-data-response', saveMapUpdate);
+
+  socket.on('character-details-update-status', handleCharacterUpdateResponse);
 
   socket.on('request-password', requestUserPassword); //  Request for existing password
   socket.on('request-new-password', requestUserPassword); //  Request for new password

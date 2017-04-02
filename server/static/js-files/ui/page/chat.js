@@ -12,22 +12,14 @@ function setMessageLog (text) {
     return $('#message-log').val(text);
 };
 
-function updateMessageLog (msg) {
+//Updates the input field using the message and username strings
+function updateMessageLog (msg, username) {
     var logVal;
-    console.log("Received: " + msg['messageData']);
     logVal = $('#message-log').val();
 
+    if (username != null && username != undefined) msg = '['+username+'] '+ msg; //Add a user tag to the message
 
-
-    if (logVal != '') {
-      //Add a newline before the message
-      $('#message-log').val(logVal + '\n' +msg['messageData'] + '\n');
-    } else {
-      //First message line, no need for a newline prior
-      $('#message-log').val(logVal + msg['messageData'] + '\n');
-    }
-
-
+    $('#message-log').val(logVal + msg + '\n');
 };
 
 function clearMessageInputField () {

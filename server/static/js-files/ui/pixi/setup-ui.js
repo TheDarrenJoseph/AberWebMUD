@@ -200,10 +200,10 @@ function setupPageUI() {
 	var statWindowDiv = generateStatWindow();
 	$('#stat-window').append(statWindowDiv);
 
+	bindEvents(); //	Hookup message sending and other controls
+	
 	// Callback for after assets have loaded (for drawing)
 	PIXI.loader.add([overworldAtlasPath,
 									zeldaObjectsAtlasPath,
 									characterAtlasPath]).load(assetsLoaded);
-
-	bindEvents();
 }

@@ -116,6 +116,11 @@ function generateStatWindow() {
   return form;
 }
 
+//Brings up the stats window
+function showStatWindow() {
+  showWindow('statWindowId');
+}
+
 function getStatsCharacterName(){
   return $('#char-name-input').val();
 }
@@ -153,7 +158,7 @@ function getStatsAttributeValues(){
 
 //Grabs Character Name, Class, and Attribute values
 function getStats() {
-  return { 'charname' : getStatsCharacterName(), 
+  return { 'charname' : getStatsCharacterName(),
           'charclass' : getStatsCharacterClass(),
           'attributes' : getStatsAttributeValues()
         }

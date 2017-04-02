@@ -1,197 +1,13 @@
-function updateInputField (character) {
-    var inputField;
-    inputField = $('#message-input');
-    if (inputField.val.length === 0) {
-      return inputField.append('<p class=\'user-input\'>' + character.data + '</p>');
-    } else {
-      return $('#message-input.user-input').append(character.data);
-    }
-};
-
-function setMessageLog (text) {
-    return $('#message-log').val(text);
-};
-
-function updateMessageLog (msg) {
-    var logVal;
-    console.log("Received: " + msg['messageData']);
-    logVal = $('#message-log').val();
-
-
-
-    if (logVal != '') {
-      //Add a newline before the message
-      $('#message-log').val(logVal + '\n' +msg['messageData'] + '\n');
-    } else {
-      //First message line, no need for a newline prior
-      $('#message-log').val(logVal + msg['messageData'] + '\n');
-    }
-
-
-};
-
-function clearMessageInputField () {
-    return $('#message-input').val('');
-};
-function isValidMovementUpdateData(updateJSON) {
-  var username = updateJSON['username'];
-  var oldX = updateJSON['old_x'];
-  var oldY = updateJSON['old_y'];
-  var pos_x = updateJSON['pos_x'];
-  var pos_y = updateJSON['pos_y'];
-
-  if (username != null &&
-      username != undefined  &&
-      oldX != null &&
-      oldX != undefined  &&
-      oldY != null &&
-      oldY != undefined &&
-      pos_x != null &&
-      pos_x != undefined &&
-      pos_y!= null &&
-      pos_y != undefined) {
-    return true;
-  } else {
-    return false;
-  }
-}
-var socket = null;
-
-//Local data stored for your current character
-var charData = {
-  charname: null, pos_x: null, pos_y: null, attributes: null, class: null, health: null
-};
-
-var clientSession = {
-  username: null,
-  character: charData,
-  sessionId: null
-};
-
-function getSessionInfoJSON() {
-  var username = clientSession.username;
-  var sessionId = clientSession.sessionId;
-
-  return {sessionId: sessionId, username: username}
-}
-
-function sendCharacterDetails(attrValuesJSON) {
-  sessionJson = getSessionInfoJSON();
-  socket.emit('character-details', {attrValuesJSON, sessionJson});
-}
-
-function sendNewChatMessage() {
-  var userInput = $('#message-input').val();
-	//console.log('message sent!: \''+userInput+'\'');
-  sessionJson = getSessionInfoJSON();
-
-  //console.log(sessionJson)
-
-  if (userInput !== '') {
-	   socket.emit('new-chat-message', {data: userInput, sessionJson});
-  }
-}
-
-//Tries to send movement input for the current user
-function sendMovementCommand(x,y) {
-  var username = clientSession.username;
-  var sessionId = clientSession.sessionId;
-
-  if (username != null && sessionId != null) {
-  	socket.emit('movement-command', {sessionId: sessionId, username: username, moveX: x, moveY: y});
-  }
-}
-
-//Send the user's password to the sever
-function sendAuthentication(username, passwordFieldVal){
-  console.log('sending ' + username + ' ' + passwordFieldVal);
-  clientSession.username = username;
-  socket.emit('client-auth', {'username': username, 'password': passwordFieldVal});
-}
-
-//Save our given session id for later, and display the welcome message
-function link_connection(data){
-  if (clientSession.sessionId == null) {
-    clientSession.sessionId = data['sessionId'];
-    console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
-    setMessageLog(data['messageData']);
-  } else {
-    console.log('Reconnected, using old SID');
-  }
-}
-
-function connectSocket() {
-  socket = io.connect();
-  //socket = io.connect('https://localhost');
-}
-
-function setStatusUpdateCallbacks () {
-    socket.on('movement-response', handleMovementResponse);
-    socket.on('movement-update', handleMovementUpdate);
-}
-
-function saveMapUpdate (mapData) {
-  overworldMap = JSON.parse(mapData['data']);
-  overworldMapSizeX = mapData['map-size-x'];
-  overworldMapSizeY = mapData['map-size-y'];
-  console.log('MAP DATA RECEIVED');
-}
-
-function handleSessionError () {
-  console.log('Session Error!');
-}
-
-function setupChat () {
-	// Socket custom event trigger for message response, passing in our function for a callback
-	socket.on('chat-message-response', updateMessageLog);
-  socket.on('connection-response', link_connection);
-  //socket.on('status-response', updateMessageLog);
-  socket.on('map-data-response', saveMapUpdate);
-
-  socket.on('request-password', requestUserPassword); //  Request for existing password
-  socket.on('request-new-password', requestUserPassword); //  Request for new password
-
-  //emit('login-success', userData['username'])
-  socket.on('login-success', handlePlayerLogin);
-  socket.on('session-error', handleSessionError);
-}
 var htmlWindows = {messageWindowId: '#message-window', statWindowId: '#stat-window', inventoryWindowId: '#inventory-window'};
-
-function stageDoubleClicked (mouseEvent) {
-	if (renderer.plugins.interaction.pointer.originalEvent.type === 'pointerdown') {
-		console.log('movement click!');
-
-		try {
-		var coords = pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY);
-		coords = localTilePosToGlobal (coords[0], coords[1]);
-
-		console.log('GLOBAL POSITION CLICKED: '+coords);
-
-		sendMovementCommand(coords[0], coords[1]);
-	} catch (err) { //Invalid tile position clicked on
-		return;
-	}
-	}
-}
-
-function stageClicked (renderer) {
-	var mouseEvent = renderer.plugins.interaction.pointer.originalEvent;
-	//	console.log(pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY));
-	setTimeout(function () { return stageDoubleClicked(mouseEvent); }, 150);
-}
 
 //Handles a movement response (success/fail) for this client's move action
 function handleMovementResponse (responseJSON) {
   var success = responseJSON['success'];
 
-  console.log('Movement response.. Success:' + success);
-
-  if (success) {
-    //drawCharacterToGrid (responseJSON['pos_x'], responseJSON['pos_y']);
-    //console.log('New pos: '+responseJSON['pos_x'] + ' ' + responseJSON['pos_y']);
-
+	//Let the player know if their move is invalid/unsuccessful
+  if (!success) {
+		updateMessageLog ('You cannot move there!', 'server');
   }
-
 }
 
 //	tileSpriteArray -- the grid array of sprites available to the UI
@@ -240,11 +56,15 @@ function drawMapToGrid (startX, startY) {
 					}
 				}
 
-			//renderer.render(stage);
 	} else {
 		console.log('MAP DRAWING| overworld map data from remote is missing.');
 	}
 
+}
+
+function showWindow(dialog){
+	var dialog = $(htmlWindows[dialog]);
+	dialog.show();
 }
 
 function hideWindows(dialog) {
@@ -286,389 +106,278 @@ function requestUserPassword (username) {
 		$('#password-input').show();
 
 		if(username !== undefined) {
+			clientSession.username = username; //Set the current session username
 			setMessageLog('Please enter the password for user '+username);
 		} else {
 			setMessageLog('Account created, please enter your password');
 		}
 
-		bindMessageButton(false,username);
+		bindMessageButton(false); //Set the send message behaviour to password sending
 }
-
 
 function showControls (show) {
 	controlsContainer.visisble = show;
 	renderer.render(controlsContainer);
 }
 
-function sendPassword(username) {
+function sendPassword() {
 	var passwordField = $('#password-input');
+	var username = clientSession.username;
 
-	sendAuthentication(username, passwordField.val());
-	passwordField.val(''); //Blank the field now we're done getting input
-	passwordField.hide(); //Hide the field to show the normal input box
-	$('#message-log').val('');
-	bindMessageButton(true,username); //Set the send button behavior back to normal
-}
-
-//Switches 'Enter' to send message behavior
-function enterKeySendMessage(isText, username){
-	var messageInput = $('#message-input');
-
-	messageInput.on('keyup', function (evnt) {
-		if (evnt.keyCode == 13) { //Enter key check
-
-			if (isText) {
-				sendNewChatMessage();
-				clearMessageInputField();
-			} else {
-				sendPassword(username);
-			}
-		}
-	});
-
-}
-
-//Switches the 'Send' message behavior from message to password sending
-function bindMessageButton(isText, username){
-	var thisButton = $('#send-message-button');
-	thisButton.unbind('click');
-	enterKeySendMessage(isText, username); //Bind the enter key too
-
-	if(isText) {
-		thisButton.click(
-				function() {
-					sendNewChatMessage();
-					clearMessageInputField();
-				}
-		);
+	if (username != null) {
+		sendAuthentication(username, passwordField.val());
+		passwordField.val(''); //Blank the field now we're done getting input
+		passwordField.hide(); //Hide the field to show the normal input box
+		$('#message-log').val('');
+		bindMessageButton(true); //Set the send button behavior back to normal
 	} else {
-		thisButton.click (function () { return sendPassword(username); });
+		console.log('Username not set for login.');
 	}
 }
 
-function bindStageClick(enabled) {
-	var mainWindow = $('#main-window');
-	if(enabled){
-		mainWindow.on('click',
-				function () {
-					return stageClicked(renderer);
-				}
-			);
+function requestCharacterDetails() {
+	//TODO
+	showStatWindow();
+	updateMessageLog('You need to set your character details.', 'client');
+}
+
+
+//Checks that the player's character details are set, and asks them to set them if false
+function checkCharacterDetails() {
+	console.log(clientSession.character);
+
+	if (!characterDetailsExist ()) {
+		requestCharacterDetails();
 	} else {
-		mainWindow.unbind('click');
-	}
+    characterDetailsConfirmed();
+  }
 }
 
-function disableUI() {
-	bindStageClick(false); //	Turns off stage-click input
-	showControls (false); //	Hides major controls
-	renderer.render(stage); // Re-renders the stage to show blank
+function handleCharacterUpdateResponse(messageJson){
+  if (messageJson['success'] != null){
+    //If local character details have yet to be set, and this is valid
+    if (!characterDetailsExist ()) {
+      if (messageJson['success'] == true) characterDetailsConfirmed();
+    }
+  }
 }
 
-function enableUI() {
-	bindStageClick(true); //	Activate movement click input
-	showControls (true); //	Shows major controls
-	renderer.render(stage); // Re-renders the stage to show blank
-}
-
-function updateClientData(data){
-	var playerStatus = data['player-status'];
-	console.log('Login data received: ');
-	console.log(data);
-
-	//	Update the client session to contain our new data
-	clientSession.sessionId = data['sessionId'];
-
-	clientSession.username = playerStatus['username'];
-	clientSession.character.charname = playerStatus['charname'];
-	clientSession.character.pos_x = playerStatus['pos_x'];
-	clientSession.character.pos_y = playerStatus['pos_y'];
-
-	console.log('Saved session object: ');
-	console.log(clientSession);
+//Continues the login process after a user inputs their character details
+function characterDetailsConfirmed() {
+	enableUI(); //Enables player interactions
+	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
+	//Creates the new character to represent the player
+	newCharacterOnMap (clientSession.character.charname , clientSession.character.pos_x, clientSession.character.pos_y);
 }
 
 //	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 function handlePlayerLogin(data){
 	//	console.log(data);
-	updateClientData(data); //Updates the clientSession
+	updateClientSessionData(data); //Updates the clientSession
 
-	enableUI(); //Enables player interactions
-	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
-
-	//Creates the new character to represent the player
-	newCharacterOnMap (clientSession.character.charname , clientSession.character.pos_x, clientSession.character.pos_y);
-
-	console.log('Logged in! Welcome!');
-
+	checkCharacterDetails(); //Check/Prompt for character details
 }
-
-function bindEvents () {
-	 bindMessageButton(true);
-	 $('save-stats-button').on('click',sendCharacterDetails())
-}
-function performSetup () {
-  connectSocket();
-  setupPageUI();
-  setupChat();
-
-  setStatusUpdateCallbacks ();
-
-  socket.emit('map-data-request');
-  //console.log('spriteArray '+tileSpriteArray);
-
-  //thisPlayer = newCharacterOnMap('foo',tileCount/5,tileCount/5);
-
-}
-
-$(document).ready(performSetup);
-var stage = new PIXI.Container();
-
-var dialogContainer = new PIXI.Container();
-var controlsContainer = new PIXI.Container();
-
-// Using ParticleContainer for large amounts of sprites
-var mapContainer = new PIXI.ParticleContainer();
-var characterContainer = new PIXI.ParticleContainer();
-
-var tileSpriteArray; //	Sprites for the map view
-var mapCharacterArray = createMapCharacterArray(); //	Sprites for the players in the current map view
-
-stage.addChild(mapContainer);
-stage.addChild(dialogContainer);
-stage.addChild(controlsContainer);
-stage.addChild(characterContainer);
-
-var dialogBackground;
-
-var tileSize = 40;
-var thisPlayer;
-
-// Set our mapWindowSize to the smallest of our page dimensions
-// Using the smallest dimension to get a square
-// Then use 90% of this value to leave some space
-var mapWindowSize = window.innerWidth;
-if (window.innerHeight < window.innerWidth) {
-	mapWindowSize = window.innerHeight;
-}
-
-// tileCount is the number of tiles we can fit into this square area
-// Rounding down (floor) to get a good tile count
-var tileCount = Math.floor(mapWindowSize / tileSize);
-var halfTileCountFloored = Math.floor(tileCount / 2);
-var halfTileCountCeiled = Math.ceil(tileCount / 2);
-
-if (tileCount%2 == 0) tileCount--; //Ensure we have an even tileCount
-
-
-mapWindowSize = tileCount * tileSize; // Update mapWindowSize to fit the tileCount snugly!
-var halfMapWindowSize = Math.floor(mapWindowSize / 2);
-var thirdMapWindowSize = Math.floor(mapWindowSize / 3);
-
-//These are the start co-ords of our map window (tile view) to allow map scrolling
-var mapGridStartX = 0;
-var mapGridStartY = 0;
-
-var overworldMap = [];
-var overworldMapSizeX = 0; //Sizes of the map
-var overworldMapSizeY = 0;
-
-var gridCharacter = {
-	charactername: null,
-	pos_x: null,
-	pos_y: null,
-	sprite: null
+function updateInputField (character) {
+    var inputField;
+    inputField = $('#message-input');
+    if (inputField.val.length === 0) {
+      return inputField.append('<p class=\'user-input\'>' + character.data + '</p>');
+    } else {
+      return $('#message-input.user-input').append(character.data);
+    }
 };
 
-function GridCharacter (charname, x, y, sprite) {
-	if (!isPositionInOverworld(x, y)) throw new RangeError('Invalid position for GridCharacter! (must be valid overworld co-ord)');
-	return {
-		charname: charname,
-		pos_x: x,
-		pos_y: y,
-		sprite:sprite
-	}
+function setMessageLog (text) {
+    return $('#message-log').val(text);
+};
+
+//Updates the input field using the message and username strings
+function updateMessageLog (msg, username) {
+    var logVal;
+    logVal = $('#message-log').val();
+
+    if (username != null && username != undefined) msg = '['+username+'] '+ msg; //Add a user tag to the message
+
+    $('#message-log').val(logVal + msg + '\n');
+};
+
+function clearMessageInputField () {
+    return $('#message-input').val('');
+};
+
+//2 arrays of the same length to allow looping for creating each line of the table
+var attributeNames = ['STR','DEX','CON','INT','WIS','CHA'];
+var numberInputIds = ['strNumber','dexNumber','conNumber','intNumber','wisNumber','chaNumber'];
+var minAttributeVal = 1;
+var maxAttributeVal = 100;
+
+function createSelectorOption(tagValue,text) {
+  var classSelector = document.createElement('option');
+  classSelector.setAttribute('value', tagValue);
+  classSelector.append(document.createTextNode(text));
+
+  return classSelector;
 }
 
+//Generates the attribute rows and appends them to the given table element
+function createTableRows(statsTable){
+  for (var i=0; i<attributeNames.length; i++) {
+    var attributeRow = document.createElement('tr');
+    var attributeNameElem = document.createElement('td');
+    attributeNameElem.append(document.createTextNode(attributeNames[i]));
 
-function getAtlasSubtexture(tileAtlasPath, subtileName) {
-	var atlasTexture = PIXI.loader.resources[tileAtlasPath];
+    var attributeValElem = document.createElement('td');
 
-	//Check the texture
-	if (atlasTexture  != null) {
-		var subTexture = atlasTexture.textures[subtileName];
+    var attributeValInput = document.createElement('input');
+    attributeValInput.setAttribute('class','attrVal');
+    attributeValInput.setAttribute('type', 'number');
+    attributeValInput.setAttribute('value', 1);
+    attributeValInput.setAttribute('id', numberInputIds[i]);
+    attributeValInput.setAttribute('min', minAttributeVal);
+    attributeValInput.setAttribute('max', maxAttributeVal);
+    attributeValElem.append(attributeValInput);
 
-		if (subTexture != null) {
-			return subTexture;
-		} else {
-			console.log('No tile atlas subtile (not in tile atlas JSON?): ' + subtileName);
-		}
+    attributeRow.append(attributeNameElem);
+    attributeRow.append(attributeValElem);
 
-	} else {
-		console.log('Error loading tile atlas (not known to loader?): ' + tileAtlasPath);
-	}
-
-	return null;
+    statsTable.append(attributeRow);
+  }
 }
 
+function createStatsTable(){
+  var statsTable = document.createElement("table");
+  statsTable.setAttribute('id', 'stat-table');
 
+  var statsTableHeaderRow = document.createElement('tr');
+  var statsTableLeftHeader = document.createElement('th');
+  statsTableLeftHeader.append(document.createTextNode('Attributes'));
+  var statsTableRightHeader = document.createElement('th');
+  statsTableHeaderRow.append(statsTableLeftHeader);
+  statsTableHeaderRow.append(statsTableRightHeader);
 
-function StatBar (name, pos_x, pos_y) {
-	this.name = name;
-	this.backgroundBar = new PIXI.Graphics();
-	this.innerBar = new PIXI.Graphics();
+  statsTable.append(statsTableHeaderRow);
 
-	this.innerSizeX = thirdMapWindowSize - 9;
-	this.innerSizeY = tileSize / 3 - 6;
-	this.value = 100;
+  createTableRows(statsTable);
 
-	StatBar.prototype.drawBackgroundBar = function() {
-		this.backgroundBar.beginFill(0x000000);
-		this.backgroundBar.lineStyle(2, 0xFFFFFF, 1);
-
-		this.backgroundBar = this.backgroundBar.drawRoundedRect(pos_x, pos_y, thirdMapWindowSize, tileSize / 2, 4);
-		this.backgroundBar.endFill();
-	}
-
-	StatBar.prototype.drawInnerBar = function()  {
-		this.innerBar.beginFill(0xFF0000);
-		this.innerBar = this.innerBar.drawRoundedRect(pos_x + 6, pos_y + 6, this.innerSizeX, this.innerSizeY, 4);
-		this.innerBar.endFill();
-	}
-
-	//	Sets a statbar's indicated value using a 1-100 value
-	//	Returns true if changes made, false otherwise
-	StatBar.prototype.setValue = function (value) {
-		if (this.value == value) return false;
-
-		if (value <= 100 && value >= 0) {
-			this.value = value;
-			this.innerSizeX = ((this.innerSizeX / 100) * value); //	Simple percentage adjustment for Y size
-
-		} else return false;
-	}
+  return statsTable;
 }
 
-
-
-function setMapViewPosition(startX,startY) {
-//	var halfTileCount = (tileCount/2); //Always show a position in the middle of the view
-	var halfViewMinus = 0-halfTileCountFloored;
-	var end_view_x = overworldMapSizeX-halfTileCountFloored;
-	var end_view_y = overworldMapSizeY-halfTileCountFloored;
-
-	//if (isPositionInOverworld(startX, startY)) {
-	//Checks that we have half the view out of the map maximum
-	if (startX >= halfViewMinus && startX <= end_view_x && startY >= halfViewMinus && startY <= end_view_y) {
-		//Adjusting the start values for drawing the map
-		mapGridStartX = startX;
-		mapGridStartY = startY;
-	} else {
-		throw new RangeError('Position not in overworld: '+startX+' '+startY);
-	}
+function clearStatInfo(){
+  $('#stats-info').val(''); //JQuery find the field and set it to blank
 }
 
-//Moves the UI to a new position and draws the map there
-function showMapPosition(gridX,gridY){
-	//This will throw a RangeError if our position is invalid (doubles as a sanity-check)
-	setMapViewPosition(gridX - halfTileCountFloored,gridY - halfTileCountFloored);
-	console.log('Drawing map from this position: '+gridX+' '+gridY);
-	drawMapToGrid (gridX, gridY); //Draw the view at this position
-}
-//Check whether or not this position is a view-relative one using x/y from 0 - tileCount
-function isPositionRelativeToView(x,y) {
-	if (x < tileCount &&  x >= 0 &&  y < tileCount &&  y >= 0) return true;
-	return false;
+function addToStatInfo(message){
+  var statsField = $('#stats-info');
+  statsField.val(statsField.val()+message);
 }
 
-	//Check whether or not a GLOBAL POSITION is within our map view window
-function isPositionInMapView(global_x, global_y) {
-	if (global_x < (mapGridStartX+tileCount) &&  global_x >= mapGridStartX &&  global_y < (mapGridStartY + tileCount) &&  global_y >= mapGridStartY) {
-		return true;
-	} else {
-		return false;
-	}
+function generateStatWindow() {
+  //Form div to append our elements to
+  var form = document.createElement("form");
+
+  //'Character Name' section
+  var nameLabel = document.createElement("p");
+  nameLabel.setAttribute('class', 'classLabel');
+  nameLabel.append(document.createTextNode("Character Name"));
+
+  var nameInput = document.createElement("input");
+  nameInput.setAttribute('type', 'text');
+  nameInput.setAttribute('id', 'char-name-input');
+  nameInput.setAttribute('required', 'required');
+  nameInput.setAttribute('pattern','[\\w]{1,12}');
+  nameInput.setAttribute('Title','1-12 characters using: a-Z, 0-9, and _');
+
+  //'Character Class' section
+  var classLabel = document.createElement("p");
+  classLabel.setAttribute('class', 'classLabel');
+  classLabel.append(document.createTextNode("Character Class"));
+  //Dropdown for class type
+  var classSelector = document.createElement("select");
+  classSelector.setAttribute('id', 'class-selection');
+  classSelector.setAttribute('disabled', true);
+  classSelector.append(createSelectorOption('fighter','Fighter'));
+  classSelector.append(createSelectorOption('spellcaster','Spellcaster'));
+
+  //'Attributes' section
+  var statsTable = createStatsTable();
+
+  //This allows displaying any needed info
+  var statsInfo = document.createElement("textarea");
+  statsInfo.setAttribute('id', 'stats-info');
+
+  var saveButton = document.createElement("input");
+  saveButton.setAttribute('type', 'submit');
+  saveButton.setAttribute('id', 'save-stats-button');
+  saveButton.setAttribute('value','Save');
+
+  form.setAttribute('onsubmit', 'return false');
+  form.append(nameLabel);
+  form.append(nameInput);
+  form.append(classLabel);
+  form.append(classSelector);
+  form.append(statsTable);
+  form.append(statsInfo);
+  form.append(saveButton);
+
+  return form;
 }
 
-// Checks whether the position is valid in the range of 0 - < mapSizeXorY
-function isPositionInOverworld(global_x, global_y) {
-	// < for max range as overworldMapSizes are 1 indexed
-	if (global_x < overworldMapSizeX &&  global_x >= 0 &&  global_y < overworldMapSizeY &&  global_y >= 0) {
-		return true;
-	} else {
-		return false;
-	}
+//Brings up the stats window
+function showStatWindow() {
+  showWindow('statWindowId');
 }
 
-//	We only view the map through our view window,
-//	This function adjusts a local position 0-tileCount (window co-ord), to a real position on the map
-function localTilePosToGlobal (localX, localY) {
+function getStatsCharacterName(){
+  return $('#char-name-input').val();
+}
 
-	//	Ensure these are view tile co-ordinates
-	if (!isPositionRelativeToView(localX,localY)) {
-		 throw new RangeError('Local tile pos for conversion not relative to the map view');
-	} else {
-		//Shift each of these positions by the starting position of our map view
-		localX += mapGridStartX;
-		localY += mapGridStartY;
+function setStatsCharacterName(name){
+  $('#char-name-input').val(name);
+}
 
-		//Double check we're returning a sane overworld position
-		if (!isPositionInOverworld(localX, localY)) {
-			throw new RangeError ('Local tile pos for conversion plus offset, not in the overworld.');
-		} else {
-			return [localX, localY];
-		}
-	}
+function getStatsCharacterClass(){
+  return $('#class-selection').val();
+}
+
+function setStatsCharacterClass(selectionNo){
+  var options = $('#class-selection').find('option');
+  var optionsLen = options.length;
+
+  if (selectionNo > 0 && selectionNo < optionsLen) {
+    var optionChoice = options[selectionNo].value; //Choice id e.g 'spellcaster'
+    $('#class-selection').val(optionChoice); //Set the value
+  }
 
 }
 
+function getStatsAttributeValues(){
+  var output = {};
 
-//	We only view the map through our view window,
-//	This function adjusts the global position (with relative offset) to a value relative to the grid view
-function globalTilePosToLocal(globalX, globalY) {
-	if (!isPositionInOverworld(globalX, globalY)) {
-		throw new RangeError('Global tile pos for conversion not in the overworld');
-	} else {
-		if (globalX < mapGridStartX || globalY < mapGridStartY || globalX > mapGridStartX+tileCount || globalY > mapGridStartY+tileCount) throw new RangeError('Global tile pos for conversion not in the local view');
-		return [globalX - mapGridStartX, globalY - mapGridStartY];
-	}
+  for (var i=0; i<numberInputIds.length; i++) {
+    var statId = '#'+numberInputIds[i];
+    var statValue = $(statId).val();
+    output[attributeNames[i]] = statValue;
+  }
+
+  return output;
 }
 
-//	Converts tile coords from 0,0 - X,X based on tilecount to a Pixi stage pixel position
-//		-This takes a global position (say the map is 20 tiles, so from 0-19)
-//		-that position is then converted to a pixel amount based:
-//				--tile size
-//				--how many tiles are in the UI
-//				--where the view window is
-//		-Returns an array of len 2 [x,y]m there
-function tileCoordToPixiPos (x_relative,y_relative) {
-	if (!isPositionRelativeToView(x_relative,y_relative)) throw new RangeError('Tile-to-Pixi conversion, tile position invalid!'); //Sanity check
-
-	var pos_x = (x_relative*tileSize);
-	var pos_y = (y_relative*tileSize);
-
-	console.log('Tilesize: '+tileSize+'Co-ord pos: '+x_relative+' '+y_relative+'\n'+'Pixi pos: '+pos_x+' '+pos_y);
-
-	return [pos_x, pos_y];
+//Grabs Character Name, Class, and Attribute values
+function getStats() {
+  return { 'charname' : getStatsCharacterName(),
+          'charclass' : getStatsCharacterClass(),
+          'attributes' : getStatsAttributeValues()
+        }
 }
 
-function pixiPosToTileCoord (x,y) {
-	//Sanity check for input co-ords
-	var furthestPos = tileSize*tileCount;
-	if (x < 0 || x > furthestPos || y < 0 || y > furthestPos) throw new RangeError('Pixi-to-Tile conversion, pixi position invalid!');
+//Takes a JSON object of form: {'STR':1,'DEX':2,...} and sets the value fields to match
+function setStatsAttributeValues(attrValuesJSON){
+  for (var i=0; i<numberInputIds.length; i++) {
+    var statId = '#'+numberInputIds[i];
+    var inputVal = attrValuesJSON[attributeNames[i]];
+    var statValue = $(statId).val(inputVal);
+  }
 
-	//Round down so clicks on the upper-half of tiles still convert correctly
-	var clientX = Math.floor(x / tileSize);
-	var clientY = Math.floor(y / tileSize);
-
-	// Sanity check to make sure we can't click over the boundary
-	var zeroIndexedTileCount = tileCount - 1;
-	if (clientX > zeroIndexedTileCount) clientX = zeroIndexedTileCount;
-	if (clientY > zeroIndexedTileCount) clientY = zeroIndexedTileCount;
-
-	console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
-
-	return[clientX,clientY]
 }
 var titleText = 'AberWebMUD';
 var zeldaAssetPath = 'static/assets/gfx/';
@@ -872,12 +581,12 @@ function setupPageUI() {
 	var statWindowDiv = generateStatWindow();
 	$('#stat-window').append(statWindowDiv);
 
+	bindEvents(); //	Hookup message sending and other controls
+	
 	// Callback for after assets have loaded (for drawing)
 	PIXI.loader.add([overworldAtlasPath,
 									zeldaObjectsAtlasPath,
 									characterAtlasPath]).load(assetsLoaded);
-
-	bindEvents();
 }
 // Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
 function makeSpriteFromAtlas (tileAtlasPath, subtileName) {
@@ -1016,173 +725,889 @@ function newCharacterOnMap (charactername, gridX, gridY) {
 // 		}
 // 	}
 // }
+var stage = new PIXI.Container();
 
-//2 arrays of the same length to allow looping for creating each line of the table
-var attributeNames = ['STR','DEX','CON','INT','WIS','CHA'];
-var numberInputIds = ['strNumber','dexNumber','conNumber','intNumber','wisNumber','chaNumber'];
-var minAttributeVal = 1;
-var maxAttributeVal = 100;
+var dialogContainer = new PIXI.Container();
+var controlsContainer = new PIXI.Container();
 
-function createSelectorOption(tagValue,text) {
-  var classSelector = document.createElement('option');
-  classSelector.setAttribute('value', tagValue);
-  classSelector.append(document.createTextNode(text));
+// Using ParticleContainer for large amounts of sprites
+var mapContainer = new PIXI.ParticleContainer();
+var characterContainer = new PIXI.ParticleContainer();
 
-  return classSelector;
+var tileSpriteArray; //	Sprites for the map view
+var mapCharacterArray = createMapCharacterArray(); //	Sprites for the players in the current map view
+
+stage.addChild(mapContainer);
+stage.addChild(dialogContainer);
+stage.addChild(controlsContainer);
+stage.addChild(characterContainer);
+
+var dialogBackground;
+
+var tileSize = 40;
+var thisPlayer;
+
+// Set our mapWindowSize to the smallest of our page dimensions
+// Using the smallest dimension to get a square
+// Then use 90% of this value to leave some space
+var mapWindowSize = window.innerWidth;
+if (window.innerHeight < window.innerWidth) {
+	mapWindowSize = window.innerHeight;
 }
 
-//Generates the attribute rows and appends them to the given table element
-function createTableRows(statsTable){
-  for (var i=0; i<attributeNames.length; i++) {
-    var attributeRow = document.createElement('tr');
-    var attributeNameElem = document.createElement('td');
-    attributeNameElem.append(document.createTextNode(attributeNames[i]));
+// tileCount is the number of tiles we can fit into this square area
+// Rounding down (floor) to get a good tile count
+var tileCount = Math.floor(mapWindowSize / tileSize);
+var halfTileCountFloored = Math.floor(tileCount / 2);
+var halfTileCountCeiled = Math.ceil(tileCount / 2);
 
-    var attributeValElem = document.createElement('td');
+if (tileCount%2 == 0) tileCount--; //Ensure we have an even tileCount
 
-    var attributeValInput = document.createElement('input');
-    attributeValInput.setAttribute('class','attrVal');
-    attributeValInput.setAttribute('type', 'number');
-    attributeValInput.setAttribute('value', 1);
-    attributeValInput.setAttribute('id', numberInputIds[i]);
-    attributeValInput.setAttribute('min', minAttributeVal);
-    attributeValInput.setAttribute('max', maxAttributeVal);
-    attributeValElem.append(attributeValInput);
 
-    attributeRow.append(attributeNameElem);
-    attributeRow.append(attributeValElem);
+mapWindowSize = tileCount * tileSize; // Update mapWindowSize to fit the tileCount snugly!
+var halfMapWindowSize = Math.floor(mapWindowSize / 2);
+var thirdMapWindowSize = Math.floor(mapWindowSize / 3);
 
-    statsTable.append(attributeRow);
+//These are the start co-ords of our map window (tile view) to allow map scrolling
+var mapGridStartX = 0;
+var mapGridStartY = 0;
+
+var overworldMap = [];
+var overworldMapSizeX = 0; //Sizes of the map
+var overworldMapSizeY = 0;
+
+var gridCharacter = {
+	charactername: null,
+	pos_x: null,
+	pos_y: null,
+	sprite: null
+};
+
+function GridCharacter (charname, x, y, sprite) {
+	if (!isPositionInOverworld(x, y)) throw new RangeError('Invalid position for GridCharacter! (must be valid overworld co-ord)');
+	return {
+		charname: charname,
+		pos_x: x,
+		pos_y: y,
+		sprite:sprite
+	}
+}
+
+
+function getAtlasSubtexture(tileAtlasPath, subtileName) {
+	var atlasTexture = PIXI.loader.resources[tileAtlasPath];
+
+	//Check the texture
+	if (atlasTexture  != null) {
+		var subTexture = atlasTexture.textures[subtileName];
+
+		if (subTexture != null) {
+			return subTexture;
+		} else {
+			console.log('No tile atlas subtile (not in tile atlas JSON?): ' + subtileName);
+		}
+
+	} else {
+		console.log('Error loading tile atlas (not known to loader?): ' + tileAtlasPath);
+	}
+
+	return null;
+}
+
+
+
+function StatBar (name, pos_x, pos_y) {
+	this.name = name;
+	this.backgroundBar = new PIXI.Graphics();
+	this.innerBar = new PIXI.Graphics();
+
+	this.innerSizeX = thirdMapWindowSize - 9;
+	this.innerSizeY = tileSize / 3 - 6;
+	this.value = 100;
+
+	StatBar.prototype.drawBackgroundBar = function() {
+		this.backgroundBar.beginFill(0x000000);
+		this.backgroundBar.lineStyle(2, 0xFFFFFF, 1);
+
+		this.backgroundBar = this.backgroundBar.drawRoundedRect(pos_x, pos_y, thirdMapWindowSize, tileSize / 2, 4);
+		this.backgroundBar.endFill();
+	}
+
+	StatBar.prototype.drawInnerBar = function()  {
+		this.innerBar.beginFill(0xFF0000);
+		this.innerBar = this.innerBar.drawRoundedRect(pos_x + 6, pos_y + 6, this.innerSizeX, this.innerSizeY, 4);
+		this.innerBar.endFill();
+	}
+
+	//	Sets a statbar's indicated value using a 1-100 value
+	//	Returns true if changes made, false otherwise
+	StatBar.prototype.setValue = function (value) {
+		if (this.value == value) return false;
+
+		if (value <= 100 && value >= 0) {
+			this.value = value;
+			this.innerSizeX = ((this.innerSizeX / 100) * value); //	Simple percentage adjustment for Y size
+
+		} else return false;
+	}
+}
+
+
+
+function setMapViewPosition(startX,startY) {
+//	var halfTileCount = (tileCount/2); //Always show a position in the middle of the view
+	var halfViewMinus = 0-halfTileCountFloored;
+	var end_view_x = overworldMapSizeX-halfTileCountFloored;
+	var end_view_y = overworldMapSizeY-halfTileCountFloored;
+
+	//if (isPositionInOverworld(startX, startY)) {
+	//Checks that we have half the view out of the map maximum
+	if (startX >= halfViewMinus && startX <= end_view_x && startY >= halfViewMinus && startY <= end_view_y) {
+		//Adjusting the start values for drawing the map
+		mapGridStartX = startX;
+		mapGridStartY = startY;
+	} else {
+		throw new RangeError('Position not in overworld: '+startX+' '+startY);
+	}
+}
+
+//Moves the UI to a new position and draws the map there
+function showMapPosition(gridX,gridY){
+	//This will throw a RangeError if our position is invalid (doubles as a sanity-check)
+	setMapViewPosition(gridX - halfTileCountFloored,gridY - halfTileCountFloored);
+	console.log('Drawing map from this position: '+gridX+' '+gridY);
+	drawMapToGrid (gridX, gridY); //Draw the view at this position
+}
+function bindEvents () {
+	 bindMessageButton(true);
+	 bindSaveCharacterDetails();
+}
+
+function bindSaveCharacterDetails() {
+	$('#save-stats-button').click(function(){sendCharacterDetails()});
+}
+
+function stageClicked (renderer) {
+	var mouseEvent = renderer.plugins.interaction.pointer.originalEvent;
+	//	console.log(pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY));
+	setTimeout(function () { return stageDoubleClicked(mouseEvent); }, 150);
+}
+
+function stageDoubleClicked (mouseEvent) {
+	if (renderer.plugins.interaction.pointer.originalEvent.type === 'pointerdown') {
+		console.log('movement click!');
+
+		try {
+		var coords = pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY);
+		coords = localTilePosToGlobal (coords[0], coords[1]);
+
+		console.log('GLOBAL POSITION CLICKED: '+coords);
+
+		sendMovementCommand(coords[0], coords[1]);
+	} catch (err) { //Invalid tile position clicked on, do nothing
+		return;
+	}
+	}
+}
+
+//Binds 'Enter' to send message behavior
+function enterKeySendMessage(username){
+	var messageField = $('#message-input');
+	var passwordField = $('#password-input');
+	messageField.unbind('keyup'); //Clear previous bindings first
+	passwordField.unbind('keyup');
+
+	messageField.on('keyup', function (evnt) {
+		if (evnt.keyCode == 13) { //Enter key check
+				console.log('ENTER on messagefield');
+				sendNewChatMessage();
+				clearMessageInputField();
+		}
+	});
+
+	passwordField.on('keyup', function (evnt, username) {
+		if (evnt.keyCode == 13) { //Enter key check
+				console.log('ENTER on passwordfield');
+				sendPassword(username);
+		}
+		});
+
+}
+
+//Switches the 'Send' message behavior from message to password sending
+function bindMessageButton(isText){
+	var thisButton = $('#send-message-button');
+	thisButton.unbind('click');
+	enterKeySendMessage(clientSession.username); //	Bind the enter key too
+
+	if(isText) {
+		thisButton.click(
+				function() {
+					sendNewChatMessage();
+					clearMessageInputField();
+				}
+		);
+	} else {
+		//Only bind password sending if the expected (current) username is set
+		if (clientSession.username != null) {
+			thisButton.click (function () { sendPassword(clientSession.username); });
+		}
+	}
+}
+
+function bindStageClick(enabled) {
+	var mainWindow = $('#main-window');
+	if(enabled){
+		mainWindow.on('click',
+				function () {
+					return stageClicked(renderer);
+				}
+			);
+	} else {
+		mainWindow.unbind('click');
+	}
+}
+
+function disableUI() {
+	bindStageClick(false); //	Turns off stage-click input
+	showControls (false); //	Hides major controls
+	renderer.render(stage); // Re-renders the stage to show blank
+}
+
+function enableUI() {
+	bindStageClick(true); //	Activate movement click input
+	showControls (true); //	Shows major controls
+	renderer.render(stage); // Re-renders the stage to show blank
+}
+//Local data stored for your current character
+var charData = {
+  charname: null, pos_x: null, pos_y: null, attributes: null, class: null, health: null
+};
+
+var clientSession = {
+  username: null,
+  character: charData,
+  sessionId: null
+};
+
+function characterDetailsExist () {
+  if (clientSession.character == null ||
+      clientSession.character.charname == null ||
+      clientSession.character.attributes == null ||
+      clientSession.character.class == null ||
+      clientSession.character.health == null) {
+         return false;
+  } else {
+    return true;
   }
 }
 
-function createStatsTable(){
-  var statsTable = document.createElement("table");
-  statsTable.setAttribute('id', 'stat-table');
 
-  var statsTableHeaderRow = document.createElement('tr');
-  var statsTableLeftHeader = document.createElement('th');
-  statsTableLeftHeader.append(document.createTextNode('Attributes'));
-  var statsTableRightHeader = document.createElement('th');
-  statsTableHeaderRow.append(statsTableLeftHeader);
-  statsTableHeaderRow.append(statsTableRightHeader);
+//Extracts the session data into a JSON object
+function getSessionInfoJSON() {
+  var username = clientSession.username;
+  var sessionId = clientSession.sessionId;
 
-  statsTable.append(statsTableHeaderRow);
-
-  createTableRows(statsTable);
-
-  return statsTable;
+  return {sessionId: sessionId, username: username}
 }
 
-function clearStatInfo(){
-  $('#stats-info').val(''); //JQuery find the field and set it to blank
+function updateClientSessionData(data){
+	var playerStatus = data['player-status'];
+	console.log('Login data received: ');
+	console.log(data);
+
+	//	Update the client session to contain our new data
+	clientSession.sessionId = data['sessionId'];
+
+	clientSession.username = playerStatus['username'];
+	clientSession.character.charname = playerStatus['charname'];
+	clientSession.character.pos_x = playerStatus['pos_x'];
+	clientSession.character.pos_y = playerStatus['pos_y'];
+
+	console.log('Saved session object: ');
+	console.log(clientSession);
 }
 
-function addToStatInfo(message){
-  var statsField = $('#stats-info');
-  statsField.val(statsField.val()+message);
-}
-
-function generateStatWindow() {
-  //Form div to append our elements to
-  var form = document.createElement("form");
-
-  //'Character Name' section
-  var nameLabel = document.createElement("p");
-  nameLabel.setAttribute('class', 'classLabel');
-  nameLabel.append(document.createTextNode("Character Name"));
-
-  var nameInput = document.createElement("input");
-  nameInput.setAttribute('type', 'text');
-  nameInput.setAttribute('id', 'char-name-input');
-  nameInput.setAttribute('required', 'required');
-  nameInput.setAttribute('pattern','[\\w]{1,12}');
-  nameInput.setAttribute('Title','1-12 characters using: a-Z, 0-9, and _');
-
-  //'Character Class' section
-  var classLabel = document.createElement("p");
-  classLabel.setAttribute('class', 'classLabel');
-  classLabel.append(document.createTextNode("Character Class"));
-  //Dropdown for class type
-  var classSelector = document.createElement("select");
-  classSelector.setAttribute('id', 'class-selection');
-  classSelector.setAttribute('disabled', true);
-  classSelector.append(createSelectorOption('fighter','Fighter'));
-  classSelector.append(createSelectorOption('spellcaster','Spellcaster'));
-
-  //'Attributes' section
-  var statsTable = createStatsTable();
-
-  //This allows displaying any needed info
-  var statsInfo = document.createElement("textarea");
-  statsInfo.setAttribute('id', 'stats-info');
-
-  var saveButton = document.createElement("input");
-  saveButton.setAttribute('type', 'submit');
-  saveButton.setAttribute('id', 'save-stats-button');
-  saveButton.setAttribute('value','Save');
-
-  form.setAttribute('onsubmit', 'return false');
-  form.append(nameLabel);
-  form.append(nameInput);
-  form.append(classLabel);
-  form.append(classSelector);
-  form.append(statsTable);
-  form.append(statsInfo);
-  form.append(saveButton);
-
-  return form;
-}
-
-function getStatsCharacterName(){
-  return $('#char-name-input').val();
-}
-
-function setStatsCharacterName(name){
-  $('#char-name-input').val(name);
-}
-
-function getStatsCharacterClass(){
-  return $('#class-selection').val();
-}
-
-function setStatsCharacterClass(selectionNo){
-  var options = $('#class-selection').find('option');
-  var optionsLen = options.length;
-
-  if (selectionNo > 0 && selectionNo < optionsLen) {
-    var optionChoice = options[selectionNo].value; //Choice id e.g 'spellcaster'
-    $('#class-selection').val(optionChoice); //Set the value
+//Save our given session id for later, and display the welcome message
+function link_connection(data){
+  if (clientSession.sessionId == null) {
+    clientSession.sessionId = data['sessionId'];
+    console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
+    setMessageLog(data['messageData']);
+  } else {
+    console.log('Reconnected, using old SID');
   }
+}
+
+function saveMapUpdate (mapData) {
+  overworldMap = JSON.parse(mapData['data']);
+  overworldMapSizeX = mapData['map-size-x'];
+  overworldMapSizeY = mapData['map-size-y'];
+  console.log('MAP DATA RECEIVED');
+}
+
+function handleSessionError () {
+  console.log('Session Error!');
+}
+//Check whether or not this position is a view-relative one using x/y from 0 - tileCount
+function isPositionRelativeToView(x,y) {
+	if (x < tileCount &&  x >= 0 &&  y < tileCount &&  y >= 0) return true;
+	return false;
+}
+
+	//Check whether or not a GLOBAL POSITION is within our map view window
+function isPositionInMapView(global_x, global_y) {
+	if (global_x < (mapGridStartX+tileCount) &&  global_x >= mapGridStartX &&  global_y < (mapGridStartY + tileCount) &&  global_y >= mapGridStartY) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+// Checks whether the position is valid in the range of 0 - < mapSizeXorY
+function isPositionInOverworld(global_x, global_y) {
+	// < for max range as overworldMapSizes are 1 indexed
+	if (global_x < overworldMapSizeX &&  global_x >= 0 &&  global_y < overworldMapSizeY &&  global_y >= 0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+//	We only view the map through our view window,
+//	This function adjusts a local position 0-tileCount (window co-ord), to a real position on the map
+function localTilePosToGlobal (localX, localY) {
+
+	//	Ensure these are view tile co-ordinates
+	if (!isPositionRelativeToView(localX,localY)) {
+		 throw new RangeError('Local tile pos for conversion not relative to the map view');
+	} else {
+		//Shift each of these positions by the starting position of our map view
+		localX += mapGridStartX;
+		localY += mapGridStartY;
+
+		//Double check we're returning a sane overworld position
+		if (!isPositionInOverworld(localX, localY)) {
+			throw new RangeError ('Local tile pos for conversion plus offset, not in the overworld.');
+		} else {
+			return [localX, localY];
+		}
+	}
 
 }
 
-function getStatsAttributeValues(){
-  var output = {};
 
-  for (var i=0; i<numberInputIds.length; i++) {
-    var statId = '#'+numberInputIds[i];
-    var statValue = $(statId).val();
-    output[attributeNames[i]] = statValue;
+//	We only view the map through our view window,
+//	This function adjusts the global position (with relative offset) to a value relative to the grid view
+function globalTilePosToLocal(globalX, globalY) {
+	if (!isPositionInOverworld(globalX, globalY)) {
+		throw new RangeError('Global tile pos for conversion not in the overworld');
+	} else {
+		if (globalX < mapGridStartX || globalY < mapGridStartY || globalX > mapGridStartX+tileCount || globalY > mapGridStartY+tileCount) throw new RangeError('Global tile pos for conversion not in the local view');
+		return [globalX - mapGridStartX, globalY - mapGridStartY];
+	}
+}
+
+//	Converts tile coords from 0,0 - X,X based on tilecount to a Pixi stage pixel position
+//		-This takes a global position (say the map is 20 tiles, so from 0-19)
+//		-that position is then converted to a pixel amount based:
+//				--tile size
+//				--how many tiles are in the UI
+//				--where the view window is
+//		-Returns an array of len 2 [x,y]m there
+function tileCoordToPixiPos (x_relative,y_relative) {
+	if (!isPositionRelativeToView(x_relative,y_relative)) throw new RangeError('Tile-to-Pixi conversion, tile position invalid!'); //Sanity check
+
+	var pos_x = (x_relative*tileSize);
+	var pos_y = (y_relative*tileSize);
+
+	console.log('Tilesize: '+tileSize+'Co-ord pos: '+x_relative+' '+y_relative+'\n'+'Pixi pos: '+pos_x+' '+pos_y);
+
+	return [pos_x, pos_y];
+}
+
+function pixiPosToTileCoord (x,y) {
+	//Sanity check for input co-ords
+	var furthestPos = tileSize*tileCount;
+	if (x < 0 || x > furthestPos || y < 0 || y > furthestPos) throw new RangeError('Pixi-to-Tile conversion, pixi position invalid!');
+
+	//Round down so clicks on the upper-half of tiles still convert correctly
+	var clientX = Math.floor(x / tileSize);
+	var clientY = Math.floor(y / tileSize);
+
+	// Sanity check to make sure we can't click over the boundary
+	var zeroIndexedTileCount = tileCount - 1;
+	if (clientX > zeroIndexedTileCount) clientX = zeroIndexedTileCount;
+	if (clientY > zeroIndexedTileCount) clientY = zeroIndexedTileCount;
+
+	console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
+
+	return[clientX,clientY]
+}
+function isValidMovementUpdateData(updateJSON) {
+  var username = updateJSON['username'];
+  var oldX = updateJSON['old_x'];
+  var oldY = updateJSON['old_y'];
+  var pos_x = updateJSON['pos_x'];
+  var pos_y = updateJSON['pos_y'];
+
+  if (username != null &&
+      username != undefined  &&
+      oldX != null &&
+      oldX != undefined  &&
+      oldY != null &&
+      oldY != undefined &&
+      pos_x != null &&
+      pos_x != undefined &&
+      pos_y!= null &&
+      pos_y != undefined) {
+    return true;
+  } else {
+    return false;
   }
+}
+function performSetup () {
+  connectSocket();
+  setupPageUI();
+  setupChat();
 
-  return output;
+  setStatusUpdateCallbacks ();
+
+  socket.emit('map-data-request');
 }
 
-//Grabs Character Name, Class, and Attribute values
-function getStats() {
-  return { 'charname' : getStatsCharacterName(), 
-          'charclass' : getStatsCharacterClass(),
-          'attributes' : getStatsAttributeValues()
-        }
-}
+$(document).ready(performSetup);
+var socket = null;
 
-//Takes a JSON object of form: {'STR':1,'DEX':2,...} and sets the value fields to match
-function setStatsAttributeValues(attrValuesJSON){
-  for (var i=0; i<numberInputIds.length; i++) {
-    var statId = '#'+numberInputIds[i];
-    var inputVal = attrValuesJSON[attributeNames[i]];
-    var statValue = $(statId).val(inputVal);
+function sendCharacterDetails() {
+  var attrValuesJSON = getStats();
+  var sessionJson = getSessionInfoJSON();
+  if (attrValuesJSON != null && sessionJson != null){
+    socket.emit('character-details', {'data': attrValuesJSON, 'sessionJson': sessionJson});
+    console.log('Character details sent for saving..');
+    updateMessageLog('Character details submitted (unsaved).', 'client');
   }
-
 }
+
+function sendNewChatMessage() {
+  var userInput = $('#message-input').val();
+	//console.log('message sent!: \''+userInput+'\'');
+  sessionJson = getSessionInfoJSON();
+
+  //console.log(sessionJson)
+
+  if (userInput !== '') {
+	   socket.emit('new-chat-message', {'data': userInput, 'sessionJson': sessionJson});
+  }
+}
+
+//Tries to send movement input for the current user
+function sendMovementCommand(x,y) {
+  var sessionJson = getSessionInfoJSON();
+
+  if (username != null && sessionId != null) {
+  	socket.emit('movement-command', {'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
+  }
+}
+
+//Send the user's password to the sever
+function sendAuthentication(username, passwordFieldVal){
+  console.log('sending ' + username + ' ' + passwordFieldVal);
+  clientSession.username = username;
+  socket.emit('client-auth', {'username': username, 'password': passwordFieldVal});
+}
+
+//Save our given session id for later, and display the welcome message
+function link_connection(data){
+  if (clientSession.sessionId == null) {
+    clientSession.sessionId = data['sessionId'];
+    console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
+    setMessageLog(data['messageData']);
+  } else {
+    console.log('Reconnected, using old SID');
+  }
+}
+
+function connectSocket() {
+  socket = io.connect();
+  //socket = io.connect('https://localhost');
+}
+
+function setStatusUpdateCallbacks () {
+    socket.on('movement-response', handleMovementResponse);
+    socket.on('movement-update', handleMovementUpdate);
+}
+
+function saveMapUpdate (mapData) {
+  overworldMap = JSON.parse(mapData['data']);
+  overworldMapSizeX = mapData['map-size-x'];
+  overworldMapSizeY = mapData['map-size-y'];
+  console.log('MAP DATA RECEIVED');
+}
+
+function handleSessionError () {
+  console.log('Session Error!');
+}
+
+function handleMessageData(data) {
+  var messageData = data['data'];
+  var username = data['sessionJson']['username'];
+  console.log("Received: " + data);
+  updateMessageLog(messageData, username);
+}
+
+function setupChat () {
+	// Socket custom event trigger for message response, passing in our function for a callback
+	socket.on('chat-message-response', handleMessageData);
+  socket.on('connection-response', link_connection);
+  //socket.on('status-response', updateMessageLog);
+  socket.on('map-data-response', saveMapUpdate);
+
+  socket.on('character-details-update-status', handleCharacterUpdateResponse);
+
+  socket.on('request-password', requestUserPassword); //  Request for existing password
+  socket.on('request-new-password', requestUserPassword); //  Request for new password
+
+  //emit('login-success', userData['username'])
+  socket.on('login-success', handlePlayerLogin);
+  socket.on('session-error', handleSessionError);
+}
+//  Testing map-view code, ensuring it's functions behave as expected.
+//  These tests currently use global vars (hopefully) declared in map-view,
+//  this makes the tests a little fragile, so be warned!
+
+// This set of tests focuses on functions for co-ord positions and conversions
+
+//  Runs the position function passed with x and y params
+//  catches any error and checks against the expected error message
+function testPositionRangeError (assert, func, x, y, expectedException) {
+  try {
+    func(x, y);
+  } catch (err) {
+    //TODO Check for RangeError type
+    assert.equal(err.message, expectedException.message);
+  }
+}
+
+//Testing relative co-ords (tile view co-ords) that are 0 indexed
+QUnit.test('|POSITION| relative-to-view-good', function (assert) {
+  assert.ok(isPositionRelativeToView(0,0)); //Lowest possible
+  assert.ok(isPositionRelativeToView(tileCount-1, tileCount-1)); //Highest possible (-1 for 0 indexing)
+}
+);
+
+QUnit.test('|POSITION| relative-to-view-bad', function (assert) {
+  assert.notOk(isPositionRelativeToView(-1, 0));                        //  Lower x bound out of range
+  assert.notOk(isPositionRelativeToView(0, -1));                        //  Lower y bound out of range
+  assert.notOk(isPositionRelativeToView(tileCount + 1, 0));             //  Higher x bound out of range
+  assert.notOk(isPositionRelativeToView(0, tileCount + 1));             //  Higher y bound out of range
+  assert.notOk(isPositionRelativeToView(-1, -1));                       //  Lower x and y bound out of range
+  assert.notOk(isPositionRelativeToView(tileCount + 1, tileCount + 1)); //  Upper x and y bound out of range
+}
+);
+
+
+QUnit.test('|POSITION| in-map-view-good', function (assert) {
+  assert.ok(isPositionInMapView(mapGridStartX, mapGridStartY)); //  Lowest range posible
+  assert.ok(isPositionInMapView(mapGridStartX + tileCount -1 , mapGridStartY + tileCount - 1)); // Highest range possible
+}
+);
+
+QUnit.test('|POSITION| in-map-view-bad', function (assert) {
+  assert.notOk(isPositionInMapView(mapGridStartX - 1, mapGridStartY)); //Lower x bound out of range
+  assert.notOk(isPositionInMapView(mapGridStartX, mapGridStartY - 1)); //Lower y bound out of range
+
+  assert.notOk(isPositionInMapView(mapGridStartX + tileCount + 1, 0)); //Higher x bound out of range
+  assert.notOk(isPositionInMapView(0, mapGridStartY + tileCount + 1)); //Higher y bound out of range
+
+  assert.notOk(isPositionInMapView(0, 0));                                                         // X and Y just below range
+  assert.notOk(isPositionInMapView(mapGridStartX + tileCount, mapGridStartY + tileCount)); // X and Y just above range
+}
+);
+
+QUnit.test('|POSITION| in-overworld |VALID|', function (assert) {
+  assert.ok(isPositionInOverworld(0, 0));   //Lowest possible co-ords
+  assert.ok(isPositionInOverworld(overworldMapSizeX-1, overworldMapSizeY-1)); //Highest possible co-ords
+}
+);
+
+QUnit.test('|POSITION| in-overworld |INVALID|', function (assert) {
+  assert.notOk(isPositionInOverworld(-1, 0)); // Under lowest possible co-ords (x)
+  assert.notOk(isPositionInOverworld(0, -1)); // Under lowest possible co-ords (y)
+
+  assert.notOk(isPositionInOverworld(overworldMapSizeX, overworldMapSizeY- 1)); //  Over highest possible co-ords (x)
+  assert.notOk(isPositionInOverworld(overworldMapSizeX - 1, overworldMapSizeY)); //  Over highest possible co-ords (y)
+}
+);
+
+QUnit.test('|POSITION| local-to-global |VALID|', function (assert) {
+  //Local position (relative to view) is 0-tilecount-1, global = X or Y+XYoffset
+
+  //1. Lowest possible
+  var result = localTilePosToGlobal(0, 0);
+  assert.equal(result[0], mapGridStartX);
+  assert.equal(result[1], mapGridStartY);
+  console.log('JHJEEEY '+mapGridStartX+' '+mapGridStartY);
+
+  //2. Highest possible with an offset (-1 for zero indexing)
+  var zeroIndexedTileCount = tileCount - 1;
+  result = localTilePosToGlobal(zeroIndexedTileCount - mapGridStartX, zeroIndexedTileCount - mapGridStartY);
+  assert.equal(result[0], zeroIndexedTileCount);
+  assert.equal(result[1], zeroIndexedTileCount);
+}
+);
+
+QUnit.test('|POSITION| local-to-global |INVALID|', function (assert) {
+  var nonRelativeErrror = new RangeError('Local tile pos for conversion not relative to the map view');
+  var tilePositionInvalidError = new RangeError ('Local tile pos for conversion plus offset, not in the overworld.');
+
+  testPositionRangeError (assert, localTilePosToGlobal, 0-mapGridStartX-1, 0, nonRelativeErrror);
+  testPositionRangeError (assert, localTilePosToGlobal, 0, 0-mapGridStartY, nonRelativeErrror);
+  testPositionRangeError (assert, localTilePosToGlobal, tileCount, 0, nonRelativeErrror);
+  testPositionRangeError (assert, localTilePosToGlobal, 0, tileCount, nonRelativeErrror);
+  testPositionRangeError (assert, localTilePosToGlobal, 0-mapGridStartX, 0-mapGridStartY, nonRelativeErrror);
+  testPositionRangeError (assert, localTilePosToGlobal, tileCount, tileCount, nonRelativeErrror);
+
+  //Overworld pos oveerrun
+  testPositionRangeError (assert, localTilePosToGlobal, overworldMapSizeX - mapGridStartX + 1, 0, nonRelativeErrror);
+  testPositionRangeError (assert, localTilePosToGlobal, 0, overworldMapSizeY - mapGridStartY + 1, nonRelativeErrror);
+
+  //Overworld pos underrun
+  testPositionRangeError (assert, localTilePosToGlobal, 0-(mapGridStartX+1), 0, nonRelativeErrror);
+  testPositionRangeError (assert, localTilePosToGlobal, 0, 0-(mapGridStartY+1), nonRelativeErrror);
+
+  assert.expect(10); // Expect Error assertions for every test
+}
+);
+
+QUnit.test('|POSITION| global-to-local |VALID|', function (assert) {
+  //Lowest possible X
+  var result = globalTilePosToLocal(mapGridStartX, mapGridStartY);
+  assert.equal(result[0], 0);
+  assert.equal(result[1], 0);
+
+  //Highest possible (-1 for zero indexing)
+  var zeroIndexedTileCount = tileCount-1;
+  result = globalTilePosToLocal( zeroIndexedTileCount + mapGridStartX, zeroIndexedTileCount + mapGridStartY);
+  assert.equal(result[0], zeroIndexedTileCount);
+  assert.equal(result[1], zeroIndexedTileCount);
+}
+);
+
+QUnit.test('|POSITION| global-to-local |INVALID|', function (assert) {
+  var tilePositionInvalidError = new RangeError ('Global tile pos for conversion not in the overworld');
+
+  //X over by 1
+  testPositionRangeError (assert, globalTilePosToLocal, overworldMapSizeX + 1, 0, tilePositionInvalidError);
+  //Y over by 1
+  testPositionRangeError (assert, globalTilePosToLocal, 0, overworldMapSizeY + 1, tilePositionInvalidError);
+  //X under by 1
+  testPositionRangeError (assert, globalTilePosToLocal, -1, 0, tilePositionInvalidError);
+  //Y under by 1
+  testPositionRangeError (assert, globalTilePosToLocal, 0, -1, tilePositionInvalidError);
+  //X and Y over by 1
+  testPositionRangeError (assert, globalTilePosToLocal, overworldMapSizeX + 1, overworldMapSizeY + 1, tilePositionInvalidError);
+  //X and Y under by 1
+  testPositionRangeError (assert, globalTilePosToLocal, -1, -1,  tilePositionInvalidError);
+
+  assert.expect(6); //  Expect Error assertions for every test
+}
+);
+
+QUnit.test('|POSITION| tile-to-pixi |VALID|', function (assert) {
+ //Lowest possible tile pos co-ord
+  var result = tileCoordToPixiPos (0,0);
+  assert.equal(result[0], 0);
+  assert.equal(result[1], 0);
+
+  //Check x co-ord is independant from y, and the next tile over gives the starting pos (top-left) of the tile
+  result = tileCoordToPixiPos (1,0);
+  assert.equal(result[0], tileSize);
+  assert.equal(result[1], 0);
+
+  //Check y co-ord is independant from x, and the next tile over gives the starting pos (top-left) of the tile
+  result = tileCoordToPixiPos (0,1);
+  assert.equal(result[0], 0);
+  assert.equal(result[1], tileSize);
+
+  //Furthest co-ord possible
+  var furthestTilePos = (tileCount-1);
+  var furthestPixiPos = (furthestTilePos*tileSize);
+  console.log('furthestPixiPos: '+furthestPixiPos);
+
+  result = tileCoordToPixiPos (furthestTilePos,furthestTilePos);
+  assert.equal(result[0], furthestPixiPos, 'x-value');
+  assert.equal(result[1], furthestPixiPos, 'y-value');
+}
+);
+
+QUnit.test('|POSITION| tile-to-pixi |INVALID|', function (assert) {
+  var tilePositionInvalidError = new RangeError('Tile-to-Pixi conversion, tile position invalid!');
+
+  //Negative relative positions should fail
+  testPositionRangeError (assert, tileCoordToPixiPos, -1, -1, tilePositionInvalidError);
+  //Furthest co-ord possible +1 should fail (not using -1 to tileCount)
+  testPositionRangeError (assert, tileCoordToPixiPos, tileCount, tileCount, tilePositionInvalidError);
+
+  //Check x co-ord is independant from y for failure
+  testPositionRangeError (assert, tileCoordToPixiPos, -1, 0, tilePositionInvalidError);
+  testPositionRangeError (assert, tileCoordToPixiPos, tileCount, 0, tilePositionInvalidError);
+
+  //Check y co-ord is independant from x for failure
+  testPositionRangeError (assert, tileCoordToPixiPos, 0, -1, tilePositionInvalidError);
+  testPositionRangeError (assert, tileCoordToPixiPos, 0, tileCount, tilePositionInvalidError);
+
+  assert.expect(6); //  Expect Error assertions for every test
+}
+);
+
+QUnit.test('|POSITION| pixi-to-tile |VALID|', function (assert) {
+  //Lowest possible tile pos co-ord
+   var result = pixiPosToTileCoord (0,0);
+   assert.equal(result[0], 0);
+   assert.equal(result[1], 0);
+
+   //Check x co-ord is independant from y, and 1 pixel over the tileSize gives the next tile
+   result = pixiPosToTileCoord (tileSize + 1, 0);
+   assert.equal(result[0], 1);
+   assert.equal(result[1], 0);
+
+   //Check y co-ord is independant from x, and 1 pixel over the tileSize gives the next tile
+   result = pixiPosToTileCoord (0, tileSize + 1);
+   assert.equal(result[0], 0);
+   assert.equal(result[1], 1);
+
+   //Furthest co-ord possible
+   var furthestPixiPos = (tileCount-1) * tileSize;
+   var furthestTilePos  = furthestPixiPos / tileSize;
+   result = pixiPosToTileCoord (furthestPixiPos, furthestPixiPos);
+   assert.equal(result[0], furthestTilePos);
+   assert.equal(result[1], furthestTilePos);
+}
+);
+
+QUnit.test('|POSITION| pixi-to-tile |INVALID|', function (assert) {
+  var invalidPixiPosError = new RangeError('Pixi-to-Tile conversion, pixi position invalid!');
+  //Independant x under range
+  testPositionRangeError(assert, pixiPosToTileCoord, -1, 0, invalidPixiPosError);
+  //Independant y under range
+  testPositionRangeError(assert, pixiPosToTileCoord, 0, -1, invalidPixiPosError);
+  //x and y under range
+  testPositionRangeError(assert, pixiPosToTileCoord, -1, -1, invalidPixiPosError);
+
+  var furthestPixiPosJustOver = tileCount * tileSize + 1; //Over max pixi pos by 1 pixel
+
+  //Independant x over range by 1 pixelj
+  testPositionRangeError(assert, pixiPosToTileCoord, furthestPixiPosJustOver, 0, invalidPixiPosError);
+  //Independant y over range by 1 pixel
+  testPositionRangeError(assert, pixiPosToTileCoord, 0, furthestPixiPosJustOver, invalidPixiPosError);
+  //x and y over range
+  testPositionRangeError(assert, pixiPosToTileCoord, furthestPixiPosJustOver, furthestPixiPosJustOver, invalidPixiPosError);
+}
+);
+
+
+QUnit.test('set-map-position-valid', function (assert) {
+  setMapViewPosition(0,0); //Smallest global position valid
+  assert.equal(mapGridStartX,0);
+  assert.equal(mapGridStartY,0);
+
+  var tileCountZeroIndexedLen = tileCount-1;
+  setMapViewPosition(tileCountZeroIndexedLen, tileCountZeroIndexedLen); //Largest global position valid
+  assert.equal(mapGridStartX, tileCountZeroIndexedLen);
+  assert.equal(mapGridStartY, tileCountZeroIndexedLen);
+}
+);
+
+QUnit.test('set-map-position-invalid', function (assert) {
+  //Independant x under range
+  testPositionRangeError(assert, setMapViewPosition, -1, 0, new RangeError('Position not in overworld: ' + (-1) + ' ' + 0));
+  //Independant y under range
+  testPositionRangeError(assert, setMapViewPosition, 0, -1, new RangeError('Position not in overworld: ' + 0 + ' ' + (-1)));
+  //X and Y under range
+  testPositionRangeError(assert, setMapViewPosition, -1, -1, new RangeError('Position not in overworld: ' + (-1) + ' ' + (-1)));
+
+  //Independant x over range
+  testPositionRangeError(assert, setMapViewPosition, overworldMapSizeX, 0, new RangeError('Position not in overworld: ' + overworldMapSizeX + ' ' + 0));
+  //Independant y over range
+  testPositionRangeError(assert, setMapViewPosition, 0, overworldMapSizeY, new RangeError('Position not in overworld: ' + 0 + ' ' + overworldMapSizeY));
+  //X and Y over range
+  testPositionRangeError(assert, setMapViewPosition,overworldMapSizeX, overworldMapSizeY, new RangeError('Position not in overworld: ' + overworldMapSizeX + ' ' + overworldMapSizeY));
+
+  assert.expect(6); //  Expect Error assertions for every test
+}
+);
+//  Testing map-view code, ensuring it's functions behave as expected.
+//  These tests currently use global vars (hopefully) declared in map-view,
+//  this makes the tests a little fragile, so be warned!
+
+// This set of tests focuses on functions incorporating PixiJS or DOM elements
+
+//TODO Functions more dependant on Pixi resources
+
+// TEST PlayerSprite ()
+// TEST MapTileSprite (textureReference)
+// TEST getAtlasSubtexture(tileAtlasPath, subtileName)
+// TEST makeSpriteFromAtlas (tileAtlasPath, subtileName)
+// TEST StatBar (name, pos_x, pos_x)
+// TEST showMapPosition(gridX,gridY)
+
+function testCharacterCreation (assert, name, x, y, sprite, expectedMessage) {
+  try {
+    GridCharacter(name, x, y, sprite);
+  } catch (err) {
+    assert.equal(err.message, expectedMessage);
+  }
+}
+
+QUnit.test('grid-character-creation-good', function (assert) {
+  var charname = 'foo';
+  var x = 0;
+  var y = 1;
+  var sprite = null;
+
+  expectedCharacter = {
+		charname: charname,
+		pos_x: x,
+		pos_y: y,
+		sprite: sprite
+	};
+
+  var testGridCharacter = GridCharacter(charname, x, y, sprite);
+
+  //Assert that our expected character is the same as the returned character
+  assert.deepEqual(expectedCharacter, testGridCharacter);
+}
+);
+
+
+QUnit.test('grid-character-creation-invalid-pos', function (assert) {
+  var expectedErrorMessage = 'Invalid position for GridCharacter! (must be valid overworld co-ord)';
+  var testName = 'foo';
+
+  testCharacterCreation(assert, testName, -1, 0, null, expectedErrorMessage); //  X out of lower bound
+  testCharacterCreation(assert, testName, 0, -1, null, expectedErrorMessage); //  Y out of lower bound
+  testCharacterCreation(assert, testName, overworldMapSizeX, 0, null, expectedErrorMessage); // X out of upper bound
+  testCharacterCreation(assert, testName, 0, overworldMapSizeY, null, expectedErrorMessage); // Y out of upper bound
+  testCharacterCreation(assert, testName, -1, -1, null, expectedErrorMessage);  //  X and Y out of lower bound
+  testCharacterCreation(assert, testName, overworldMapSizeX, overworldMapSizeY, null, expectedErrorMessage);  //  X and Y out of upper bound
+
+  assert.expect(6); // Check that errors were thrown and asserted
+}
+);
+//Sets up the variables used for view calculation so they're defined for our testing
+
+function beforeTests () {
+  //Start co-ords of the map view window, This affects the local co-ord calculations
+  mapGridStartX = 5;
+  mapGridStartY = 5;
+
+  //Set overworld size limits, for all other co-ord calculations
+  overworldMapSizeX = 50;
+  overworldMapSizeY = 50;
+
+  tileCount = 20; //  mapSizeXY-startpos_xY
+  tileSize = 40; //  Default tile size
+}
+
+QUnit.module('viewTests', { beforeEach: beforeTests });

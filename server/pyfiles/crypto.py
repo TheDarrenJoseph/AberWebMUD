@@ -12,12 +12,3 @@ def hash_password(password):
     hashed_pass = HASHER.hash(password)
     print('argon2 salted hash is: '+hashed_pass)
     return hashed_pass
-
-    #   This is used to break apart the hash result, might not be needed for now
-        #hashVals = hashedPass.split('$') #Break apart our hashstring
-        #salt = hashVals[4]
-        #hashedPass = hashVals[5]
-        #print(hashVals)
-        #print('salt '+salt)
-        #print('hash '+hashedPass)
-        #print('SALT: '+salt.decode(encoding='UTF-8'))

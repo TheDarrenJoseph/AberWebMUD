@@ -1,7 +1,22 @@
 import logging
-from pyfiles import player, character, userInput, database, crypto, overworld
+from pyfiles.db import database, player, character
+from pyfiles import userInput, crypto, overworld
 from pony.orm.core import ObjectNotFound
 from pony.orm import db_session
+
+@db_session
+def update_character_details(characterJson:dict):
+    data = characterJson['data']
+    username = characterJson['sessionJson']['username']
+    charname = data['charname']
+
+    if find_player(username) is not None:
+        if find_character(charname) is not None:
+            this_player = player.Player[username]
+            this_character = player.character
+
+            logging.info('Ready to update chardetails:' +str(this_character))
+            logging.info('Given info: '+str(characterJson))
 
 #Checks for the Character in the DB using PonyORM
 @db_session
@@ -45,9 +60,9 @@ def set_player_pos(username:str, x:int, y:int):
 
 @db_session
 def get_player_status(username):
-    if (find_player(username) is not None):
+    if find_player(username) is not None:
         thisPlayer = player.Player[username]
-        return thisPlayer.create_player_status_response()
+        return thisPlayer.get_json()
     return None
 
 #Creates a new player database object

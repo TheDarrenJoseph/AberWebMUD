@@ -5,12 +5,29 @@ import jsonpickle
 import logging
 from flask import request
 from flask_socketio import emit
-from pyfiles import playerController, sessionHandler, userInput, overworld, database
+from pyfiles import playerController, sessionHandler, userInput, overworld
+from pyfiles.db import database
 
-def send_message(message: dict) -> None:
+def hookup_callbacks(socket_server):
+    socket_server.on_event('new-chat-message', handle_message)
+    socket_server.on_event('map-data-request', send_map_data)
+    socket_server.on_event('movement-command', handle_movement)
+    socket_server.on_event('client-auth', authenticate_user)
+
+    socket_server.on_event('character-details', handle_char_details)
+
+    socket_server.on_event('connect', send_welcome)
+    socket_server.on_event('disconnect', handle_disconnect)
+
+def send_server_message(message, toAll):
+    """ Builds an ad-hoc sessionJson for the server and passes on the message data """
+    messageData = {'data': message, 'sessionJson': {'username':'server'}}
+    send_message(messageData, toAll)
+
+def send_message(messageData, toAll) -> None:
     #"""Broadcasts a chat-message-response to all connected users """
-    logging.debug('OUT| chat message RESPONSE')
-    emit('chat-message-response', message, broadcast=True)
+    logging.debug('OUT| chat message RESPONSE to all')
+    emit('chat-message-response', messageData, broadcast=toAll)
 
 def send_login_success(session_id, status_response):
     """ Emits a login-success event to the client
@@ -27,7 +44,7 @@ def send_welcome() -> None:
     logging.debug('OUT| Welcome message to: '+request.sid)
     sessionHandler.add_connected_session(request.sid)
 
-    emit('connection-response', {'messageData': 'Welcome! Please create a character or login by typing \'user [username] [charactername]\' ', 'sessionId':request.sid})
+    emit('connection-response', {'data': 'Welcome! Please create a character or login by typing \'user [username] [charactername]\' ', 'sessionId':request.sid})
     #emit('status-response',statusResponse)
     sessionHandler.list_sessions()
 
@@ -45,6 +62,26 @@ def send_map_data() -> None:
                                   }
             )
 
+def parse_login(sid, username):
+    #user inputted username from client message
+
+    #Does this player already exist?
+    if all(valid_player_session(username, sid)):
+        #Exists but not logged in
+        if not sessionHandler.check_active_session(sid, found_player.username):
+            logging.info('Requesting authentication for existing user..')
+            #Send the password request for existing user
+            logging.debug('OUT| request-password for: '+username)
+            emit('request-password', username)
+        else:
+            logging.info('User'+username+'already logged in..')
+    else:
+        logging.info('User does not exist'+username)
+        logging.debug('OUT| request-new-password for: '+username)
+
+        #Send the password creation request for a new account
+        emit('request-new-password', username)
+
 def handle_message(message: dict) -> None:
     logging.info('IN| player message: '+str(message))
 
@@ -56,59 +93,49 @@ def handle_message(message: dict) -> None:
         input_params = message_details[1]
         user_choice = input_params['choice']
         user_data = input_params['data']
+        logging.info(user_data)
 
-        if user_choice == 0:
-            return
-        elif user_choice == 1:
-            #user inputted username from client message
-            username = input_params['data']['username']
-
-            #Does this player already exist?
-            found_player = playerController.find_player(username)
-            if found_player is not None:
-                #Exists but not logged in
-                if not sessionHandler.check_active_session(sid, found_player.username):
-                    logging.info('Requesting authentication for existing user..')
-                    logging.info(user_data)
-                    #Send the password request for existing user
-                    logging.debug('OUT| request-password for: '+username)
-                    emit('request-password', username)
-                else:
-                    logging.info('User'+username+'already logged in..')
-            else:
-                logging.info('User does not exist'+username)
-                logging.debug('OUT| request-new-password for: '+username)
-
-                #Send the password creation request for a new account
-                emit('request-new-password', username)
+        if user_choice == 1:
+            username = input_params['data']['username'] #Username is here for a login
+            parse_login(sid, username)
 
         elif user_choice == 2:
             #user inputted username from client message
-            username = message['sessionJson']['username']
+            username = message['sessionJson']['username'] #Username from sessionJSON otherwise
             found_player = playerController.find_player(username)
 
             if found_player is not None:
-                logging.info(str(input_params['data']['messageData']))
-                send_message(user_data)
+                logging.info('OUT| MESSAGE: '+str(message)+' Actual: '+str(user_data))
+                send_message(message, True) #Rebroadcast the message {data,sessionJson}
             else:
-                logging.info('User must be logged in to message')
+                #Send an eror message back to the user
+                send_server_message('User must be logged in to message', False)
+
+def valid_player_session(username, session_id):
+    found_player = playerController.find_player(username)
+
+    if found_player is not None:
+        if sessionHandler.check_active_session(session_id, username):
+            return (True, True)
+        return (True, False)
+    return (False, False)
 
 def handle_movement(message: dict) -> None:
     """ Handles a player movement command message send over SocketsIO """
 
     #If the movment returns True, all is good and we can send back a movement response
     #move_player also checks if the username exists for us
-    logging.debug('IN| MOVEMENT MESSAGE: ')
-    logging.info('Movement command: '+str(message))
+    logging.debug('IN| MOVEMENT MESSAGE: '+str(message))
 
     username = message['username']
     session_id = message['sessionId']
 
     found_player = playerController.find_player(username)
 
-    if found_player is not None:
-        if sessionHandler.check_active_session(session_id, username):
+    valid = valid_player_session(username, session_id)
 
+    if valid[0]:
+        if valid[1]:
             player_pos = playerController.get_player_pos(username)
 
             if player_pos is not None:
@@ -144,11 +171,21 @@ def handle_movement(message: dict) -> None:
 def handle_char_details(message: dict) -> None:
     """ Receives character data from the client, validates it, and updates the DB """
     logging.info('CHAR DETAILS: '+str(message))
-    #found_player = playerController.find_player(username)
-    #if found_player is not None:
-        #Exists but not logged in
-        #if not sessionHandler.check_active_session(sid, found_player.username):
 
+    if 'sessionJson' in message and 'username' in message['sessionJson']:
+        if all(valid_player_session(message['sessionJson']['username'], request.sid)):
+            logging.info('IN| (CHAR-STATS) stats save attempted. '+str(request.sid))
+            update_success = False
+            #Check the details and emit a response based on that
+            if userInput.validate_character_update(message):
+                update_success = True
+                playerController.update_character_details(message)
+            emit('character-details-update-status', {'success':update_success})
+
+        else:
+            logging.info('IN| (CHAR-STATS) stats save attempted for invalid session.'+str(request.sid))
+    else:
+        logging.info('IN| Malformed protocol message for char details')
 
 def handle_disconnect() -> None:
     """ Automatically removes an active session from our list on disconnect """
@@ -162,11 +199,8 @@ def authenticate_user(data) -> None:
     """ Authenticates/logs in a user through username and password """
 
     sid = request.sid
-
-    #hashedPassword = crypto.hash_password(data['password'])
     username = data['username']
     password = data['password']
-    #print(hashedPass.salt)
 
     #Calling the static method to check player details
     if database.DatabaseHandler.check_player_password(username, password):

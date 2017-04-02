@@ -1,4 +1,5 @@
-JS_FILES=$(ls ./static/js-files/*.js)
+#list all JS files, remove any directories '/', and grab those that end in .js
+JS_FILES=$(find ./static/js-files/ -name *.js)
 MAIN_FILE=./static/client.js
 
 echo "Concatting "$JS_FILES

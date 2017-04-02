@@ -1,11 +1,15 @@
 import logging
 import psycopg2
-from pyfiles import player, character, playerController, crypto
+from pyfiles import playerController, crypto
+from pyfiles.db import db_instance, player, character
 from pony.orm import *
 
-class DatabaseHandler:
+class DatabaseHandler():
     #Shared class variable to prevent multiple instanciations
-    _database = Database()
+    _db_instance = db_instance.DatabaseInstance()
+
+    def db_exists(self):
+        return self._db_instance._database is not None
 
     @pony.orm.db_session
     def make_player(self, charname, username, passwd):
@@ -23,32 +27,32 @@ class DatabaseHandler:
     #Prints DB build info
     @pony.orm.db_session
     def print_version(self):
-        if self._database is not None:
-            logging.info('DB INFO: '+str(self._database.select("select sqlite_version();")))
-            #logging.info(self._database.select("select version();")) POSTGRES
+        if self.db_exists():
+            logging.info('DB INFO: '+str(self._db_instance._database.select("select sqlite_version();")))
+            #logging.info(self._db_instance._database.select("select version();")) POSTGRES
 
     #Prints the current state of the tables for development debug
     @pony.orm.db_session
     def show_tables(self):
-        if self._database is not None:
-            logging.info(str(self._database.select("select * from Player")))
-            logging.info(str(self._database.select("select * from Character")))
+        if self.db_exists():
+            logging.info(str(self._db_instance._database.select("select * from Player")))
+            logging.info(str(self._db_instance._database.select("select * from Character")))
 
     def clear_db(self, allData:bool):
-        self._database.drop_all_tables(with_all_data=allData)
+        self._db_instance._database.drop_all_tables(with_all_data=allData)
 
     #This should be done after defining every database entity (such as a Player)
     def map_db(self):
-        self._database.generate_mapping(create_tables=True)
+        self._db_instance._database.generate_mapping(create_tables=True)
 
     #Binds and maps PonyORM to the Postgresql DB
     def open_db(self):
-        if self._database is not None:
+        if self.db_exists():
             try:
                 #SQLite in memory for 'session only' storage (does not persist)
-                self._database.bind('sqlite', ':memory:')
+                self._db_instance._database.bind('sqlite', ':memory:')
                 #Postgres option (for deployment if needed)
-                #self._database.bind('postgres', database='aber-web-mud', user='webmud')
+                #self._db_instance._database.bind('postgres', database='aber-web-mud', user='webmud')
 
                 logging.info('--DB-OPEN--')
                 self.map_db()
@@ -61,6 +65,6 @@ class DatabaseHandler:
 
 
     def close_db(self):
-        if self._database is not None:
-            self._database.disconnect()
+        if self.db_exists():
+            self._db_instance._database.disconnect()
             logging.info('--DB-CLOSED--: ')
