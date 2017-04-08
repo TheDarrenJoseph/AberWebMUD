@@ -1,5 +1,14 @@
 var htmlWindows = {messageWindowId: '#message-window', statWindowId: '#stat-window', inventoryWindowId: '#inventory-window'};
 
+function checkConnection() {
+  if (!isSocketConnected()) {
+     hideWindows();
+     showControls(false);
+     showDialog();
+     updateMessageLog ('Connection lost to server!', 'client');
+  }
+}
+
 //Handles a movement response (success/fail) for this client's move action
 function handleMovementResponse (responseJSON) {
   var success = responseJSON['success'];
@@ -67,14 +76,24 @@ function showWindow(dialog){
 	dialog.show();
 }
 
-function hideWindows(dialog) {
+function hideWindow(dialog) {
+	var dialog = $(htmlWindows[dialog]);
+	dialog.hide();
+}
+
+function hideWindows() {
+  for (windowId in htmlWindows) {
+    hideWindow(windowId);
+  }
+}
+
+function toggleWindow(dialog) {
 	var dialog = $(htmlWindows[dialog]);
 	var toHide = dialog.is(':visible'); //Check if the dialog is visible to begin with
 
 	$('.dialog:visible').hide();
 
 	if (toHide) {
-		console.log('vis');
 		dialog.hide();
 	} else {
 		dialog.show();
@@ -82,15 +101,15 @@ function hideWindows(dialog) {
 }
 
 function toggleStatWinVisibility () {
-	hideWindows('statWindowId');
+	toggleWindow('statWindowId');
 }
 
 function toggleIventoryWinVisibility () {
-	hideWindows('inventoryWindowId');
+	toggleWindow('inventoryWindowId');
 }
 
 function toggleConsoleVisibility () {
-	hideWindows('messageWindowId');
+	toggleWindow('messageWindowId');
 }
 
 function showDialog () {
@@ -136,7 +155,6 @@ function sendPassword() {
 }
 
 function requestCharacterDetails() {
-	//TODO
 	showStatWindow();
 	updateMessageLog('You need to set your character details.', 'client');
 }
@@ -156,14 +174,20 @@ function checkCharacterDetails() {
 function handleCharacterUpdateResponse(messageJson){
   if (messageJson['success'] != null){
     //If local character details have yet to be set, and this is valid
+
+    console.log('DETAILS EXIST?: '+characterDetailsExist());
     if (!characterDetailsExist ()) {
       if (messageJson['success'] == true) characterDetailsConfirmed();
+    } else {
+      console.log('Updating existing details.. ');
     }
   }
 }
 
 //Continues the login process after a user inputs their character details
 function characterDetailsConfirmed() {
+  hideWindow('statWindowId'); //Hide the stats windows
+
 	enableUI(); //Enables player interactions
 	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
 	//Creates the new character to represent the player

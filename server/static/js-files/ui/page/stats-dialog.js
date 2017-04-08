@@ -1,7 +1,7 @@
 
 //2 arrays of the same length to allow looping for creating each line of the table
-var attributeNames = ['STR','DEX','CON','INT','WIS','CHA'];
-var numberInputIds = ['strNumber','dexNumber','conNumber','intNumber','wisNumber','chaNumber'];
+var attributeNames = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+var numberInputIds = ['strNumber', 'dexNumber', 'conNumber', 'intNumber', 'wisNumber', 'chaNumber'];
 var minAttributeVal = 1;
 var maxAttributeVal = 100;
 

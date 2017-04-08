@@ -4,16 +4,25 @@ import logging
 def key_and_data_exists(jsonMessage: dict, key: str) -> bool:
     logging.debug('CHECKING: '+str(jsonMessage))
     if key in jsonMessage.keys():
-        if jsonMessage[key] is not None:
+        #Check against none and blank -- jsonMessage == '' is Falsy
+        logging.info(str(jsonMessage[key])+' is '+str(bool(jsonMessage[key])))
+
+        if jsonMessage[key] is not None and bool(jsonMessage[key]) is True:
             logging.debug(jsonMessage[key])
-            return True
+
+            if isinstance(jsonMessage[key], str):
+                key_value = jsonMessage[key].strip() #Removes any whitespace just incase
+                #Empty strings '' are Falsy, anything else should be Truthy
+                return bool(key_value)
+            return True #True for all other types
+
     return False
 
 def character_details_exist(characterJson):
     """ Checks that the character update JSON data exists in the correct format
         EXAMPLE DATA:
         {'data': {'charname': 'Ragnar', 'charclass': 'fighter', 'attributes': {'STR': '1', 'DEX': '1', 'CON': '1', 'INT': '1', 'WIS': '1', 'CHA': '1'}},
-        'sessionJson': {'sessionId': 'saa2231sad2121', 'username': 'foo'}}
+        'sessionJson': {'sessionId': 'saa2231sad2121', 'username': 'test'}}
 
     """
     if key_and_data_exists(characterJson, 'data'):
@@ -22,10 +31,12 @@ def character_details_exist(characterJson):
             charDetails = characterJson['sessionJson']
 
             USERNAME_PRESENT = key_and_data_exists(charDetails, 'username')
+            logging.info('USERNAME PRESENT - '+str(USERNAME_PRESENT))
 
             ALL_DATA_PRESENT = key_and_data_exists(charData, 'charname') \
             and key_and_data_exists(charData, 'charclass') \
             and key_and_data_exists(charData, 'attributes')
+            logging.info('ALL DATA PRESENT - '+str(ALL_DATA_PRESENT))
 
             #If both are valid, check for attributes
             if USERNAME_PRESENT and ALL_DATA_PRESENT:
@@ -37,6 +48,7 @@ def character_details_exist(characterJson):
                 and key_and_data_exists(attributes, 'WIS') \
                 and key_and_data_exists(attributes, 'CHA')
 
+                logging.info('ATTRIBUTES PRESENT - '+str(ATTRIBUTES_PRESENT))
                 if ATTRIBUTES_PRESENT:
                     return True
     return False

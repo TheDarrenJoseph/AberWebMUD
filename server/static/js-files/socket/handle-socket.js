@@ -1,5 +1,9 @@
 var socket = null;
 
+function isSocketConnected () {
+  return socket.connected;
+}
+
 function sendCharacterDetails() {
   var attrValuesJSON = getStats();
   var sessionJson = getSessionInfoJSON();

@@ -158,6 +158,38 @@ function setupStatBars () {
 	return [healthBar];
 }
 
+function displayHealthBar() {
+		var statBars = setupStatBars();
+		console.log(statBars);
+		statBars[0].setValue(20);
+		statBars[0].drawBackgroundBar();
+		statBars[0].drawInnerBar();
+}
+
+//Shows just the controls needed for login
+function showLoginControls() {
+	hideWindows();
+	toggleConsoleVisibility(); //Make the console only visisble
+	setTimeout(function () { return checkConnection(); }, 5000); //Check connection every 5 seconds
+}
+
+function setupUI() {
+	setupDialogWindow();
+	mapCharacterArray = createMapCharacterArray();
+
+	displayHealthBar();
+
+	tileSpriteArray = setupMapUI();
+
+	$('#console-button').append(contextButtons);
+
+	setupConsoleButton();
+	var contextButtons = setupContextButtons();
+
+	contextButtons[0].on ('click', toggleIventoryWinVisibility);
+	contextButtons[1].on ('click', toggleStatWinVisibility);
+}
+
 function assetsLoaded () {
 	// Check that WebGL is supported and that we've managed to use it
 	var rendererType;
@@ -169,28 +201,8 @@ function assetsLoaded () {
 
 	$('#main-window').append(renderer.view);
 
-	setupDialogWindow();
-	mapCharacterArray = createMapCharacterArray();
-
-	var statBars = setupStatBars();
-	console.log(statBars);
-	statBars[0].setValue(20);
-	statBars[0].drawBackgroundBar();
-	statBars[0].drawInnerBar();
-
-	tileSpriteArray = setupMapUI();
-	console.log(tileSpriteArray );
-
-	$('#console-button').append(contextButtons);
-
-	setupConsoleButton();
-	var contextButtons = setupContextButtons();
-
-	contextButtons[0].on ('click', toggleIventoryWinVisibility);
-	contextButtons[1].on ('click', toggleStatWinVisibility);
-
-
-	hideWindows();
+	setupUI();
+	showLoginControls();
 }
 
 function setupPageUI() {
@@ -201,7 +213,7 @@ function setupPageUI() {
 	$('#stat-window').append(statWindowDiv);
 
 	bindEvents(); //	Hookup message sending and other controls
-	
+
 	// Callback for after assets have loaded (for drawing)
 	PIXI.loader.add([overworldAtlasPath,
 									zeldaObjectsAtlasPath,
