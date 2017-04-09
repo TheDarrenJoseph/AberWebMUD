@@ -1,6 +1,6 @@
 #This will eventually be some form of map object loaded in from a database
 #Just using simple test values for now
-from pyfiles import mapTile
+from pyfiles.model import mapTile
 
 map_size_x = 20
 map_size_y = 20

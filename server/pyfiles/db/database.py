@@ -21,8 +21,8 @@ class DatabaseHandler():
         found_player = playerController.find_player(username)
 
         if found_player is not None:
-            return crypto.verify_password(password, found_player.password)
-        return False
+            return (True, crypto.verify_password(password, found_player.password))
+        return (False, False)
 
     #Prints DB build info
     @pony.orm.db_session

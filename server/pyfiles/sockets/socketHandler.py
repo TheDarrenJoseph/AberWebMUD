@@ -5,7 +5,9 @@ import jsonpickle
 import logging
 from flask import request
 from flask_socketio import emit
-from pyfiles import playerController, sessionHandler, userInput, overworld
+from pyfiles import playerController, userInput
+from pyfiles.model import overworld
+from pyfiles.sockets import sessionHandler
 from pyfiles.db import database
 
 def hookup_callbacks(socket_server):
@@ -28,6 +30,11 @@ def send_message(messageData, toAll) -> None:
     #"""Broadcasts a chat-message-response to all connected users """
     logging.debug('OUT| chat message RESPONSE to all')
     emit('chat-message-response', messageData, broadcast=toAll)
+
+def send_login_failure(found_player):
+    logging.debug('OUT| login failure: '+str(request.sid))
+    login_status = {'playerExists' : found_player}
+    emit('login-failure', login_status)
 
 def send_login_success(session_id, status_response):
     """ Emits a login-success event to the client
@@ -64,22 +71,22 @@ def send_map_data() -> None:
 
 def parse_login(sid, username):
     #user inputted username from client message
+    user_and_account = valid_player_session(username, sid) # (userExists, logged_in)
 
-    #Does this player already exist?
-    if all(valid_player_session(username, sid)):
-        #Exists but not logged in
-        if not sessionHandler.check_active_session(sid, found_player.username):
-            logging.info('Requesting authentication for existing user..')
-            #Send the password request for existing user
-            logging.debug('OUT| request-password for: '+username)
-            emit('request-password', username)
-        else:
-            logging.info('User'+username+'already logged in..')
-    else:
-        logging.info('User does not exist'+username)
-        logging.debug('OUT| request-new-password for: '+username)
+    #Exists but not logged in
+    if user_and_account[0] is True and user_and_account[1] is False:
+        #Send the password request for existing user
+        logging.debug('OUT| request-password for: '+username)
+        emit('request-password', username)
 
+    #Exists and logged in
+    if all(user_and_account):
+        logging.info('User '+username+' already logged in..')
+
+    #User does not exist
+    if not user_and_account[0]:
         #Send the password creation request for a new account
+        logging.debug('OUT| request-new-password for: '+username)
         emit('request-new-password', username)
 
 def handle_message(message: dict) -> None:
@@ -203,7 +210,12 @@ def authenticate_user(data) -> None:
     password = data['password']
 
     #Calling the static method to check player details
-    if database.DatabaseHandler.check_player_password(username, password):
+    auth_result = database.DatabaseHandler.check_player_password(username, password)
+    found_player = auth_result[0]
+    password_correct = auth_result[1]
+
+    #First tuple val is player found, 2nd is password
+    if all(auth_result):
         logging.info('Logging in.. '+sid)
         sessionHandler.add_active_session(sid, username)
 
@@ -213,5 +225,11 @@ def authenticate_user(data) -> None:
             logging.info('Player status response: '+str(status_response))
             send_login_success(sid, status_response)
 
-    else:
+    #User does not exist, password invalid (no account, make one)
+    if not all(auth_result):
+        #Create a new Player
+        logging.info('Time to create a new player! '+str(username)+str(password))
+
+    if found_player and (not password_correct):
         logging.info('Password incorrect: '+username)
+        send_login_failure(found_player)

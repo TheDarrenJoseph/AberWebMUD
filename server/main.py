@@ -1,8 +1,10 @@
 import passlib, ssl, logging
 
 import flaskHandler
-from pyfiles import userInput, playerController, overworld, crypto, socketHandler, sessionHandler
+from pyfiles import userInput, playerController, crypto
 from pyfiles.db import database
+from pyfiles.model import overworld
+from pyfiles.sockets import socketHandler, sessionHandler
 #from pyfiles.db import player
 from flask_socketio import SocketIO
 
@@ -14,7 +16,8 @@ def setup_instance(_dbHandler):
     overworld.create_map() #instanciate mapTiles
     logging.info('MAP LOADED')
 
-    player1 = _dbHandler.make_player('bar', 'foo','test')
+    player1 = playerController.new_player('boo', 'foo','test')
+    #player1 = _dbHandler.make_player(None, 'foo','test')
     player2 = _dbHandler.make_player('too', 'who','test')
 
     logging.info('TEST PLAYER 1:'+str(player1))

@@ -1,6 +1,7 @@
 import logging
 from pyfiles.db import database, player, character
-from pyfiles import userInput, crypto, overworld
+from pyfiles import userInput, crypto
+from pyfiles.model import  overworld
 from pony.orm.core import ObjectNotFound
 from pony.orm import db_session
 
@@ -11,12 +12,15 @@ def update_character_details(characterJson:dict):
     charname = data['charname']
 
     if find_player(username) is not None:
+        #Character Update
         if find_character(charname) is not None:
             this_player = player.Player[username]
             this_character = player.character
 
             logging.info('Ready to update chardetails:' +str(this_character))
             logging.info('Given info: '+str(characterJson))
+        else: #New character
+            logging.info('Ready to create a new character')
 
 #Checks for the Character in the DB using PonyORM
 @db_session

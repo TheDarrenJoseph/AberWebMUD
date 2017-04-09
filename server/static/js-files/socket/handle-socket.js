@@ -37,13 +37,12 @@ function sendMovementCommand(x,y) {
 
 //Send the user's password to the sever
 function sendAuthentication(username, passwordFieldVal){
-  console.log('sending ' + username + ' ' + passwordFieldVal);
   clientSession.username = username;
   socket.emit('client-auth', {'username': username, 'password': passwordFieldVal});
 }
 
 //Save our given session id for later, and display the welcome message
-function link_connection(data){
+function linkConnection(data){
   if (clientSession.sessionId == null) {
     clientSession.sessionId = data['sessionId'];
     console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
@@ -84,16 +83,17 @@ function handleMessageData(data) {
 function setupChat () {
 	// Socket custom event trigger for message response, passing in our function for a callback
 	socket.on('chat-message-response', handleMessageData);
-  socket.on('connection-response', link_connection);
+  socket.on('connection-response', linkConnection);
   //socket.on('status-response', updateMessageLog);
   socket.on('map-data-response', saveMapUpdate);
 
   socket.on('character-details-update-status', handleCharacterUpdateResponse);
 
   socket.on('request-password', requestUserPassword); //  Request for existing password
-  socket.on('request-new-password', requestUserPassword); //  Request for new password
+  socket.on('request-new-password', userDoesNotExist); //  Request for new password
 
   //emit('login-success', userData['username'])
   socket.on('login-success', handlePlayerLogin);
+  socket.on('login-failure', handlePlayerLoginError);
   socket.on('session-error', handleSessionError);
 }

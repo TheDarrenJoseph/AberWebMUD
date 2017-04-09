@@ -134,6 +134,11 @@ function requestUserPassword (username) {
 		bindMessageButton(false); //Set the send message behaviour to password sending
 }
 
+function userDoesNotExist(username) {
+  var new_user = confirm('User does not exist, do you want to create it?');
+  if (new_user) requestUserPassword (username);
+}
+
 function showControls (show) {
 	controlsContainer.visisble = show;
 	renderer.render(controlsContainer);
@@ -142,16 +147,17 @@ function showControls (show) {
 function sendPassword() {
 	var passwordField = $('#password-input');
 	var username = clientSession.username;
+  var passwordInput = passwordField.val();
 
-	if (username != null) {
-		sendAuthentication(username, passwordField.val());
+	if (username != null && passwordInput != '') {
+		sendAuthentication(username, passwordInput);
 		passwordField.val(''); //Blank the field now we're done getting input
 		passwordField.hide(); //Hide the field to show the normal input box
 		$('#message-log').val('');
 		bindMessageButton(true); //Set the send button behavior back to normal
 	} else {
-		console.log('Username not set for login.');
-	}
+    updateMessageLog('Invalid password.', 'client');
+  }
 }
 
 function requestCharacterDetails() {
@@ -175,7 +181,7 @@ function handleCharacterUpdateResponse(messageJson){
   if (messageJson['success'] != null){
     //If local character details have yet to be set, and this is valid
 
-    console.log('DETAILS EXIST?: '+characterDetailsExist());
+    console.log('DETAILS EXIST?: ' + characterDetailsExist());
     if (!characterDetailsExist ()) {
       if (messageJson['success'] == true) characterDetailsConfirmed();
     } else {
@@ -188,6 +194,8 @@ function handleCharacterUpdateResponse(messageJson){
 function characterDetailsConfirmed() {
   hideWindow('statWindowId'); //Hide the stats windows
 
+  //TODO -- UPDATE SESSION DETAILS
+
 	enableUI(); //Enables player interactions
 	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
 	//Creates the new character to represent the player
@@ -198,8 +206,16 @@ function characterDetailsConfirmed() {
 function handlePlayerLogin(data){
 	//	console.log(data);
 	updateClientSessionData(data); //Updates the clientSession
-
 	checkCharacterDetails(); //Check/Prompt for character details
+}
+
+function handlePlayerLoginError (data) {
+  console.log(data);
+  if (data['playerExists']) {
+    updateMessageLog('Login failure (bad password)', 'server');
+  } else {
+    updateMessageLog('Login failure (player does not exist)', 'server');
+  }
 }
 function updateInputField (character) {
     var inputField;
@@ -1252,13 +1268,12 @@ function sendMovementCommand(x,y) {
 
 //Send the user's password to the sever
 function sendAuthentication(username, passwordFieldVal){
-  console.log('sending ' + username + ' ' + passwordFieldVal);
   clientSession.username = username;
   socket.emit('client-auth', {'username': username, 'password': passwordFieldVal});
 }
 
 //Save our given session id for later, and display the welcome message
-function link_connection(data){
+function linkConnection(data){
   if (clientSession.sessionId == null) {
     clientSession.sessionId = data['sessionId'];
     console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
@@ -1299,16 +1314,17 @@ function handleMessageData(data) {
 function setupChat () {
 	// Socket custom event trigger for message response, passing in our function for a callback
 	socket.on('chat-message-response', handleMessageData);
-  socket.on('connection-response', link_connection);
+  socket.on('connection-response', linkConnection);
   //socket.on('status-response', updateMessageLog);
   socket.on('map-data-response', saveMapUpdate);
 
   socket.on('character-details-update-status', handleCharacterUpdateResponse);
 
   socket.on('request-password', requestUserPassword); //  Request for existing password
-  socket.on('request-new-password', requestUserPassword); //  Request for new password
+  socket.on('request-new-password', userDoesNotExist); //  Request for new password
 
   //emit('login-success', userData['username'])
   socket.on('login-success', handlePlayerLogin);
+  socket.on('login-failure', handlePlayerLoginError);
   socket.on('session-error', handleSessionError);
 }

@@ -134,6 +134,11 @@ function requestUserPassword (username) {
 		bindMessageButton(false); //Set the send message behaviour to password sending
 }
 
+function userDoesNotExist(username) {
+  var new_user = confirm('User does not exist, do you want to create it?');
+  if (new_user) requestUserPassword (username);
+}
+
 function showControls (show) {
 	controlsContainer.visisble = show;
 	renderer.render(controlsContainer);
@@ -142,16 +147,17 @@ function showControls (show) {
 function sendPassword() {
 	var passwordField = $('#password-input');
 	var username = clientSession.username;
+  var passwordInput = passwordField.val();
 
-	if (username != null) {
-		sendAuthentication(username, passwordField.val());
+	if (username != null && passwordInput != '') {
+		sendAuthentication(username, passwordInput);
 		passwordField.val(''); //Blank the field now we're done getting input
 		passwordField.hide(); //Hide the field to show the normal input box
 		$('#message-log').val('');
 		bindMessageButton(true); //Set the send button behavior back to normal
 	} else {
-		console.log('Username not set for login.');
-	}
+    updateMessageLog('Invalid password.', 'client');
+  }
 }
 
 function requestCharacterDetails() {
@@ -175,7 +181,7 @@ function handleCharacterUpdateResponse(messageJson){
   if (messageJson['success'] != null){
     //If local character details have yet to be set, and this is valid
 
-    console.log('DETAILS EXIST?: '+characterDetailsExist());
+    console.log('DETAILS EXIST?: ' + characterDetailsExist());
     if (!characterDetailsExist ()) {
       if (messageJson['success'] == true) characterDetailsConfirmed();
     } else {
@@ -188,6 +194,8 @@ function handleCharacterUpdateResponse(messageJson){
 function characterDetailsConfirmed() {
   hideWindow('statWindowId'); //Hide the stats windows
 
+  //TODO -- UPDATE SESSION DETAILS
+
 	enableUI(); //Enables player interactions
 	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
 	//Creates the new character to represent the player
@@ -198,6 +206,14 @@ function characterDetailsConfirmed() {
 function handlePlayerLogin(data){
 	//	console.log(data);
 	updateClientSessionData(data); //Updates the clientSession
-
 	checkCharacterDetails(); //Check/Prompt for character details
+}
+
+function handlePlayerLoginError (data) {
+  console.log(data);
+  if (data['playerExists']) {
+    updateMessageLog('Login failure (bad password)', 'server');
+  } else {
+    updateMessageLog('Login failure (player does not exist)', 'server');
+  }
 }
