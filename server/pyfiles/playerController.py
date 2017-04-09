@@ -5,33 +5,6 @@ from pyfiles.model import  overworld
 from pony.orm.core import ObjectNotFound
 from pony.orm import db_session
 
-@db_session
-def update_character_details(characterJson:dict):
-    data = characterJson['data']
-    username = characterJson['sessionJson']['username']
-    charname = data['charname']
-
-    if find_player(username) is not None:
-        #Character Update
-        if find_character(charname) is not None:
-            this_player = player.Player[username]
-            this_character = player.character
-
-            logging.info('Ready to update chardetails:' +str(this_character))
-            logging.info('Given info: '+str(characterJson))
-        else: #New character
-            logging.info('Ready to create a new character')
-
-#Checks for the Character in the DB using PonyORM
-@db_session
-def find_character(charname:str):
-    try:
-        return character.Character[charname]
-
-    except ObjectNotFound:
-        logging.info('Character not found: '+charname)
-        return None
-
 #Checks for the Player in the DB using PonyORM
 @db_session
 def find_player(username:str):
@@ -39,7 +12,6 @@ def find_player(username:str):
         return player.Player[username]
 
     except ObjectNotFound:
-        logging.info('User not found: '+username)
         return None
 
 @db_session
@@ -71,21 +43,17 @@ def get_player_status(username):
 
 #Creates a new player database object
 @db_session
-def new_player(charname, username, password) -> player.Player:
-    if find_character(charname) is None:
-        start_pos = overworld.get_starting_pos()
-
-        #Create a new Character in the DB for the player to reference (PonyORM)
-        this_character = character.Character(charname=charname,
-                                             pos_x=start_pos[0],
-                                             pos_y=start_pos[1])
-        password_hash_string = crypto.hash_password(password) #hashes and salts the pass for storage
-
+def new_player(username, password) -> player.Player:
+    if username is not None \
+    and password is not None:
         if find_player(username) is None:
+            password_hash_string = crypto.hash_password(password) #hashes and salts the pass for storage
+
             #Creating a new Player Entity through PonyORM
-            return player.Player(character=this_character,
-                                 username=username,
-                                 password=password_hash_string)
+            this_player = player.Player(character=None,
+                                        username=username,
+                                        password=password_hash_string)
+            return username #Username return confirms creation
     return None
 
 #Returns true or false based on whether or not the movement is valid

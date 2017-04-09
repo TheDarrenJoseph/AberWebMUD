@@ -183,9 +183,14 @@ function handleCharacterUpdateResponse(messageJson){
 
     console.log('DETAILS EXIST?: ' + characterDetailsExist());
     if (!characterDetailsExist ()) {
-      if (messageJson['success'] == true) characterDetailsConfirmed();
+      if (messageJson['success'] == true) {
+        characterDetailsConfirmed();
+      } else {
+        updateMessageLog('Invalid character details', 'server');
+      }
     } else {
       console.log('Updating existing details.. ');
+      updateMessageLog('Invalid character update', 'server');
     }
   }
 }

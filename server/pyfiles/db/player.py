@@ -4,7 +4,7 @@ from pyfiles.db import db_instance, character
 from pony.orm import *
 
 class Player(db_instance.DatabaseInstance._database.Entity):
-    character = Required(character.Character)
+    character = Optional(character.Character)
     username = PrimaryKey(str)
     #passwordSalt = Required(str, unique=True)
     password = Required(str)
@@ -17,11 +17,15 @@ class Player(db_instance.DatabaseInstance._database.Entity):
 
         this_player = Player[self.username] #find the database entity for this (allows db_session)
 
-        response = {'username':this_player.username,
-                    'charname':this_player.character.charname,
-                    'pos_x':this_player.character.pos_x,
-                    'pos_y':this_player.character.pos_y
-                   }
+        response = None
+        if this_player.character is not None:
+            response = {'username':this_player.username,
+                        'charname':this_player.character.charname,
+                        'pos_x':this_player.character.pos_x,
+                        'pos_y':this_player.character.pos_y
+                       }
+        else:
+            response = {'username':this_player.username}
 
         logging.debug(response)
         return response

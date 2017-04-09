@@ -5,7 +5,7 @@ import jsonpickle
 import logging
 from flask import request
 from flask_socketio import emit
-from pyfiles import playerController, userInput
+from pyfiles import playerController, characterController, userInput
 from pyfiles.model import overworld
 from pyfiles.sockets import sessionHandler
 from pyfiles.db import database
@@ -185,8 +185,8 @@ def handle_char_details(message: dict) -> None:
             update_success = False
             #Check the details and emit a response based on that
             if userInput.validate_character_update(message):
-                update_success = True
-                playerController.update_character_details(message)
+                if characterController.update_character_details(message):
+                    update_success = True
             emit('character-details-update-status', {'success':update_success})
 
         else:

@@ -16,9 +16,9 @@ def setup_instance(_dbHandler):
     overworld.create_map() #instanciate mapTiles
     logging.info('MAP LOADED')
 
-    player1 = playerController.new_player('boo', 'foo','test')
+    player1 = playerController.new_player('foo','test')
     #player1 = _dbHandler.make_player(None, 'foo','test')
-    player2 = _dbHandler.make_player('too', 'who','test')
+    player2 = playerController.new_player('who','test')
 
     logging.info('TEST PLAYER 1:'+str(player1))
     logging.info('TEST PLAYER 2:'+str(player2))

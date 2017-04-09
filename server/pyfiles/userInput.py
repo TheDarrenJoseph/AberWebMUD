@@ -1,5 +1,5 @@
 import re, logging
-from pyfiles import jsonChecker, playerController
+from pyfiles import jsonChecker, playerController, characterController
 
 def parse_command(text) -> list:
     """ Breaks up a command input such as 'user foo bar' into individual words"""
@@ -83,6 +83,6 @@ def validate_character_update(characterJson) -> bool:
     """ Checks we've been given valid data, and that any changes are within limits """
     if jsonChecker.character_details_exist(characterJson):
         #Check for a prexisting character
-        if playerController.find_character(characterJson['data']['charname']) is None:
+        if characterController.find_character(characterJson['data']['charname']) is None:
             return True
     return False
