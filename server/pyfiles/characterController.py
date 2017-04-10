@@ -9,13 +9,14 @@ from pony.orm import db_session
 @db_session
 def new_character(charname, username) -> player.Player:
     if (charname is not None) and (find_character(charname) is None):
-        start_pos = overworld.get_starting_pos()
+        if playerController.find_player(username) is not None:
+            start_pos = overworld.get_starting_pos()
 
-        #Create a new Character in the DB for the player to reference (PonyORM)
-        this_character = character.Character(charname=charname,
-                                             pos_x=start_pos[0],
-                                             pos_y=start_pos[1])
-        return charname #Charname return confirms creation
+            #Create a new Character in the DB for the player to reference (PonyORM)
+            this_character = character.Character(charname=charname,
+                                                 position=start_pos,
+                                                 player=player.Player[username])
+            return charname #Charname return confirms creation
     return None
 
 #Checks for the Character in the DB using PonyORM
@@ -35,12 +36,15 @@ def update_character_details(characterJson:dict):
 
     #Character Update
     if find_character(charname) is not None:
-        this_character = character.Character[charname]
-        this_character.charname = charname
-        this_character.set_character(charname, posX, posY, this_player, this_stats)
+        if find_character(username) is not None:
+            this_character = character.Character[charname]
+            this_player = player.Player[username]
 
-        logging.debug('Ready to update chardetails:' +str(this_character))
-        logging.debug('Given info: '+str(characterJson))
+            this_character.charname = charname
+            #this_character.set_character(charname, posX, posY, this_player, this_stats)
+
+            logging.debug('Ready to update chardetails:' +str(this_character))
+            logging.debug('Given info: '+str(characterJson))
     else: #New character
         logging.debug('Creating a new character')
         return new_character(charname, username)

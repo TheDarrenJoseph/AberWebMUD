@@ -7,11 +7,10 @@ map_size_x = 20
 map_size_y = 20
 map_tiles = []
 
-_START_POS = (int(map_size_x/2),int(map_size_y/2)) #X,Y tuple of map midpoint
-_START_POS = position.Position(pos_x=_START_POS [0], pos_y=_START_POS[1])
-
 #Returns the starting position for all characters on the map
 def get_starting_pos():
+    _START_POS = (int(map_size_x/2),int(map_size_y/2)) #X,Y tuple of map midpoint
+    _START_POS = position.Position(pos_x=_START_POS [0], pos_y=_START_POS[1])
     return _START_POS  #Return an X,Y tuple
 
 def create_map():
