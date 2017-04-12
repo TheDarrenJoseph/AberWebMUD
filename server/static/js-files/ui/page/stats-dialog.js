@@ -161,7 +161,7 @@ function getStats() {
   return { 'charname' : getStatsCharacterName(),
           'charclass' : getStatsCharacterClass(),
           'attributes' : getStatsAttributeValues()
-        }
+        };
 }
 
 //Takes a JSON object of form: {'STR':1,'DEX':2,...} and sets the value fields to match
@@ -172,4 +172,13 @@ function setStatsAttributeValues(attrValuesJSON){
     var statValue = $(statId).val(inputVal);
   }
 
+}
+
+function setStatsFromJsonResponse(statsValuesJson){
+  console.log('Setting from: '+statsValuesJson);
+  var charname = statsValuesJson['charname'];
+  var charclass = statsValuesJson['charclass'];
+  var attributes = statsValuesJson['attributes'];
+  var pos_x = statsValuesJson['pos_x'];
+  var pos_y = statsValuesJson['pos_x'];
 }

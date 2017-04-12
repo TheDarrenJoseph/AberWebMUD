@@ -19,20 +19,27 @@ def get_player_pos(username:str):
     thisPlayer = player.Player[username]
 
     if thisPlayer is not None:
-        pos_x = thisPlayer.character.pos_x
-        pos_y = thisPlayer.character.pos_y
-        return(pos_x, pos_y)
+        position = thisPlayer.character.position
+        return(position.pos_x, position.pos_y)
     return None
 
-@db_session
-def set_player_pos(username:str, x:int, y:int):
-    thisPlayer = player.Player[username]
+# @db_session
+# def set_player_pos(username:str, x:int, y:int):
+#     thisPlayer = player.Player[username]
+#
+#     if thisPlayer is not None:
+#         thisPlayer.character.position.pos_x = x
+#         thisPlayer.character.position.pos_y = y
+#         return True
+#     return False
 
-    if thisPlayer is not None:
-        thisPlayer.character.pos_x = x
-        thisPlayer.character.pos_y = y
-        return True
-    return False
+@db_session
+def get_character_json(username):
+    if find_player(username) is not None:
+        this_player = player.Player[username]
+        if this_player.character is not None:
+            return this_player.character.get_json()
+    return None
 
 @db_session
 def get_player_status(username):

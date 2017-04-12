@@ -1,5 +1,7 @@
 var htmlWindows = {messageWindowId: '#message-window', statWindowId: '#stat-window', inventoryWindowId: '#inventory-window'};
 
+var UI_ENABLED = false;
+
 function checkConnection() {
   if (!isSocketConnected()) {
      hideWindows();
@@ -120,8 +122,6 @@ function showDialog () {
 //Triggered once a user sends a login message, asks for user password
 //username is a username string
 function requestUserPassword (username) {
-	console.log('password requested for '+username);
-
 		$('#password-input').show();
 
 		if(username !== undefined) {
@@ -168,8 +168,6 @@ function requestCharacterDetails() {
 
 //Checks that the player's character details are set, and asks them to set them if false
 function checkCharacterDetails() {
-	console.log(clientSession.character);
-
 	if (!characterDetailsExist ()) {
 		requestCharacterDetails();
 	} else {
@@ -178,19 +176,21 @@ function checkCharacterDetails() {
 }
 
 function handleCharacterUpdateResponse(messageJson){
-  if (messageJson['success'] != null){
-    //If local character details have yet to be set, and this is valid
-
+  if (messageJson['success'] != null) {
     console.log('DETAILS EXIST?: ' + characterDetailsExist());
-    if (!characterDetailsExist ()) {
-      if (messageJson['success'] == true) {
-        characterDetailsConfirmed();
-      } else {
-        updateMessageLog('Invalid character details', 'server');
+    console.log('UPDATING LOCAL CHARDETAILS using: '+messageJson);
+
+    if (messageJson['success'] == true) {
+      //setStatsFromJsonResponse(messageJson['char-data']); //Update local stats window from the message
+      //updateClientDetails(messageJson['char-data']);
+      updateMessageLog('Character details saved.', 'server');
+
+      //If this is our first update, trigger the UI startup
+      if (!characterDetailsExist ()) {
+        characterDetailsConfirmed(); //Trigger confirmation (uses these stats)
       }
     } else {
-      console.log('Updating existing details.. ');
-      updateMessageLog('Invalid character update', 'server');
+      updateMessageLog('Invalid character details/update failure', 'server');
     }
   }
 }
@@ -199,18 +199,23 @@ function handleCharacterUpdateResponse(messageJson){
 function characterDetailsConfirmed() {
   hideWindow('statWindowId'); //Hide the stats windows
 
-  //TODO -- UPDATE SESSION DETAILS
+  if (!UI_ENABLED) {
+  	enableUI(); //Enables player interactions
+  	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
+  	//Creates the new character to represent the player
+  	newCharacterOnMap (clientSession.character.charname , clientSession.character.pos_x, clientSession.character.pos_y);
+    UI_ENABLED = true;
+  }
+}
 
-	enableUI(); //Enables player interactions
-	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
-	//Creates the new character to represent the player
-	newCharacterOnMap (clientSession.character.charname , clientSession.character.pos_x, clientSession.character.pos_y);
+function updateClientDetails(data){
+  updateClientSessionData(data); //Updates the clientSession
 }
 
 //	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 function handlePlayerLogin(data){
 	//	console.log(data);
-	updateClientSessionData(data); //Updates the clientSession
+  updateClientDetails(data);
 	checkCharacterDetails(); //Check/Prompt for character details
 }
 
@@ -412,7 +417,7 @@ function getStats() {
   return { 'charname' : getStatsCharacterName(),
           'charclass' : getStatsCharacterClass(),
           'attributes' : getStatsAttributeValues()
-        }
+        };
 }
 
 //Takes a JSON object of form: {'STR':1,'DEX':2,...} and sets the value fields to match
@@ -423,6 +428,15 @@ function setStatsAttributeValues(attrValuesJSON){
     var statValue = $(statId).val(inputVal);
   }
 
+}
+
+function setStatsFromJsonResponse(statsValuesJson){
+  console.log('Setting from: '+statsValuesJson);
+  var charname = statsValuesJson['charname'];
+  var charclass = statsValuesJson['charclass'];
+  var attributes = statsValuesJson['attributes'];
+  var pos_x = statsValuesJson['pos_x'];
+  var pos_y = statsValuesJson['pos_x'];
 }
 var titleText = 'AberWebMUD';
 var zeldaAssetPath = 'static/assets/gfx/';
@@ -1036,7 +1050,7 @@ function enableUI() {
 	showControls (true); //	Shows major controls
 	renderer.render(stage); // Re-renders the stage to show blank
 }
-//Local data stored for your current character
+//  Local data stored for your current character
 var charData = {
   charname: null, pos_x: null, pos_y: null, attributes: null, class: null, health: null
 };
@@ -1060,15 +1074,28 @@ function characterDetailsExist () {
 }
 
 
-//Extracts the session data into a JSON object
+//Extracts the session data  (username and session ID) into a JSON object
 function getSessionInfoJSON() {
   var username = clientSession.username;
   var sessionId = clientSession.sessionId;
 
-  return {sessionId: sessionId, username: username}
+  return {sessionId: sessionId, username: username};
 }
 
-function updateClientSessionData(data){
+
+//{"success":true,"char-data":{"charname":"R","charclass":"fighter",
+//    "attributes":{"STR":"1","DEX":"1","CON":"1","INT":"1","WIS":"1","CHA":"1"},
+//    "pos_x":10,"pos_y":10}
+//}]
+function updateCharacterDetails (data) {
+  clientSession.attributes = data['attributes'];
+  clientSession.character.charname = data['charname'];
+  clientSession.character.class = data['charclass'];
+  clientSession.character.pos_x = data['pos_x'];
+  clientSession.character.pos_y = data['pos_y'];
+}
+
+function updateClientSessionData (data) {
 	var playerStatus = data['player-status'];
 	console.log('Login data received: ');
 	console.log(data);
@@ -1076,10 +1103,7 @@ function updateClientSessionData(data){
 	//	Update the client session to contain our new data
 	clientSession.sessionId = data['sessionId'];
 
-	clientSession.username = playerStatus['username'];
-	clientSession.character.charname = playerStatus['charname'];
-	clientSession.character.pos_x = playerStatus['pos_x'];
-	clientSession.character.pos_y = playerStatus['pos_y'];
+  updateCharacterDetails(playerStatus);
 
 	console.log('Saved session object: ');
 	console.log(clientSession);
@@ -1178,7 +1202,7 @@ function tileCoordToPixiPos (x_relative,y_relative) {
 	var pos_x = (x_relative*tileSize);
 	var pos_y = (y_relative*tileSize);
 
-	console.log('Tilesize: '+tileSize+'Co-ord pos: '+x_relative+' '+y_relative+'\n'+'Pixi pos: '+pos_x+' '+pos_y);
+	//console.log('Tilesize: '+tileSize+'Co-ord pos: '+x_relative+' '+y_relative+'\n'+'Pixi pos: '+pos_x+' '+pos_y);
 
 	return [pos_x, pos_y];
 }
@@ -1197,7 +1221,7 @@ function pixiPosToTileCoord (x,y) {
 	if (clientX > zeroIndexedTileCount) clientX = zeroIndexedTileCount;
 	if (clientY > zeroIndexedTileCount) clientY = zeroIndexedTileCount;
 
-	console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
+	//console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
 
 	return[clientX,clientY]
 }
@@ -1240,11 +1264,27 @@ function isSocketConnected () {
   return socket.connected;
 }
 
+// function requestCharacterDetails() {
+//   var sessionJson = getSessionInfoJSON();
+//
+//   if (sessionJson != null) {
+//     socket.emit('request-character-details', {'sessionJson': sessionJson});
+//
+//     console.log('Character details requested.');
+//     updateMessageLog('Character details requested');
+//   }
+// }
+
 function sendCharacterDetails() {
   var attrValuesJSON = getStats();
   var sessionJson = getSessionInfoJSON();
-  if (attrValuesJSON != null && sessionJson != null){
+
+  console.log('STATS: '+attrValuesJSON);
+  console.log('SESSION JSON: '+sessionJson);
+
+  if (attrValuesJSON != null && sessionJson != null) {
     socket.emit('character-details', {'data': attrValuesJSON, 'sessionJson': sessionJson});
+
     console.log('Character details sent for saving..');
     updateMessageLog('Character details submitted (unsaved).', 'client');
   }
@@ -1323,7 +1363,7 @@ function setupChat () {
   //socket.on('status-response', updateMessageLog);
   socket.on('map-data-response', saveMapUpdate);
 
-  socket.on('character-details-update-status', handleCharacterUpdateResponse);
+  socket.on('character-details-update', handleCharacterUpdateResponse);
 
   socket.on('request-password', requestUserPassword); //  Request for existing password
   socket.on('request-new-password', userDoesNotExist); //  Request for new password

@@ -1,4 +1,4 @@
-//Local data stored for your current character
+//  Local data stored for your current character
 var charData = {
   charname: null, pos_x: null, pos_y: null, attributes: null, class: null, health: null
 };
@@ -22,15 +22,28 @@ function characterDetailsExist () {
 }
 
 
-//Extracts the session data into a JSON object
+//Extracts the session data  (username and session ID) into a JSON object
 function getSessionInfoJSON() {
   var username = clientSession.username;
   var sessionId = clientSession.sessionId;
 
-  return {sessionId: sessionId, username: username}
+  return {sessionId: sessionId, username: username};
 }
 
-function updateClientSessionData(data){
+
+//{"success":true,"char-data":{"charname":"R","charclass":"fighter",
+//    "attributes":{"STR":"1","DEX":"1","CON":"1","INT":"1","WIS":"1","CHA":"1"},
+//    "pos_x":10,"pos_y":10}
+//}]
+function updateCharacterDetails (data) {
+  clientSession.attributes = data['attributes'];
+  clientSession.character.charname = data['charname'];
+  clientSession.character.class = data['charclass'];
+  clientSession.character.pos_x = data['pos_x'];
+  clientSession.character.pos_y = data['pos_y'];
+}
+
+function updateClientSessionData (data) {
 	var playerStatus = data['player-status'];
 	console.log('Login data received: ');
 	console.log(data);
@@ -38,10 +51,7 @@ function updateClientSessionData(data){
 	//	Update the client session to contain our new data
 	clientSession.sessionId = data['sessionId'];
 
-	clientSession.username = playerStatus['username'];
-	clientSession.character.charname = playerStatus['charname'];
-	clientSession.character.pos_x = playerStatus['pos_x'];
-	clientSession.character.pos_y = playerStatus['pos_y'];
+  updateCharacterDetails(playerStatus);
 
 	console.log('Saved session object: ');
 	console.log(clientSession);

@@ -5,36 +5,35 @@ from pyfiles.db import db_instance
 
 class Attributes(db_instance.DatabaseInstance._database.Entity):
     stats = Required('Stats')
-    free_points = Required(int)
-    str_val = Required(int)
-    dex_val = Required(int)
-    con_val = Required(int)
-    int_val = Required(int)
-    wis_val = Required(int)
-    cha_val = Required(int)
+    free_points = Required(int, default=5)
+    str_val = Required(int, default=1)
+    dex_val = Required(int, default=1)
+    con_val = Required(int, default=1)
+    int_val = Required(int, default=1)
+    wis_val = Required(int, default=1)
+    cha_val = Required(int, default=1)
 
     @db_session
+    def get_total_attribute_scores(self):
+        score = self.str_val+\
+                self.dex_val+\
+                self.con_val+\
+                self.int_val+\
+                self.wis_val+\
+                self.cha_val
+        return score
+        
+    @db_session
     def get_json(self):
-        this_attrs = Attributes[self]
-
         attributes = {
-        'free_points': self.free_points,
-        'STR':self.str_val,
-        'DEX':self.dex_val,
-        'CON':self.con_val,
-        'INT':self.int_val,
-        'WIS':self.wis_val,
-        'CHA':self.cha_val
+            'free_points': self.free_points,
+            'STR':self.str_val,
+            'DEX':self.dex_val,
+            'CON':self.con_val,
+            'INT':self.int_val,
+            'WIS':self.wis_val,
+            'CHA':self.cha_val
         }
 
         logging.debug(attributes)
         return attributes
-
-def get_default_attributes():
-    return Attributes(stats=stats.get_default_stats(),
-    str_val=1,
-    dex_val=1,
-    con_val=1,
-    int_val=1,
-    wis_val=1,
-    cha_val=1)

@@ -4,11 +4,27 @@ function isSocketConnected () {
   return socket.connected;
 }
 
+// function requestCharacterDetails() {
+//   var sessionJson = getSessionInfoJSON();
+//
+//   if (sessionJson != null) {
+//     socket.emit('request-character-details', {'sessionJson': sessionJson});
+//
+//     console.log('Character details requested.');
+//     updateMessageLog('Character details requested');
+//   }
+// }
+
 function sendCharacterDetails() {
   var attrValuesJSON = getStats();
   var sessionJson = getSessionInfoJSON();
-  if (attrValuesJSON != null && sessionJson != null){
+
+  console.log('STATS: '+attrValuesJSON);
+  console.log('SESSION JSON: '+sessionJson);
+
+  if (attrValuesJSON != null && sessionJson != null) {
     socket.emit('character-details', {'data': attrValuesJSON, 'sessionJson': sessionJson});
+
     console.log('Character details sent for saving..');
     updateMessageLog('Character details submitted (unsaved).', 'client');
   }
@@ -87,7 +103,7 @@ function setupChat () {
   //socket.on('status-response', updateMessageLog);
   socket.on('map-data-response', saveMapUpdate);
 
-  socket.on('character-details-update-status', handleCharacterUpdateResponse);
+  socket.on('character-details-update', handleCharacterUpdateResponse);
 
   socket.on('request-password', requestUserPassword); //  Request for existing password
   socket.on('request-new-password', userDoesNotExist); //  Request for new password

@@ -1,5 +1,7 @@
 var htmlWindows = {messageWindowId: '#message-window', statWindowId: '#stat-window', inventoryWindowId: '#inventory-window'};
 
+var UI_ENABLED = false;
+
 function checkConnection() {
   if (!isSocketConnected()) {
      hideWindows();
@@ -120,8 +122,6 @@ function showDialog () {
 //Triggered once a user sends a login message, asks for user password
 //username is a username string
 function requestUserPassword (username) {
-	console.log('password requested for '+username);
-
 		$('#password-input').show();
 
 		if(username !== undefined) {
@@ -168,8 +168,6 @@ function requestCharacterDetails() {
 
 //Checks that the player's character details are set, and asks them to set them if false
 function checkCharacterDetails() {
-	console.log(clientSession.character);
-
 	if (!characterDetailsExist ()) {
 		requestCharacterDetails();
 	} else {
@@ -178,19 +176,21 @@ function checkCharacterDetails() {
 }
 
 function handleCharacterUpdateResponse(messageJson){
-  if (messageJson['success'] != null){
-    //If local character details have yet to be set, and this is valid
-
+  if (messageJson['success'] != null) {
     console.log('DETAILS EXIST?: ' + characterDetailsExist());
-    if (!characterDetailsExist ()) {
-      if (messageJson['success'] == true) {
-        characterDetailsConfirmed();
-      } else {
-        updateMessageLog('Invalid character details', 'server');
+    console.log('UPDATING LOCAL CHARDETAILS using: '+messageJson);
+
+    if (messageJson['success'] == true) {
+      setStatsFromJsonResponse(messageJson['char-data']); //Update local stats window from the message
+      updateClientDetails(messageJson['char-data']);
+      updateMessageLog('Character details saved.', 'server');
+
+      //If this is our first update, trigger the UI startup
+      if (!characterDetailsExist ()) {
+        characterDetailsConfirmed(); //Trigger confirmation (uses these stats)
       }
     } else {
-      console.log('Updating existing details.. ');
-      updateMessageLog('Invalid character update', 'server');
+      updateMessageLog('Invalid character details/update failure', 'server');
     }
   }
 }
@@ -199,18 +199,23 @@ function handleCharacterUpdateResponse(messageJson){
 function characterDetailsConfirmed() {
   hideWindow('statWindowId'); //Hide the stats windows
 
-  //TODO -- UPDATE SESSION DETAILS
+  if (!UI_ENABLED) {
+  	enableUI(); //Enables player interactions
+  	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
+  	//Creates the new character to represent the player
+  	newCharacterOnMap (clientSession.character.charname , clientSession.character.pos_x, clientSession.character.pos_y);
+    UI_ENABLED = true;
+  }
+}
 
-	enableUI(); //Enables player interactions
-	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
-	//Creates the new character to represent the player
-	newCharacterOnMap (clientSession.character.charname , clientSession.character.pos_x, clientSession.character.pos_y);
+function updateClientDetails(data){
+  updateClientSessionData(data); //Updates the clientSession
 }
 
 //	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 function handlePlayerLogin(data){
 	//	console.log(data);
-	updateClientSessionData(data); //Updates the clientSession
+  updateClientDetails(data);
 	checkCharacterDetails(); //Check/Prompt for character details
 }
 

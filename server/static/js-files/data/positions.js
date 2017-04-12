@@ -70,7 +70,7 @@ function tileCoordToPixiPos (x_relative,y_relative) {
 	var pos_x = (x_relative*tileSize);
 	var pos_y = (y_relative*tileSize);
 
-	console.log('Tilesize: '+tileSize+'Co-ord pos: '+x_relative+' '+y_relative+'\n'+'Pixi pos: '+pos_x+' '+pos_y);
+	//console.log('Tilesize: '+tileSize+'Co-ord pos: '+x_relative+' '+y_relative+'\n'+'Pixi pos: '+pos_x+' '+pos_y);
 
 	return [pos_x, pos_y];
 }
@@ -89,7 +89,7 @@ function pixiPosToTileCoord (x,y) {
 	if (clientX > zeroIndexedTileCount) clientX = zeroIndexedTileCount;
 	if (clientY > zeroIndexedTileCount) clientY = zeroIndexedTileCount;
 
-	console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
+	//console.log('PIXI pos: '+x+' '+y+'\n'+'Tile pos: '+clientX+' '+clientY);
 
 	return[clientX,clientY]
 }

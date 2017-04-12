@@ -1,9 +1,8 @@
 from pyfiles.db import db_instance, stats, database, player, position
 from pony.orm import *
-#
-# print(database)
+
 class Character(db_instance.DatabaseInstance._database.Entity):
-    charname = PrimaryKey(str)
+    charname = Required(str)
     #Positions are stored relative to the map
     position = Required('Position')
     player = Required('Player')
@@ -16,11 +15,10 @@ class Character(db_instance.DatabaseInstance._database.Entity):
             this_character.charname = charname
 
     @db_session
-    def set_position(charname, this_position, this_player, this_stats):
-        """ Sets character details, ignores any that are passed as None """
-        this_character = Character[self.charname]
+    def set_position(this_position):
+        #this_character = Character[self.charname]
         if this_position is not None:
-            this_character.position = this_position
+            self.position = this_position
 
     def set_player(this_player):
         this_character = Character[self.charname]
@@ -34,8 +32,14 @@ class Character(db_instance.DatabaseInstance._database.Entity):
 
     @db_session
     def get_json(self):
-        this_character = Character[self.charname]
-        print(this_character)
-        position = this_character.position
+        #this_character = Character[self.charname]
+        #position = self.position
+        response = {'charname':self.charname,
+                    'pos_x': self.position.pos_x,
+                    'pos_y': self.position.pos_y
+                    }
 
-        return {'charname':charname, 'pos_x': position.pos_x, 'pos_y': position.pos_y}
+        if self.stats is None:
+            self.stats = stats.Stats(character=self)
+        response.update(self.stats.get_json())
+        return response

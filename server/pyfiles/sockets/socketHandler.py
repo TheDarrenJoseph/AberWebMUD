@@ -16,6 +16,7 @@ def hookup_callbacks(socket_server):
     socket_server.on_event('movement-command', handle_movement)
     socket_server.on_event('client-auth', authenticate_user)
 
+    #socket_server.on_event('request-character-details', send_char_details)
     socket_server.on_event('character-details', handle_char_details)
 
     socket_server.on_event('connect', send_welcome)
@@ -175,6 +176,17 @@ def handle_movement(message: dict) -> None:
             logging.info('Valid user not in activeSessions, requesting password')
             emit('request-password', username) #Client has a valid user, but not logged in
 
+# def send_char_details(message: dict) -> None:
+#     if 'sessionJson' in message and 'username' in message['sessionJson']:
+#         if all(valid_player_session(message['sessionJson']['username'], request.sid)):
+#             logging.info('IN| (CHAR-STATS) character update requested. '+str(request.sid))
+#             username = message['sessionJson']['username']
+#             logging.debug('Creating a new character')
+#             this_character = characterController.new_character('testCharacter', username)
+#
+#             character_data = playerController.get_character_json(username)
+#             emit('character-details-update', {'success': True, 'char-data': character_data})
+
 def handle_char_details(message: dict) -> None:
     """ Receives character data from the client, validates it, and updates the DB """
     logging.info('CHAR DETAILS: '+str(message))
@@ -183,14 +195,22 @@ def handle_char_details(message: dict) -> None:
         if all(valid_player_session(message['sessionJson']['username'], request.sid)):
             logging.info('IN| (CHAR-STATS) stats save attempted. '+str(request.sid))
             update_success = False
+            character_data = None
+
             #Check the details and emit a response based on that
             if userInput.validate_character_update(message):
-                if characterController.update_character_details(message):
+                #CRITICAL FIX NEEDED
+                if characterController.update_character_details(message) is not False:
                     update_success = True
-            emit('character-details-update-status', {'success':update_success})
+                    username = message['sessionJson']['username']
+                    character_data = playerController.get_character_json(username)
+            else:
+                logging.info('Invalid character update data')
 
+            logging.info('OUT| character-details-update '+str(character_data))
+            emit('character-details-update', {'success': update_success, 'char-data': character_data})
         else:
-            logging.info('IN| (CHAR-STATS) stats save attempted for invalid session.'+str(request.sid))
+            logging.info('IN| (CHAR-STATS) stats save attempted for invalid session. ' + str(request.sid))
     else:
         logging.info('IN| Malformed protocol message for char details')
 
@@ -201,6 +221,16 @@ def handle_disconnect() -> None:
     if removed_session is True:
         print('Active session removed: '+request.sid+' '+removed_session[1])
     print('A session disconnected: '+request.sid)
+
+def login_user(sid, username):
+    logging.info('Logging in.. '+sid)
+    sessionHandler.add_active_session(sid, username)
+
+    #thisPlayer = jsonpickle.encode(playerController.find_player(username))
+    status_response = playerController.get_player_status(username)
+    if status_response is not None:
+        logging.info('Player status response: '+str(status_response))
+        send_login_success(sid, status_response)
 
 def authenticate_user(data) -> None:
     """ Authenticates/logs in a user through username and password """
@@ -216,20 +246,15 @@ def authenticate_user(data) -> None:
 
     #First tuple val is player found, 2nd is password
     if all(auth_result):
-        logging.info('Logging in.. '+sid)
-        sessionHandler.add_active_session(sid, username)
-
-        #thisPlayer = jsonpickle.encode(playerController.find_player(username))
-        status_response = playerController.get_player_status(username)
-        if status_response is not None:
-            logging.info('Player status response: '+str(status_response))
-            send_login_success(sid, status_response)
-
-    #User does not exist, password invalid (no account, make one)
-    if not all(auth_result):
-        #Create a new Player
-        logging.info('Time to create a new player! '+str(username)+str(password))
+        login_user(sid, username)
 
     if found_player and (not password_correct):
         logging.info('Password incorrect: '+username)
         send_login_failure(found_player)
+
+    #User does not exist, password invalid (no account, make one)
+    if not all(auth_result):
+        #Create a new Player
+        logging.info('Creating a new player! '+str(username)+str(password))
+        if playerController.new_player(username, password) is not None:
+            login_user(sid, username)

@@ -2,14 +2,11 @@ import logging
 """ Where any complex validation of JSON data (structure etc) will be performed"""
 
 def key_and_data_exists(jsonMessage: dict, key: str) -> bool:
-    logging.debug('CHECKING: '+str(jsonMessage))
     if key in jsonMessage.keys():
+        logging.debug('CHECKING: '+str(key))
+
         #Check against none and blank -- jsonMessage == '' is Falsy
-        logging.info(str(jsonMessage[key])+' is '+str(bool(jsonMessage[key])))
-
         if jsonMessage[key] is not None and bool(jsonMessage[key]) is True:
-            logging.debug(jsonMessage[key])
-
             if isinstance(jsonMessage[key], str):
                 key_value = jsonMessage[key].strip() #Removes any whitespace just incase
                 #Empty strings '' are Falsy, anything else should be Truthy

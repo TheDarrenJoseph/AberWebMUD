@@ -1,4 +1,4 @@
-import passlib, ssl, logging
+import passlib, ssl, logging, pdb
 
 import flaskHandler
 from pyfiles import userInput, playerController, crypto
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     #MAIN LOOP
     #app.run()
     DB_HANDLER.show_tables()
-    SOCKET_HANDLER.run(flaskHandler._APP)
+    pdb.runcall(SOCKET_HANDLER.run(flaskHandler._APP))
 
     #Cleanup
     DB_HANDLER.close_db()

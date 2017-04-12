@@ -17,15 +17,9 @@ class Player(db_instance.DatabaseInstance._database.Entity):
 
         this_player = Player[self.username] #find the database entity for this (allows db_session)
 
-        response = None
+        response = response = {'username':this_player.username}
         if this_player.character is not None:
-            response = {'username':this_player.username,
-                        'charname':this_player.character.charname,
-                        'pos_x':this_player.character.pos_x,
-                        'pos_y':this_player.character.pos_y
-                       }
-        else:
-            response = {'username':this_player.username}
+            response.update(this_player.character.get_json())
 
-        logging.debug(response)
+        logging.debug('OUT| playerJSON: '+str(response))
         return response
