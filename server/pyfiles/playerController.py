@@ -38,7 +38,9 @@ def get_character_json(username):
     if find_player(username) is not None:
         this_player = player.Player[username]
         if this_player.character is not None:
-            return this_player.character.get_json()
+            this_json = this_player.character.get_json()
+            logging.info('Found character JSON: '+str(this_json))
+            return this_json
     return None
 
 @db_session

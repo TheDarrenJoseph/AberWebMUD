@@ -1,8 +1,17 @@
 flask >= 0.12
 flask-socketio >= 2.8.3
-gevent >= 1.2.1
+
 jsonpickle >= 0.9.4
 passlib >= 1.7.1
 psycopg2 >= 2.7
 argon2_cffi
 pony >= 0.7.1
+#Good WebSockets coverage
+eventlet >= 0.21.0
+#Server libraries
+#Good WebSockets coverage
+eventlet >= 0.21.0
+#server package  -- May not fully support WebSockets
+#gevent >= 1.2.1
+#Alternative server package
+#uwsgi

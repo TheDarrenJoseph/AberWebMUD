@@ -81,8 +81,6 @@ def check_message_params(message: dict) -> (bool, dict):
 
 def validate_character_update(characterJson) -> bool:
     """ Checks we've been given valid data, and that any changes are within limits """
-    if jsonChecker.character_details_exist(characterJson):
-        #Check for a prexisting character
-        #if characterController.find_character(characterJson['data']['charname']) is None:
-        return True
-    return False
+    return jsonChecker.character_details_exist(characterJson)
+    #Check for a prexisting character
+    #if characterController.find_character(characterJson['data']['charname']) is None:

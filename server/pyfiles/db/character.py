@@ -2,33 +2,30 @@ from pyfiles.db import db_instance, stats, database, player, position
 from pony.orm import *
 
 class Character(db_instance.DatabaseInstance._database.Entity):
-    charname = Required(str)
+    #char_id = PrimaryKey(int, auto=True)
+    charname = Required(str, unique=True)
     #Positions are stored relative to the map
     position = Required('Position')
-    player = Required('Player')
+    player = Required('Player', unique=True)
     stats = Optional(stats.Stats)
 
     @db_session
     def set_charname(charname):
-        this_character = Character[self.charname]
         if charname is not None:
-            this_character.charname = charname
+            self.charname = charname
 
     @db_session
     def set_position(this_position):
-        #this_character = Character[self.charname]
         if this_position is not None:
             self.position = this_position
 
     def set_player(this_player):
-        this_character = Character[self.charname]
         if this_player is not None:
-            this_character.player = this_player
+            self.player = this_player
 
     def set_stats(this_stats):
-        this_character = Character[self.charname]
         if this_stats is not None:
-            this_character.stats = this_stats
+            self.stats = this_stats
 
     @db_session
     def get_json(self):

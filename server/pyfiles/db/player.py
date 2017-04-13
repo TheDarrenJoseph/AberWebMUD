@@ -4,10 +4,9 @@ from pyfiles.db import db_instance, character
 from pony.orm import *
 
 class Player(db_instance.DatabaseInstance._database.Entity):
-    character = Optional(character.Character)
     username = PrimaryKey(str)
-    #passwordSalt = Required(str, unique=True)
     password = Required(str)
+    character = Optional(character.Character)
 
     @db_session
     def get_json(self):

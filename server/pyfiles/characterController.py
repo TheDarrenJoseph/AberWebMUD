@@ -24,18 +24,18 @@ def new_character(charname, username) -> player.Player:
 
 #Checks for the Character in the DB using PonyORM
 @db_session
-def get_character_json(charname:str):
+def get_character_json(character_name:str):
     try:
-        this_character = character.Character[charname]
+        this_character = character.Character.get(charname=character_name)
         return this_character.get_json()
     except ObjectNotFound:
         return None
 
 #Checks for the Character in the DB using PonyORM
 @db_session
-def find_character(charname:str):
+def find_character(character_name:str):
     try:
-        return character.Character[charname]
+        return character.Character.get(charname=character_name)
 
     except ObjectNotFound:
         return None
@@ -44,37 +44,40 @@ def find_character(charname:str):
 def update_character_from_json(character_json:dict) -> bool:
     data = character_json['data']
     username = character_json['sessionJson']['username']
-    charname = data['charname']
+    character_name = data['charname']
 
-    this_character = character.Character[charname]
+    this_character = character.character.Character.get(charname=character_name)
     this_player = player.Player[username]
 
     if this_character is not  None and this_player is not None:
-        this_character.set_charname(charname)
+        this_character.set_charname(character_name)
         this_character.stats.str_val = character_json['attributes']['STR']
+        logging.debug('ONLY STRENGTH ATTRIBUTE UPDATED.')
         #TODO update the remaining info
+
+        return True
 
     else:
         logging.info('Could not find a char or player for char update!')
-
+        return False
 
 @db_session
 def update_character_details(character_json: dict) -> bool:
+    import pdb; pdb.set_trace()
     data = character_json['data']
     username = character_json['sessionJson']['username']
     charname = data['charname']
 
-    return True #CRITICAL FIX NEEDED
-
     #New character if first sign in (no character yet)
     if find_character(charname) is None:
-        logging.debug('Creating a new character')
-        #this_character = new_character(charname, username)
-
+        logging.info('Creating a new character')
+        this_character = new_character(charname, username)
+        return True
     #If we can find the player, update the character
     if playerController.find_player(username) is not None:
-        logging.debug('Updating chardetails:' +str(this_character))
-        logging.debug('Given info: '+str(character_json))
+        #logging.debug('Updating chardetails:' +str(this_character))
+        logging.info('Given info: '+str(character_json))
         return update_character_from_json(character_json)
     else:
-        logging.debug('No matching user found for character update!')
+        logging.info('No matching user found for character update!')
+        return False

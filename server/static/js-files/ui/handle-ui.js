@@ -197,6 +197,7 @@ function handleCharacterUpdateResponse(messageJson){
 
 //Continues the login process after a user inputs their character details
 function characterDetailsConfirmed() {
+  console.log('CHARDETAILS CONFIRMED, session data: '+clientSession);
   hideWindow('statWindowId'); //Hide the stats windows
 
   if (!UI_ENABLED) {

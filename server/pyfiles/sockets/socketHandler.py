@@ -193,22 +193,22 @@ def handle_char_details(message: dict) -> None:
 
     if 'sessionJson' in message and 'username' in message['sessionJson']:
         if all(valid_player_session(message['sessionJson']['username'], request.sid)):
-            logging.info('IN| (CHAR-STATS) stats save attempted. '+str(request.sid))
-            update_success = False
+            UPDATE_SUCCESS = False
             character_data = None
 
             #Check the details and emit a response based on that
             if userInput.validate_character_update(message):
-                #CRITICAL FIX NEEDED
-                if characterController.update_character_details(message) is not False:
-                    update_success = True
-                    username = message['sessionJson']['username']
-                    character_data = playerController.get_character_json(username)
+                logging.info('Updating char details: '+str(message))
+                UPDATE_SUCCESS = characterController.update_character_details(message)
+                logging.info('CHARACTER UPDATE SUCCESS: '+str(UPDATE_SUCCESS))
+
+                username = message['sessionJson']['username']
+                character_data = playerController.get_character_json(username)
             else:
                 logging.info('Invalid character update data')
 
             logging.info('OUT| character-details-update '+str(character_data))
-            emit('character-details-update', {'success': update_success, 'char-data': character_data})
+            emit('character-details-update', {'success': UPDATE_SUCCESS, 'char-data': character_data})
         else:
             logging.info('IN| (CHAR-STATS) stats save attempted for invalid session. ' + str(request.sid))
     else:

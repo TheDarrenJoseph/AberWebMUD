@@ -181,8 +181,8 @@ function handleCharacterUpdateResponse(messageJson){
     console.log('UPDATING LOCAL CHARDETAILS using: '+messageJson);
 
     if (messageJson['success'] == true) {
-      //setStatsFromJsonResponse(messageJson['char-data']); //Update local stats window from the message
-      //updateClientDetails(messageJson['char-data']);
+      setStatsFromJsonResponse(messageJson['char-data']); //Update local stats window from the message
+      updateClientDetails(messageJson['char-data']);
       updateMessageLog('Character details saved.', 'server');
 
       //If this is our first update, trigger the UI startup
@@ -197,6 +197,7 @@ function handleCharacterUpdateResponse(messageJson){
 
 //Continues the login process after a user inputs their character details
 function characterDetailsConfirmed() {
+  console.log('CHARDETAILS CONFIRMED, session data: '+clientSession);
   hideWindow('statWindowId'); //Hide the stats windows
 
   if (!UI_ENABLED) {
@@ -1083,12 +1084,10 @@ function getSessionInfoJSON() {
 }
 
 
-//{"success":true,"char-data":{"charname":"R","charclass":"fighter",
-//    "attributes":{"STR":"1","DEX":"1","CON":"1","INT":"1","WIS":"1","CHA":"1"},
-//    "pos_x":10,"pos_y":10}
-//}]
+//Example JSON
+//{"charname":"roo","pos_x":10,"pos_y":10,"health":100,"charclass":"fighter","free_points":5,"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}
 function updateCharacterDetails (data) {
-  clientSession.attributes = data['attributes'];
+  console.log(data);
   clientSession.character.charname = data['charname'];
   clientSession.character.class = data['charclass'];
   clientSession.character.pos_x = data['pos_x'];
@@ -1096,14 +1095,14 @@ function updateCharacterDetails (data) {
 }
 
 function updateClientSessionData (data) {
-	var playerStatus = data['player-status'];
+	//var playerStatus = data['player-status'];
 	console.log('Login data received: ');
 	console.log(data);
 
 	//	Update the client session to contain our new data
 	clientSession.sessionId = data['sessionId'];
 
-  updateCharacterDetails(playerStatus);
+  updateCharacterDetails(data);
 
 	console.log('Saved session object: ');
 	console.log(clientSession);
