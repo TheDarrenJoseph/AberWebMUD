@@ -15,6 +15,7 @@ Other technologies used:
 * [Flask (BSD License)] (http://flask.pocoo.org/)
 * [SocketsIO (MIT License)] (http://socket.io/)
 * [PostgreSQL] (https://www.postgresql.org/)
+* [PonyORM (Apache License V2.0)] (https://docs.ponyorm.com/)
 * Texture atlas creation using ["Leshy SpriteSheet Tool - Online Sprite Sheet, Texture Atlas Packer"]
  (https://www.leshylabs.com/apps/sstool/)
 
@@ -22,19 +23,21 @@ Check the requirements.txt for dependancy version details
 Check the LICENSE file for the project's license
 
 ## Running the project
-1. Change your terminal directory to the server folder
-2. You may have to ensure the JavaScript files have been concatted into the client.js file, run build.sh in the scripts folder (there's a good chance this has already been done before a Git 
-commit) 
+1. You first need to satisfy python's dependencies, run 'sudo pip install -r requirements.txt' in the AberWebMUD folder
+2. Change your terminal directory to the server folder
+3. (Optional) JavaScript files are concatted into the client.js file, run build.sh in the scripts folder (there's a good chance this has already been done before a Git
+commit)
 3. Run main.py in Python
 4. visit 'localhost:5000' in a browser
 
 ## Postgres vs SQLite
 The project currently uses an SQLite DB in-memory in order to run locally for development and demonstration.
-The project can also be run with a PostgreSQL database for a scalable DB platform if deployed (adjusted in database.py), if so you must ensure the PostgreSQL database service 
+The project can also be run with a PostgreSQL database for a scalable DB platform if deployed (adjusted in database.py), if so you must ensure the PostgreSQL database service
 is running (database.py should detail what is expected).
 
 ## Running client tests (QUnit)
-Client tests are available once the server is running (main.py) at 'localhost:5000/test'
+1. (Optional) Client tests (files named 'test-....js') are appended into the test.js file using the same build.sh as above
+2. Client tests are available once the server is running (main.py) at 'localhost:5000/test'
 
 ## Running server tests (unittest)
 1. change directory to 'server'

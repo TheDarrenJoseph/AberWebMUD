@@ -203,7 +203,10 @@ def handle_char_details(message: dict) -> None:
                 logging.info('CHARACTER UPDATE SUCCESS: '+str(UPDATE_SUCCESS))
 
                 username = message['sessionJson']['username']
+
                 character_data = playerController.get_character_json(username)
+
+
             else:
                 logging.info('Invalid character update data')
 

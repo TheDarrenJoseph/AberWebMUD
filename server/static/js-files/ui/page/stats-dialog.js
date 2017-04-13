@@ -180,6 +180,7 @@ function setStatsFromJsonResponse(statsValuesJson){
   var charclass = statsValuesJson['charclass'];
   var pos_x = statsValuesJson['pos_x'];
   var pos_y = statsValuesJson['pos_x'];
+  var free_points = statsValuesJson['free_points'];
 
   var attrValuesJSON = {'STR': statsValuesJson['STR'],
                         'DEX': statsValuesJson['DEX'],
