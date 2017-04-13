@@ -8,7 +8,7 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
     free_points = Required(int, default=5)
     str_val = Required(int, default=1)
     dex_val = Required(int, default=1)
-    con_val = Required(int, default=1)
+    con_val = Required(int, default=55)
     int_val = Required(int, default=1)
     wis_val = Required(int, default=1)
     cha_val = Required(int, default=1)
@@ -22,7 +22,7 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
                 self.wis_val+\
                 self.cha_val
         return score
-        
+
     @db_session
     def get_json(self):
         attributes = {

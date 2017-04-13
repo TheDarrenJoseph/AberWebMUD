@@ -1,12 +1,21 @@
 //  Local data stored for your current character
+var charAttributes = {
+  str: null,
+  dex: null,
+  con: null,
+  int: null,
+  wis: null,
+  cha: null
+}
+
 var charData = {
-  charname: null, pos_x: null, pos_y: null, attributes: null, class: null, health: null
+  charname: null, pos_x: null, pos_y: null, attributes: charAttributes, class: null, health: null, free_points: null
 };
 
 var clientSession = {
   username: null,
-  character: charData,
-  sessionId: null
+  sessionId: null,
+  character: charData
 };
 
 function characterDetailsExist () {
@@ -39,6 +48,22 @@ function updateCharacterDetails (data) {
   clientSession.character.class = data['charclass'];
   clientSession.character.pos_x = data['pos_x'];
   clientSession.character.pos_y = data['pos_y'];
+  clientSession.character.class = data['charclass'];
+  clientSession.character.health = data['health'];
+  clientSession.character.free_points = data['free_points'];
+
+  clientSession.character.attributes.str = data['STR'];
+  clientSession.character.attributes.dex = data['DEX'];
+  clientSession.character.attributes.con = data['CON'];
+  clientSession.character.attributes.int = data['INT'];
+  clientSession.character.attributes.wis = data['WIS'];
+  clientSession.character.attributes.cha = data['CHA'];
+
+
+  console.log(clientSession.character.attributes);
+
+  console.log('clientSession updated.');
+  console.log(clientSession);
 }
 
 function updateClientSessionData (data) {

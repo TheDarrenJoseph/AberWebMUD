@@ -42,19 +42,27 @@ def find_character(character_name:str):
 
 @db_session
 def update_character_from_json(character_json:dict) -> bool:
-    data = character_json['data']
-    username = character_json['sessionJson']['username']
-    character_name = data['charname']
+    #import pdb; pdb.set_trace()
 
-    this_character = character.character.Character.get(charname=character_name)
+    username = character_json['sessionJson']['username']
+    data = character_json['data']
+    character_name = data['charname']
+    character_class = data['charclass']
+
+
+    this_character = character.Character.get(charname=character_name)
     this_player = player.Player[username]
 
+    data = data['attributes'] #Pick out only the 'attributes' from 'data'
     if this_character is not  None and this_player is not None:
         this_character.set_charname(character_name)
-        this_character.stats.str_val = character_json['attributes']['STR']
-        logging.debug('ONLY STRENGTH ATTRIBUTE UPDATED.')
-        #TODO update the remaining info
-
+        this_character.stats.charclass = character_class
+        this_character.stats.str_val = data['STR']
+        this_character.stats.dex_val = data['DEX']
+        this_character.stats.con_val = data['CON']
+        this_character.stats.int_val = data['INT']
+        this_character.stats.wis_val = data['WIS']
+        this_character.stats.cha_val = data['CHA']
         return True
 
     else:
@@ -63,7 +71,6 @@ def update_character_from_json(character_json:dict) -> bool:
 
 @db_session
 def update_character_details(character_json: dict) -> bool:
-    import pdb; pdb.set_trace()
     data = character_json['data']
     username = character_json['sessionJson']['username']
     charname = data['charname']
@@ -72,7 +79,7 @@ def update_character_details(character_json: dict) -> bool:
     if find_character(charname) is None:
         logging.info('Creating a new character')
         this_character = new_character(charname, username)
-        return True
+
     #If we can find the player, update the character
     if playerController.find_player(username) is not None:
         #logging.debug('Updating chardetails:' +str(this_character))

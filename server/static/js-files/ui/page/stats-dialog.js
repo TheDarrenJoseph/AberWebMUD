@@ -178,7 +178,15 @@ function setStatsFromJsonResponse(statsValuesJson){
   console.log('Setting from: '+statsValuesJson);
   var charname = statsValuesJson['charname'];
   var charclass = statsValuesJson['charclass'];
-  var attributes = statsValuesJson['attributes'];
   var pos_x = statsValuesJson['pos_x'];
   var pos_y = statsValuesJson['pos_x'];
+
+  var attrValuesJSON = {'STR': statsValuesJson['STR'],
+                        'DEX': statsValuesJson['DEX'],
+                        'CON': statsValuesJson['CON'],
+                        'INT': statsValuesJson['INT'],
+                        'WIS': statsValuesJson['WIS'],
+                        'CHA': statsValuesJson['CHA']};
+
+  setStatsAttributeValues(attrValuesJSON);
 }
