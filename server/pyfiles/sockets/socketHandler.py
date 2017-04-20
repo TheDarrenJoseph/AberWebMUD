@@ -4,13 +4,13 @@ import threading
 import jsonpickle
 import logging
 from flask import request
-from flask_socketio import emit
+from flask_socketio import SocketIO, emit
 from pyfiles import playerController, characterController, userInput
 from pyfiles.model import overworld
 from pyfiles.sockets import sessionHandler
 from pyfiles.db import database
 
-def hookup_callbacks(socket_server):
+def hookup_callbacks(socket_server : SocketIO):
     socket_server.on_event('new-chat-message', handle_message)
     socket_server.on_event('map-data-request', send_map_data)
     socket_server.on_event('movement-command', handle_movement)
@@ -22,22 +22,23 @@ def hookup_callbacks(socket_server):
     socket_server.on_event('connect', send_welcome)
     socket_server.on_event('disconnect', handle_disconnect)
 
-def send_server_message(message, toAll):
+def send_server_message(message : dict or str, toAll : bool) -> None:
     """ Builds an ad-hoc sessionJson for the server and passes on the message data """
     messageData = {'data': message, 'sessionJson': {'username':'server'}}
     send_message(messageData, toAll)
 
-def send_message(messageData, toAll) -> None:
+def send_message(messageData : dict, toAll : bool) -> None:
     #"""Broadcasts a chat-message-response to all connected users """
     logging.debug('OUT| chat message RESPONSE to all')
     emit('chat-message-response', messageData, broadcast=toAll)
 
-def send_login_failure(found_player):
+def send_login_failure(found_player : bool) -> None:
+    """ Sends a login failure event, specifying whether or not that player exists """
     logging.debug('OUT| login failure: '+str(request.sid))
     login_status = {'playerExists' : found_player}
     emit('login-failure', login_status)
 
-def send_login_success(session_id, status_response):
+def send_login_success(session_id : str, status_response : bool) -> None:
     """ Emits a login-success event to the client
         sends the current sessionId and a player-status data object
     """
@@ -70,7 +71,7 @@ def send_map_data() -> None:
                                   }
             )
 
-def parse_login(sid, username):
+def parse_login(sid : str, username : str) -> None:
     #user inputted username from client message
     user_and_account = valid_player_session(username, sid) # (userExists, logged_in)
 
@@ -119,7 +120,7 @@ def handle_message(message: dict) -> None:
                 #Send an eror message back to the user
                 send_server_message('User must be logged in to message', False)
 
-def valid_player_session(username, session_id):
+def valid_player_session(username : str, session_id : str) -> (bool, bool):
     found_player = playerController.find_player(username)
 
     if found_player is not None:
@@ -176,17 +177,6 @@ def handle_movement(message: dict) -> None:
             logging.info('Valid user not in activeSessions, requesting password')
             emit('request-password', username) #Client has a valid user, but not logged in
 
-# def send_char_details(message: dict) -> None:
-#     if 'sessionJson' in message and 'username' in message['sessionJson']:
-#         if all(valid_player_session(message['sessionJson']['username'], request.sid)):
-#             logging.info('IN| (CHAR-STATS) character update requested. '+str(request.sid))
-#             username = message['sessionJson']['username']
-#             logging.debug('Creating a new character')
-#             this_character = characterController.new_character('testCharacter', username)
-#
-#             character_data = playerController.get_character_json(username)
-#             emit('character-details-update', {'success': True, 'char-data': character_data})
-
 def handle_char_details(message: dict) -> None:
     """ Receives character data from the client, validates it, and updates the DB """
     logging.info('CHAR DETAILS: '+str(message))
@@ -194,7 +184,7 @@ def handle_char_details(message: dict) -> None:
     if 'sessionJson' in message and 'username' in message['sessionJson']:
         if all(valid_player_session(message['sessionJson']['username'], request.sid)):
             UPDATE_SUCCESS = False
-            character_data = None
+            character_data = {}
 
             #Check the details and emit a response based on that
             if userInput.validate_character_update(message):
@@ -225,7 +215,7 @@ def handle_disconnect() -> None:
         print('Active session removed: '+request.sid+' '+removed_session[1])
     print('A session disconnected: '+request.sid)
 
-def login_user(sid, username):
+def login_user(sid : str, username : str) -> None:
     logging.info('Logging in.. '+sid)
     sessionHandler.add_active_session(sid, username)
 

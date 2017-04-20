@@ -7,7 +7,7 @@ from pony.orm import db_session
 
 #Creates a new character and assigns it to a player
 @db_session
-def new_character(charname, username) -> player.Player:
+def new_character(charname : str, username : str) -> player.Player:
     if (charname is not None) and (get_character(charname) is None):
         if playerController.find_player(username) is not None:
             start_pos = overworld.get_starting_pos()
@@ -24,7 +24,7 @@ def new_character(charname, username) -> player.Player:
 
 #Checks for the Character in the DB using PonyORM
 @db_session
-def get_character_json(character_name:str):
+def get_character_json(character_name : str) -> dict or None:
     try:
         this_character = character.Character.get(charname=character_name)
         return this_character.get_json()
@@ -33,7 +33,7 @@ def get_character_json(character_name:str):
 
 #Checks for the Character in the DB using PonyORM
 @db_session
-def get_character(character_name:str):
+def get_character(character_name : str) -> character.Character or None:
     try:
         return character.Character.get(charname=character_name)
 
@@ -42,9 +42,6 @@ def get_character(character_name:str):
 
 @db_session
 def update_character_from_json(character_json:dict) -> bool:
-    import pdb; pdb.set_trace()
-
-
     username = character_json['sessionJson']['username']
     data = character_json['data']
     character_name = data['charname']
@@ -57,14 +54,18 @@ def update_character_from_json(character_json:dict) -> bool:
     if this_character is not  None and this_player is not None:
         this_character.set_charname(character_name)
         this_character.stats.charclass = character_class
-        this_character.stats.str_val = data['STR']
-        this_character.stats.dex_val = data['DEX']
-        this_character.stats.con_val = data['CON']
-        this_character.stats.int_val = data['INT']
-        this_character.stats.wis_val = data['WIS']
-        this_character.stats.cha_val = data['CHA']
-        logging.info('UPDATED CHAR = ')
-        logging.info(this_character)
+
+        these_attribs = this_character.attributes
+        logging.info('setting attribs..'+str(these_attribs.dex_val))
+        these_attribs.str_val = data['STR']
+        these_attribs.dex_val = data['DEX']
+        these_attribs.con_val = data['CON']
+        these_attribs.int_val = data['INT']
+        these_attribs.wis_val = data['WIS']
+        these_attribs.cha_val = data['CHA']
+        logging.info('--UPDATED CHAR--')
+        logging.info(these_attribs.get_json())
+        logging.info(this_character.get_json())
         return True
 
     else:
@@ -72,12 +73,10 @@ def update_character_from_json(character_json:dict) -> bool:
         return False
 
 @db_session
-def update_character_details(character_json: dict) -> bool:
+def update_character_details(character_json : dict) -> bool:
     data = character_json['data']
     username = character_json['sessionJson']['username']
     charname = data['charname']
-
-    import pdb; pdb.set_trace()
 
     #New character if first sign in (no character yet)
     if get_character(charname) is None:

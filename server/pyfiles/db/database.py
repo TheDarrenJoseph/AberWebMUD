@@ -8,7 +8,7 @@ class DatabaseHandler():
     #Shared class variable to prevent multiple instanciations
     _db_instance = db_instance.DatabaseInstance()
 
-    def db_exists(self):
+    def db_exists(self) -> bool:
         return self._db_instance._database is not None
 
     #@pony.orm.db_session
@@ -24,29 +24,30 @@ class DatabaseHandler():
             return (True, crypto.verify_password(password, found_player.password))
         return (False, False)
 
-    #Prints DB build info
+
     @pony.orm.db_session
-    def print_version(self):
+    def print_version(self) -> None:
+        """ Logs DB build info to logging """
         if self.db_exists():
             logging.info('DB INFO: '+str(self._db_instance._database.select("select sqlite_version();")))
             #logging.info(self._db_instance._database.select("select version();")) POSTGRES
 
-    #Prints the current state of the tables for development debug
     @pony.orm.db_session
-    def show_tables(self):
+    def show_tables(self) -> None:
+        """ Logs the current state of the player and character tables for development debug """
         if self.db_exists():
-            logging.info(str(self._db_instance._database.select("select * from Player")))
-            logging.info(str(self._db_instance._database.select("select * from Character")))
+            logging.info('Players in DB: '+str(self._db_instance._database.select("select * from Player")))
+            logging.info('Characters in DB: '+str(self._db_instance._database.select("select * from Character")))
 
-    def clear_db(self, allData:bool):
+    def clear_db(self, allData:bool) -> None:
         self._db_instance._database.drop_all_tables(with_all_data=allData)
 
     #This should be done after defining every database entity (such as a Player)
-    def map_db(self):
+    def map_db(self) -> None:
         self._db_instance._database.generate_mapping(create_tables=True)
 
     #Binds and maps PonyORM to the Postgresql DB
-    def open_db(self):
+    def open_db(self) -> None:
         if self.db_exists():
             try:
                 #SQLite in memory for 'session only' storage (does not persist)
@@ -64,7 +65,7 @@ class DatabaseHandler():
                 logging.critical('--DB-ERROR--| while opening DB.')
 
 
-    def close_db(self):
+    def close_db(self) -> None:
         if self.db_exists():
             self._db_instance._database.disconnect()
             logging.info('--DB-CLOSED--: ')

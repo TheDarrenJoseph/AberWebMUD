@@ -1,5 +1,4 @@
-//Sets up the variables used for view calculation so they're defined for our testing
-
+//Sets up the global variables used for view calculation so they're defined for our testing
 function beforeTests () {
   //Start co-ords of the map view window, This affects the local co-ord calculations
   mapGridStartX = 5;

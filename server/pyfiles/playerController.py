@@ -7,7 +7,7 @@ from pony.orm import db_session
 
 #Checks for the Player in the DB using PonyORM
 @db_session
-def find_player(username:str):
+def find_player(username : str) -> player.Player or None:
     try:
         return player.Player[username]
 
@@ -15,7 +15,7 @@ def find_player(username:str):
         return None
 
 @db_session
-def get_player_pos(username:str):
+def get_player_pos(username : str) -> (int, int) or None:
     thisPlayer = player.Player[username]
 
     if thisPlayer is not None:
@@ -34,7 +34,7 @@ def get_player_pos(username:str):
 #     return False
 
 @db_session
-def get_character_json(username):
+def get_character_json(username : str) -> dict or None:
     if find_player(username) is not None:
         this_player = player.Player[username]
         if this_player.character is not None:
@@ -44,7 +44,7 @@ def get_character_json(username):
     return None
 
 @db_session
-def get_player_status(username):
+def get_player_status(username : str) -> dict or None:
     if find_player(username) is not None:
         thisPlayer = player.Player[username]
         return thisPlayer.get_json()
@@ -52,7 +52,7 @@ def get_player_status(username):
 
 #Creates a new player database object
 @db_session
-def new_player(username, password) -> player.Player:
+def new_player(username : str, password : str) -> player.Player or None:
     if username is not None \
     and password is not None:
         if find_player(username) is None:
@@ -66,7 +66,7 @@ def new_player(username, password) -> player.Player:
     return None
 
 #Returns true or false based on whether or not the movement is valid
-def check_movement(username, move_x, move_y) -> bool:
+def check_movement(username : str, move_x : int, move_y : int) -> bool:
     this_pos = get_player_pos(username)
     pos_x = this_pos[0]
     pos_y = this_pos[1]

@@ -9,7 +9,7 @@ class Player(db_instance.DatabaseInstance._database.Entity):
     character = Optional(character.Character)
 
     @db_session
-    def get_json(self):
+    def get_json(self) -> dict:
         """ Returns player data needed for the client as a dict/JSON format
             This gets given to the client as a status response for a player
         """

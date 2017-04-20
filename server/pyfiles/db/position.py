@@ -7,10 +7,10 @@ class Position(db_instance.DatabaseInstance._database.Entity):
     pos_y = Required(int)
 
     @db_session
-    def to_string(self):
+    def to_string(self) -> str:
         return str(self.pos_x)+str(self.pos_y)
 
     @db_session
-    def set_position(x,y):
+    def set_position(x,y) -> None:
         self.pos_x = x
         self.pos_y = y

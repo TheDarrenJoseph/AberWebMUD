@@ -15,7 +15,7 @@ def key_and_data_exists(jsonMessage: dict, key: str) -> bool:
 
     return False
 
-def character_details_exist(characterJson):
+def character_details_exist(characterJson : dict) -> bool:
     """ Checks that the character update JSON data exists in the correct format
         EXAMPLE DATA:
         {'data': {'charname': 'Ragnar', 'charclass': 'fighter', 'attributes': {'STR': '1', 'DEX': '1', 'CON': '1', 'INT': '1', 'WIS': '1', 'CHA': '1'}},
