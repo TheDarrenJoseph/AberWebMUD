@@ -90,8 +90,8 @@ function handleSessionError () {
 }
 
 function handleMessageData(data) {
-  var messageData = data['data'];
-  var username = data['sessionJson']['username'];
+  var messageData = data['chat-data'];
+  var username = data['username'];
   console.log("Received: " + data);
   updateMessageLog(messageData, username);
 }

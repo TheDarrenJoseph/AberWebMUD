@@ -95,19 +95,27 @@ def handle_message(message: dict) -> None:
     logging.info('IN| player message: '+str(message))
 
     sid = request.sid
+
+    #Remove the sessionId so we don't rebroadcast it to anyone
+    if 'sessionJson' in message and 'sessionId' in message['sessionJson'] :
+        del message['sessionJson']['sessionId']
+
+    #Check the message for commands and choice
     message_details = userInput.check_message_params(message)
 
-    #True if the the message was properly formatted
-    if message_details[0] is True:
-        input_params = message_details[1]
-        user_choice = input_params['choice']
-        user_data = input_params['data']
+    #True if the the message was properly formatted, #1st tuple in nested tuple
+    if message_details[1][0] is True:
+        input_params = message_details[1][1] #2nd tuple in nested tuple
+        user_choice = message_details[0]
+        user_data = input_params['chat-data']
         logging.info(user_data)
 
+        #Login choice
         if user_choice == 1:
-            username = input_params['data']['username'] #Username is here for a login
+            username = input_params['chat-data']['username'] #Username is here for a login
             parse_login(sid, username)
 
+        #Message choice
         elif user_choice == 2:
             #user inputted username from client message
             username = message['sessionJson']['username'] #Username from sessionJSON otherwise
@@ -115,7 +123,7 @@ def handle_message(message: dict) -> None:
 
             if found_player is not None:
                 logging.info('OUT| MESSAGE: '+str(message)+' Actual: '+str(user_data))
-                send_message(message, True) #Rebroadcast the message {data,sessionJson}
+                send_message(input_params, True) #Rebroadcast the message {data,sessionJson}
             else:
                 #Send an eror message back to the user
                 send_server_message('User must be logged in to message', False)
