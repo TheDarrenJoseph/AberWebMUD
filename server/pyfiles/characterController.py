@@ -56,14 +56,8 @@ def update_character_from_json(character_json:dict) -> bool:
         this_character.stats.charclass = character_class
 
         these_attribs = this_character.attributes
-        logging.info('setting attribs..'+str(these_attribs.dex_val))
-        these_attribs.str_val = data['STR']
-        these_attribs.dex_val = data['DEX']
-        these_attribs.con_val = data['CON']
-        these_attribs.int_val = data['INT']
-        these_attribs.wis_val = data['WIS']
-        these_attribs.cha_val = data['CHA']
-        logging.info('--UPDATED CHAR--')
+        these_attribs.update_attribs_from_json(data)
+
         logging.info(these_attribs.get_json())
         logging.info(this_character.get_json())
         return True

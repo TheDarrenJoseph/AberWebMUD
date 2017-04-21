@@ -1,6 +1,5 @@
-from pyfiles.db import db_instance, stats, database, player, position, attributes
-from pony.orm import *
-import logging
+from pyfiles.db import db_instance, stats, attributes   #position, player, database
+from pony.orm import Required, Optional, db_session
 
 class Character(db_instance.DatabaseInstance._database.Entity):
     #char_id = PrimaryKey(int, auto=True)
@@ -36,10 +35,9 @@ class Character(db_instance.DatabaseInstance._database.Entity):
         response = {'charname':self.charname,
                     'pos_x': self.position.pos_x,
                     'pos_y': self.position.pos_y
-                    }
+                   }
 
         if self.stats is None:
-            logging.info('GENNING NEW STATS')
             self.stats = stats.Stats(character=self)
         response.update(self.stats.get_json())
 
@@ -48,6 +46,4 @@ class Character(db_instance.DatabaseInstance._database.Entity):
             self.attributes = attributes.Attributes(character=self)
 
         response.update(self.attributes.get_json())
-
-        print(response)
         return response

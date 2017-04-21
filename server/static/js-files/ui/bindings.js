@@ -25,7 +25,7 @@ function stageDoubleClicked (mouseEvent) {
 
 		sendMovementCommand(coords[0], coords[1]);
 	} catch (err) { //Invalid tile position clicked on, do nothing
-		return;
+		console.log('MOVEMENT-COMMAND| '+err);
 	}
 	}
 }

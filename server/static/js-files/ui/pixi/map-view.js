@@ -135,7 +135,7 @@ function setMapViewPosition(startX,startY) {
 
 	//if (isPositionInOverworld(startX, startY)) {
 	//Checks that we have half the view out of the map maximum
-	if (startX >= halfViewMinus && startX <= end_view_x && startY >= halfViewMinus && startY <= end_view_y) {
+	if (startX >= halfViewMinus && startX < end_view_x && startY >= halfViewMinus && startY < end_view_y) {
 		//Adjusting the start values for drawing the map
 		mapGridStartX = startX;
 		mapGridStartY = startY;

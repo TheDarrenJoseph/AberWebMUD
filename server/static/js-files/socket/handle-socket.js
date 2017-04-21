@@ -47,6 +47,7 @@ function sendMovementCommand(x,y) {
   var sessionJson = getSessionInfoJSON();
 
   if (username != null && sessionId != null) {
+    console.log({'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
   	socket.emit('movement-command', {'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
   }
 }

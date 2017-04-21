@@ -63,7 +63,7 @@
 	color: white;
 }
 
-.stat-window{
+#stat-window{
 	overflow: scroll;
 }
 
@@ -71,6 +71,13 @@
 	border-style: solid;
 	border-color: black;
 	border-width: 1px;
+}
+
+#stats-info {
+	position: absolute;
+	overflow: scroll;
+	width: 70%;
+	height: 10%;
 }
 
 .thead{
@@ -81,7 +88,6 @@
 	border-style: solid;
 	border-color: red;
 	border-width: 1px;
-
 }
 
 .dialog {
@@ -93,9 +99,9 @@
 	border-style: solid;
 	border-color: black;
 	border-width: 2px;
-	left:25%;
+	left:15%;
 	top:5%;
-	width:50%;
+	width:60%;
 	height:50%;
 }
 

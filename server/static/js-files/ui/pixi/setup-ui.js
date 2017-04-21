@@ -158,10 +158,10 @@ function setupStatBars () {
 	return [healthBar];
 }
 
-function displayHealthBar() {
+function displayStatBars(healthVal) {
 		var statBars = setupStatBars();
 		console.log(statBars);
-		statBars[0].setValue(20);
+		statBars[0].setValue(healthVal);
 		statBars[0].drawBackgroundBar();
 		statBars[0].drawInnerBar();
 }
@@ -177,7 +177,8 @@ function setupUI() {
 	setupDialogWindow();
 	mapCharacterArray = createMapCharacterArray();
 
-	displayHealthBar();
+	healthVal = clientSession.character.health;
+	displayStatBars(healthVal);
 
 	tileSpriteArray = setupMapUI();
 
@@ -201,7 +202,6 @@ function assetsLoaded () {
 
 	$('#main-window').append(renderer.view);
 
-	setupUI();
 	showLoginControls();
 }
 

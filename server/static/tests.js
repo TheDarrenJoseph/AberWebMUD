@@ -4,6 +4,25 @@
 
 // This set of tests focuses on functions for co-ord positions and conversions
 
+//Sets up the global variables used for view calculation so they're defined for our testing
+function beforeTests () {
+  //Start co-ords of the map view window, This affects the local co-ord calculations
+  mapGridStartX = 5;
+  mapGridStartY = 5;
+
+  //Set overworld size limits, for all other co-ord calculations
+  overworldMapSizeX = 50;
+  overworldMapSizeY = 50;
+
+  tileCount = 20; //  mapSizeXY-startpos_xY
+  tileSize = 40; //  Default tile size
+
+  var justUnderRange =  -halfTileCountFloored-1;
+  var lowestRange =  -halfTileCountFloored;
+}
+
+QUnit.module('viewPositionTests', { beforeEach: beforeTests });
+
 //  Runs the position function passed with x and y params
 //  catches any error and checks against the expected error message
 function testPositionRangeError (assert, func, x, y, expectedException) {
@@ -11,14 +30,21 @@ function testPositionRangeError (assert, func, x, y, expectedException) {
     func(x, y);
   } catch (err) {
     //TODO Check for RangeError type
+    console.log('Checking error message equivalance for: (' + err.message + ') and (' + expectedException.message + ')');
     assert.equal(err.message, expectedException.message);
+    console.log('Assertion made for position: '+x+' '+y);
   }
+}
+
+function rangeErrorString(posX,posY) {
+  return 'Position not in overworld: ' + (posX) + ' ' + (posY);
 }
 
 //Testing relative co-ords (tile view co-ords) that are 0 indexed
 QUnit.test('|POSITION| relative-to-view-good', function (assert) {
-  assert.ok(isPositionRelativeToView(0,0)); //Lowest possible
-  assert.ok(isPositionRelativeToView(tileCount-1, tileCount-1)); //Highest possible (-1 for 0 indexing)
+  console.log('mapGridStartX = '+mapGridStartX);
+  assert.ok(isPositionRelativeToView(0, 0)); //Lowest possible
+  assert.ok(isPositionRelativeToView(tileCount - 1, tileCount - 1)); //Highest possible (-1 for 0 indexing)
 }
 );
 
@@ -73,7 +99,6 @@ QUnit.test('|POSITION| local-to-global |VALID|', function (assert) {
   var result = localTilePosToGlobal(0, 0);
   assert.equal(result[0], mapGridStartX);
   assert.equal(result[1], mapGridStartY);
-  console.log('JHJEEEY '+mapGridStartX+' '+mapGridStartY);
 
   //2. Highest possible with an offset (-1 for zero indexing)
   var zeroIndexedTileCount = tileCount - 1;
@@ -233,10 +258,15 @@ QUnit.test('|POSITION| pixi-to-tile |INVALID|', function (assert) {
 );
 
 
-QUnit.test('set-map-position-valid', function (assert) {
+QUnit.test('set-map-view-position-valid', function (assert) {
   setMapViewPosition(0,0); //Smallest global position valid
   assert.equal(mapGridStartX,0);
   assert.equal(mapGridStartY,0);
+
+  var lowestRange =  -halfTileCountFloored;
+  setMapViewPosition(lowestRange, lowestRange); //Smallest relative position (minus half the tilecount)
+  assert.equal(mapGridStartX, lowestRange);
+  assert.equal(mapGridStartY, lowestRange);
 
   var tileCountZeroIndexedLen = tileCount-1;
   setMapViewPosition(tileCountZeroIndexedLen, tileCountZeroIndexedLen); //Largest global position valid
@@ -245,24 +275,34 @@ QUnit.test('set-map-position-valid', function (assert) {
 }
 );
 
-QUnit.test('set-map-position-invalid', function (assert) {
-  //Independant x under range
-  testPositionRangeError(assert, setMapViewPosition, -1, 0, new RangeError('Position not in overworld: ' + (-1) + ' ' + 0));
-  //Independant y under range
-  testPositionRangeError(assert, setMapViewPosition, 0, -1, new RangeError('Position not in overworld: ' + 0 + ' ' + (-1)));
-  //X and Y under range
-  testPositionRangeError(assert, setMapViewPosition, -1, -1, new RangeError('Position not in overworld: ' + (-1) + ' ' + (-1)));
+QUnit.test('set-map-view-position-invalid', function (assert) {
+  var justUnderRange =  -halfTileCountFloored-1;
+  var lowestRange =  -halfTileCountFloored;
 
+  //Independant x under range (Map view should allow halfTileCountFloored offset)
+  testPositionRangeError(assert, setMapViewPosition, justUnderRange , lowestRange, new RangeError(rangeErrorString(justUnderRange, lowestRange)) );
+  //Independant y under range
+  testPositionRangeError(assert, setMapViewPosition, lowestRange, justUnderRange, new RangeError(rangeErrorString(lowestRange, justUnderRange)) );
+  //X and Y under range
+  testPositionRangeError(assert, setMapViewPosition,  justUnderRange, justUnderRange, new RangeError(rangeErrorString( justUnderRange, justUnderRange)) );
+
+  "Local tile pos for conversion not relative to the map view"
   //Independant x over range
-  testPositionRangeError(assert, setMapViewPosition, overworldMapSizeX, 0, new RangeError('Position not in overworld: ' + overworldMapSizeX + ' ' + 0));
+  testPositionRangeError(assert, setMapViewPosition, overworldMapSizeX, 0, new RangeError(rangeErrorString(overworldMapSizeX,0)) );
   //Independant y over range
-  testPositionRangeError(assert, setMapViewPosition, 0, overworldMapSizeY, new RangeError('Position not in overworld: ' + 0 + ' ' + overworldMapSizeY));
+  testPositionRangeError(assert, setMapViewPosition, 0, overworldMapSizeY, new RangeError(rangeErrorString(0,overworldMapSizeY)) );
   //X and Y over range
-  testPositionRangeError(assert, setMapViewPosition,overworldMapSizeX, overworldMapSizeY, new RangeError('Position not in overworld: ' + overworldMapSizeX + ' ' + overworldMapSizeY));
+  testPositionRangeError(assert, setMapViewPosition, overworldMapSizeX, overworldMapSizeY, new RangeError(rangeErrorString(overworldMapSizeX, overworldMapSizeY)) );
 
   assert.expect(6); //  Expect Error assertions for every test
 }
 );
+//  Testing map-view code, ensuring it's functions behave as expected.
+//  These tests currently use global vars (hopefully) declared in map-view,
+//  this makes the tests a little fragile, so be warned!
+
+// This set of tests focuses on functions incorporating PixiJS or DOM elements
+
 //Sets up the global variables used for view calculation so they're defined for our testing
 function beforeTests () {
   //Start co-ords of the map view window, This affects the local co-ord calculations
@@ -277,12 +317,7 @@ function beforeTests () {
   tileSize = 40; //  Default tile size
 }
 
-QUnit.module('viewTests', { beforeEach: beforeTests });
-//  Testing map-view code, ensuring it's functions behave as expected.
-//  These tests currently use global vars (hopefully) declared in map-view,
-//  this makes the tests a little fragile, so be warned!
-
-// This set of tests focuses on functions incorporating PixiJS or DOM elements
+QUnit.module('view-Pixi or DOM-tests', { beforeEach: beforeTests });
 
 //TODO Functions more dependant on Pixi resources
 

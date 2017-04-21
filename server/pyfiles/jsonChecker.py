@@ -15,6 +15,15 @@ def key_and_data_exists(jsonMessage: dict, key: str) -> bool:
 
     return False
 
+def character_attribues_exist(attributes : dict) -> bool:
+    ATTRIBUTES_PRESENT = key_and_data_exists(attributes, 'STR') \
+    and key_and_data_exists(attributes, 'DEX') \
+    and key_and_data_exists(attributes, 'CON') \
+    and key_and_data_exists(attributes, 'INT') \
+    and key_and_data_exists(attributes, 'WIS') \
+    and key_and_data_exists(attributes, 'CHA')
+    return ATTRIBUTES_PRESENT
+
 def character_details_exist(characterJson : dict) -> bool:
     """ Checks that the character update JSON data exists in the correct format
         EXAMPLE DATA:
@@ -37,15 +46,8 @@ def character_details_exist(characterJson : dict) -> bool:
 
             #If both are valid, check for attributes
             if USERNAME_PRESENT and ALL_DATA_PRESENT:
-                attributes = charData['attributes']
-                ATTRIBUTES_PRESENT = key_and_data_exists(attributes, 'STR') \
-                and key_and_data_exists(attributes, 'DEX') \
-                and key_and_data_exists(attributes, 'CON') \
-                and key_and_data_exists(attributes, 'INT') \
-                and key_and_data_exists(attributes, 'WIS') \
-                and key_and_data_exists(attributes, 'CHA')
+                ATTRIBUTES_PRESENT = character_attribues_exist(charData['attributes'])
 
                 logging.info('ATTRIBUTES PRESENT - '+str(ATTRIBUTES_PRESENT))
-                if ATTRIBUTES_PRESENT:
-                    return True
+                return ATTRIBUTES_PRESENT
     return False

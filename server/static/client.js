@@ -2,7 +2,7 @@ var htmlWindows = {messageWindowId: '#message-window', statWindowId: '#stat-wind
 
 var UI_ENABLED = false;
 
-function checkConnection() {
+function checkConnection () {
   if (!isSocketConnected()) {
      hideWindows();
      showControls(false);
@@ -29,10 +29,10 @@ function drawMapToGrid (startX, startY) {
 
 	//	Check there's at least enough tiles to fill our grid (square map)
 	if (overworldMap.length >= tileCount) {
-				var endX = startX+tileCount;
-				var endY = startY+tileCount;
+				var endX = startX + tileCount;
+				var endY = startY + tileCount;
 
-				console.log('MAP DRAWING| to grid from: '+startX+' '+startY+' to '+endX+' '+endY);
+				console.log('MAP DRAWING| to grid from: '+startX + ' ' + startY + ' to ' + endX + ' ' + endY);
 
 				//	Local looping to iterate over the view tiles
 				for (var x = 0; x < tileCount; x++) {
@@ -175,19 +175,24 @@ function checkCharacterDetails() {
   }
 }
 
+function saveCharacterUpdate(characterData) {
+  setStatsFromJsonResponse(characterData); //Update local stats window from the message
+  updateClientSessionData(characterData);
+  updateMessageLog('Character details saved.', 'server');
+}
+
 function handleCharacterUpdateResponse(messageJson){
   if (messageJson['success'] != null) {
     console.log('DETAILS EXIST?: ' + characterDetailsExist());
     console.log('UPDATING LOCAL CHARDETAILS using: '+messageJson);
 
     if (messageJson['success'] == true) {
-      setStatsFromJsonResponse(messageJson['char-data']); //Update local stats window from the message
-      updateClientDetails(messageJson['char-data']);
-      updateMessageLog('Character details saved.', 'server');
-
       //If this is our first update, trigger the UI startup
-      if (!characterDetailsExist ()) {
+      if (!characterDetailsExist()) {
+        saveCharacterUpdate(messageJson['char-data']); //Save the data ready for the UI
         characterDetailsConfirmed(); //Trigger confirmation (uses these stats)
+      } else {
+        saveCharacterUpdate(messageJson['char-data']);
       }
     } else {
       updateMessageLog('Invalid character details/update failure', 'server');
@@ -201,22 +206,20 @@ function characterDetailsConfirmed() {
   hideWindow('statWindowId'); //Hide the stats windows
 
   if (!UI_ENABLED) {
+    setupUI();
   	enableUI(); //Enables player interactions
   	showMapPosition(clientSession.character.pos_x, clientSession.character.pos_y);
   	//Creates the new character to represent the player
   	newCharacterOnMap (clientSession.character.charname , clientSession.character.pos_x, clientSession.character.pos_y);
+
     UI_ENABLED = true;
   }
-}
-
-function updateClientDetails(data){
-  updateClientSessionData(data); //Updates the clientSession
 }
 
 //	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 function handlePlayerLogin(data){
 	//	console.log(data);
-  updateClientDetails(data);
+  updateClientSessionData(data);
 	checkCharacterDetails(); //Check/Prompt for character details
 }
 
@@ -608,10 +611,10 @@ function setupStatBars () {
 	return [healthBar];
 }
 
-function displayHealthBar() {
+function displayStatBars(healthVal) {
 		var statBars = setupStatBars();
 		console.log(statBars);
-		statBars[0].setValue(20);
+		statBars[0].setValue(healthVal);
 		statBars[0].drawBackgroundBar();
 		statBars[0].drawInnerBar();
 }
@@ -627,7 +630,8 @@ function setupUI() {
 	setupDialogWindow();
 	mapCharacterArray = createMapCharacterArray();
 
-	displayHealthBar();
+	healthVal = clientSession.character.health;
+	displayStatBars(healthVal);
 
 	tileSpriteArray = setupMapUI();
 
@@ -651,7 +655,6 @@ function assetsLoaded () {
 
 	$('#main-window').append(renderer.view);
 
-	setupUI();
 	showLoginControls();
 }
 
@@ -943,7 +946,7 @@ function setMapViewPosition(startX,startY) {
 
 	//if (isPositionInOverworld(startX, startY)) {
 	//Checks that we have half the view out of the map maximum
-	if (startX >= halfViewMinus && startX <= end_view_x && startY >= halfViewMinus && startY <= end_view_y) {
+	if (startX >= halfViewMinus && startX < end_view_x && startY >= halfViewMinus && startY < end_view_y) {
 		//Adjusting the start values for drawing the map
 		mapGridStartX = startX;
 		mapGridStartY = startY;
@@ -986,7 +989,7 @@ function stageDoubleClicked (mouseEvent) {
 
 		sendMovementCommand(coords[0], coords[1]);
 	} catch (err) { //Invalid tile position clicked on, do nothing
-		return;
+		console.log('MOVEMENT-COMMAND| '+err);
 	}
 	}
 }
@@ -1340,6 +1343,7 @@ function sendMovementCommand(x,y) {
   var sessionJson = getSessionInfoJSON();
 
   if (username != null && sessionId != null) {
+    console.log({'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
   	socket.emit('movement-command', {'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
   }
 }

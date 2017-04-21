@@ -56,8 +56,6 @@ def check_message_params(message : dict) -> (bool, dict):
     """
     logging.info('CHECKING message: '+str(message))
 
-    import pdb; pdb.set_trace()
-
     data_tag = 'data'
     chat_data_tag = 'chat-data'
     param_tag = 'sessionJson'
