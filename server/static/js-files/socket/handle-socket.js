@@ -4,17 +4,6 @@ function isSocketConnected () {
   return socket.connected;
 }
 
-// function requestCharacterDetails() {
-//   var sessionJson = getSessionInfoJSON();
-//
-//   if (sessionJson != null) {
-//     socket.emit('request-character-details', {'sessionJson': sessionJson});
-//
-//     console.log('Character details requested.');
-//     updateMessageLog('Character details requested');
-//   }
-// }
-
 function sendCharacterDetails() {
   var attrValuesJSON = getStats();
   var sessionJson = getSessionInfoJSON();
@@ -26,7 +15,7 @@ function sendCharacterDetails() {
     socket.emit('character-details', {'data': attrValuesJSON, 'sessionJson': sessionJson});
 
     console.log('Character details sent for saving..');
-    updateMessageLog('Character details submitted (unsaved).', 'client');
+    updateStatsInfoLog('Character details submitted (unsaved).', 'client');
   }
 }
 
@@ -46,9 +35,11 @@ function sendNewChatMessage() {
 function sendMovementCommand(x,y) {
   var sessionJson = getSessionInfoJSON();
 
-  if (username != null && sessionId != null) {
+  if (sessionJson.username != null && sessionJson.sessionId != null) {
     console.log({'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
   	socket.emit('movement-command', {'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
+  } else {
+    console.log('Session info missing for movement command.');
   }
 }
 
@@ -63,7 +54,7 @@ function linkConnection(data){
   if (clientSession.sessionId == null) {
     clientSession.sessionId = data['sessionId'];
     console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
-    setMessageLog(data['messageData']);
+    setMessageLog(data['chat-data']);
   } else {
     console.log('Reconnected, using old SID');
   }

@@ -76,8 +76,16 @@
 #stats-info {
 	position: absolute;
 	overflow: scroll;
-	width: 70%;
-	height: 10%;
+	width: 60%;
+	height: 14%;
+}
+
+#save-stats-button {
+	position: absolute;
+	width : 15%;
+	height : 10%;
+	right : 2%;
+	bottom : 2%;
 }
 
 .thead{
@@ -103,6 +111,10 @@
 	top:5%;
 	width:60%;
 	height:50%;
+}
+
+textarea {
+	resize: none;
 }
 
 .attrText {

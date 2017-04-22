@@ -162,7 +162,7 @@ function sendPassword() {
 
 function requestCharacterDetails() {
 	showStatWindow();
-	updateMessageLog('You need to set your character details.', 'client');
+	updateStatsInfoLog('You need to set your character details.', 'client');
 }
 
 
@@ -178,7 +178,7 @@ function checkCharacterDetails() {
 function saveCharacterUpdate(characterData) {
   setStatsFromJsonResponse(characterData); //Update local stats window from the message
   updateClientSessionData(characterData);
-  updateMessageLog('Character details saved.', 'server');
+  updateStatsInfoLog('Character details saved.', 'server');
 }
 
 function handleCharacterUpdateResponse(messageJson){
@@ -195,7 +195,7 @@ function handleCharacterUpdateResponse(messageJson){
         saveCharacterUpdate(messageJson['char-data']);
       }
     } else {
-      updateMessageLog('Invalid character details/update failure', 'server');
+      updateStatsInfoLog('Invalid character details/update failure', 'server');
     }
   }
 }
@@ -320,9 +320,12 @@ function clearStatInfo(){
   $('#stats-info').val(''); //JQuery find the field and set it to blank
 }
 
-function addToStatInfo(message){
+function updateStatsInfoLog(message, username){
   var statsField = $('#stats-info');
-  statsField.val(statsField.val()+message);
+  var msg = message;
+
+  if (username != null && username != undefined) msg = '['+username+'] '+ message; //Add a user (server/client) tag to the message
+  statsField.val(statsField.val()+msg+'\n');
 }
 
 function generateStatWindow() {
@@ -1137,7 +1140,7 @@ function updateClientSessionData (data) {
 	console.log(data);
 
 	//	Update the client session to contain our new data
-	clientSession.sessionId = data['sessionId'];
+  if (data['sessionId'] != null) clientSession.sessionId = data['sessionId'];
 
   updateCharacterDetails(data);
 
@@ -1150,7 +1153,7 @@ function link_connection(data){
   if (clientSession.sessionId == null) {
     clientSession.sessionId = data['sessionId'];
     console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
-    setMessageLog(data['messageData']);
+    setMessageLog(data['messageData']); //Add the welcome message to the message log
   } else {
     console.log('Reconnected, using old SID');
   }
@@ -1300,17 +1303,6 @@ function isSocketConnected () {
   return socket.connected;
 }
 
-// function requestCharacterDetails() {
-//   var sessionJson = getSessionInfoJSON();
-//
-//   if (sessionJson != null) {
-//     socket.emit('request-character-details', {'sessionJson': sessionJson});
-//
-//     console.log('Character details requested.');
-//     updateMessageLog('Character details requested');
-//   }
-// }
-
 function sendCharacterDetails() {
   var attrValuesJSON = getStats();
   var sessionJson = getSessionInfoJSON();
@@ -1322,7 +1314,7 @@ function sendCharacterDetails() {
     socket.emit('character-details', {'data': attrValuesJSON, 'sessionJson': sessionJson});
 
     console.log('Character details sent for saving..');
-    updateMessageLog('Character details submitted (unsaved).', 'client');
+    updateStatsInfoLog('Character details submitted (unsaved).', 'client');
   }
 }
 
@@ -1342,9 +1334,11 @@ function sendNewChatMessage() {
 function sendMovementCommand(x,y) {
   var sessionJson = getSessionInfoJSON();
 
-  if (username != null && sessionId != null) {
+  if (sessionJson.username != null && sessionJson.sessionId != null) {
     console.log({'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
   	socket.emit('movement-command', {'moveX': x, 'moveY': y, 'sessionJson': sessionJson});
+  } else {
+    console.log('Session info missing for movement command.');
   }
 }
 
@@ -1359,7 +1353,7 @@ function linkConnection(data){
   if (clientSession.sessionId == null) {
     clientSession.sessionId = data['sessionId'];
     console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
-    setMessageLog(data['messageData']);
+    setMessageLog(data['chat-data']);
   } else {
     console.log('Reconnected, using old SID');
   }

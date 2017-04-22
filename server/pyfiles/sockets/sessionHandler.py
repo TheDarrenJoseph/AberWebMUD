@@ -38,6 +38,10 @@ def remove_connected_session(session_id : str) -> bool:
     except ValueError:
         return False
 
+def active_session_exists(session_id : str) -> bool:
+    """ Checks to see if there's a username assigned to a specific sessionId """
+    return session_id in _active_sessions and _active_sessions[session_id] is not None
+
 def check_active_session(session_id : str, username : str) -> bool:
     """ Checks to see if an active session exists matching session_id to uername"""
     if session_id in _active_sessions:

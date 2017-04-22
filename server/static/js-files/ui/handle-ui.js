@@ -162,7 +162,7 @@ function sendPassword() {
 
 function requestCharacterDetails() {
 	showStatWindow();
-	updateMessageLog('You need to set your character details.', 'client');
+	updateStatsInfoLog('You need to set your character details.', 'client');
 }
 
 
@@ -178,7 +178,7 @@ function checkCharacterDetails() {
 function saveCharacterUpdate(characterData) {
   setStatsFromJsonResponse(characterData); //Update local stats window from the message
   updateClientSessionData(characterData);
-  updateMessageLog('Character details saved.', 'server');
+  updateStatsInfoLog('Character details saved.', 'server');
 }
 
 function handleCharacterUpdateResponse(messageJson){
@@ -195,7 +195,7 @@ function handleCharacterUpdateResponse(messageJson){
         saveCharacterUpdate(messageJson['char-data']);
       }
     } else {
-      updateMessageLog('Invalid character details/update failure', 'server');
+      updateStatsInfoLog('Invalid character details/update failure', 'server');
     }
   }
 }

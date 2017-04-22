@@ -72,7 +72,7 @@ function updateClientSessionData (data) {
 	console.log(data);
 
 	//	Update the client session to contain our new data
-	clientSession.sessionId = data['sessionId'];
+  if (data['sessionId'] != null) clientSession.sessionId = data['sessionId'];
 
   updateCharacterDetails(data);
 
@@ -85,7 +85,7 @@ function link_connection(data){
   if (clientSession.sessionId == null) {
     clientSession.sessionId = data['sessionId'];
     console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
-    setMessageLog(data['messageData']);
+    setMessageLog(data['messageData']); //Add the welcome message to the message log
   } else {
     console.log('Reconnected, using old SID');
   }

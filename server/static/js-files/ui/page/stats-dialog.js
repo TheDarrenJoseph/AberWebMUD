@@ -60,9 +60,12 @@ function clearStatInfo(){
   $('#stats-info').val(''); //JQuery find the field and set it to blank
 }
 
-function addToStatInfo(message){
+function updateStatsInfoLog(message, username){
   var statsField = $('#stats-info');
-  statsField.val(statsField.val()+message);
+  var msg = message;
+
+  if (username != null && username != undefined) msg = '['+username+'] '+ message; //Add a user (server/client) tag to the message
+  statsField.val(statsField.val()+msg+'\n');
 }
 
 function generateStatWindow() {

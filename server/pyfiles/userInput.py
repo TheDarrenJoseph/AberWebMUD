@@ -7,24 +7,33 @@ def split_words(text : str) -> list:
     commands = command_text.split(' ')
     return commands
 
+def get_command_list() -> list:
+    return ['user [username]', 'say [message]', 'help']
+
 def parse_chat_input(text: str) -> dict:
     """ Checks chat input formats against command regex matchers """
     user_match = re.match(r"user\s[\w]{1,12}", text) #('user [uname]')
     chat_match = re.match(r"say\s([\w\s,.!()?]{1,140})", text) #('say [message]')
+    help_match = text == 'help'  # plain help command
+    choice = 0
+    chat_data = None
 
     #Check for user creation
     if user_match is not None:
         commands = split_words(text)
         #2nd word should be the username i.e "user foo"
-        return {'choice':1, 'chat-data':{'username':commands[1]}}
+        choice = 1
+        chat_data = {'username':commands[1]}
 
     #Check for chat message
     elif chat_match != None:
-        #grab and return all matching text
-        message = chat_match.group(1)
-        return {'choice':2, 'chat-data':message}
+        choice = 2
+        chat_data = chat_match.group(1) #all matching text
 
-    return {'choice':0, 'char-data':None}
+    elif help_match:
+        choice = 3
+
+    return {'choice':choice, 'chat-data':chat_data}
 
 def check_login_message(input_params : dict) -> (bool, dict or None):
     data_tag = 'chat-data'
@@ -35,9 +44,8 @@ def check_login_message(input_params : dict) -> (bool, dict or None):
         input_params[data_tag]['username'] is None:
         logging.info('Missing (username) in protocol message (Probably not logged in)')
         return (False, None)
-    else:
-        logging.info('User creation message checked (input good)')
-        return (True, input_params)
+    logging.info('User creation message checked (input good)')
+    return (True, input_params)
 
 def check_chat_message(input_params: dict) -> (bool, dict or None):
     data_exists = 'chat-data' in input_params and input_params['chat-data'] is not None
@@ -75,9 +83,12 @@ def check_message_params(message : dict) -> (bool, dict):
                 if choice == 1:
                     return (choice, check_login_message(extracted_params))
                 if choice == 2:
-                    extracted_params.update(message[param_tag]) #Add the session data back onto the result
+                    #Add the session data back onto the result
+                    extracted_params.update(message[param_tag])
                     return (choice, check_chat_message(extracted_params))
-    return (False, None)
+                if choice == 3:
+                    return (choice, (True, None))
+    return (-1, (None, None))
 
 def validate_character_update(characterJson : dict) -> bool:
     """ Checks we've been given valid data, and that any changes are within limits """

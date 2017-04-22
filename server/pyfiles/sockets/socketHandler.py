@@ -24,7 +24,7 @@ def hookup_callbacks(socket_server : SocketIO):
 
 def send_server_message(message : dict or str, toAll : bool) -> None:
     """ Builds an ad-hoc sessionJson for the server and passes on the message data """
-    messageData = {'data': message, 'sessionJson': {'username':'server'}}
+    messageData = {'chat-data': message, 'sessionJson': {'username':'server'}}
     send_message(messageData, toAll)
 
 def send_message(messageData : dict, toAll : bool) -> None:
@@ -46,6 +46,16 @@ def send_login_success(session_id : str, status_response : bool) -> None:
     emit('login-success', {'sessionId':session_id, 'player-status':status_response})
     sessionHandler.list_sessions() #List sessions for debug/info
 
+def send_help_message() -> None:
+    message = "Currently supported chat commands are:\n"
+
+    command_list = userInput.get_command_list()
+    for command in command_list:
+        message += command + '\n'
+
+    send_server_message(message, False) #Send a response back to the one client
+    logging.info(message)
+
 def send_welcome() -> None:
     """ emits a welcome message to the client
         also sets a 5min timeout to disconnect the session
@@ -53,7 +63,7 @@ def send_welcome() -> None:
     logging.debug('OUT| Welcome message to: '+request.sid)
     sessionHandler.add_connected_session(request.sid)
 
-    emit('connection-response', {'data': 'Welcome! Please create a character or login by typing \'user [username] [charactername]\' ', 'sessionId':request.sid})
+    emit('connection-response', {'chat-data': 'Welcome to AberWebMUD! Please create a character or login by typing \'user [username]\' ', 'sessionId':request.sid})
     #emit('status-response',statusResponse)
     sessionHandler.list_sessions()
 
@@ -95,7 +105,7 @@ def handle_message(message: dict) -> None:
     logging.info('IN| player message: '+str(message))
 
     sid = request.sid
-
+    
     #Remove the sessionId so we don't rebroadcast it to anyone
     if 'sessionJson' in message and 'sessionId' in message['sessionJson'] :
         del message['sessionJson']['sessionId']
@@ -107,8 +117,6 @@ def handle_message(message: dict) -> None:
     if message_details[1][0] is True:
         input_params = message_details[1][1] #2nd tuple in nested tuple
         user_choice = message_details[0]
-        user_data = input_params['chat-data']
-        logging.info(user_data)
 
         #Login choice
         if user_choice == 1:
@@ -122,11 +130,17 @@ def handle_message(message: dict) -> None:
             found_player = playerController.find_player(username)
 
             if found_player is not None:
-                logging.info('OUT| MESSAGE: '+str(message)+' Actual: '+str(user_data))
+                logging.info('OUT| MESSAGE: '+str(message)+' Actual: '+str(input_params['chat-data']))
                 send_message(input_params, True) #Rebroadcast the message {data,sessionJson}
             else:
                 #Send an eror message back to the user
                 send_server_message('User must be logged in to message', False)
+        #Help command choice
+        elif user_choice == 3:
+            #Send back a list of commands if this session is authenticated/active
+            if sessionHandler.active_session_exists(sid):
+                send_help_message()
+
 
 def valid_player_session(username : str, session_id : str) -> (bool, bool):
     found_player = playerController.find_player(username)
