@@ -49,27 +49,6 @@ function sendAuthentication(username, passwordFieldVal){
   socket.emit('client-auth', {'username': username, 'password': passwordFieldVal});
 }
 
-//Save our given session id for later, and display the welcome message
-function linkConnection(data){
-  if (clientSession.sessionId == null) {
-    clientSession.sessionId = data['sessionId'];
-    console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
-    setMessageLog(data['chat-data']);
-  } else {
-    console.log('Reconnected, using old SID');
-  }
-}
-
-function connectSocket() {
-  socket = io.connect();
-  //socket = io.connect('https://localhost');
-}
-
-function setStatusUpdateCallbacks () {
-    socket.on('movement-response', handleMovementResponse);
-    socket.on('movement-update', handleMovementUpdate);
-}
-
 function saveMapUpdate (mapData) {
   overworldMap = JSON.parse(mapData['data']);
   overworldMapSizeX = mapData['map-size-x'];
@@ -88,19 +67,37 @@ function handleMessageData(data) {
   updateMessageLog(messageData, username);
 }
 
+//Save our given session id for later, and display the welcome message
+function linkConnection(data){
+  if (clientSession.sessionId == null) {
+    clientSession.sessionId = data['sessionId'];
+    console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
+    setMessageLog(data['chat-data']);
+  } else {
+    console.log('Reconnected, using old SID');
+  }
+}
+
+function connectSocket() {
+  socket = io.connect();
+  //socket = io.connect('https://localhost');
+}
+
+function setStatusUpdateCallbacks () {
+    socket.on('connection-response', linkConnection);
+    socket.on('movement-response', handleMovementResponse);
+    socket.on('movement-update', handleMovementUpdate);
+    socket.on('character-details-update', handleCharacterUpdateResponse);
+
+    socket.on('map-data-response', saveMapUpdate);
+
+    socket.on('request-password', requestUserPassword); //  Request for existing password
+    socket.on('request-new-password', userDoesNotExist); //  Request for new password
+}
+
 function setupChat () {
 	// Socket custom event trigger for message response, passing in our function for a callback
 	socket.on('chat-message-response', handleMessageData);
-  socket.on('connection-response', linkConnection);
-  //socket.on('status-response', updateMessageLog);
-  socket.on('map-data-response', saveMapUpdate);
-
-  socket.on('character-details-update', handleCharacterUpdateResponse);
-
-  socket.on('request-password', requestUserPassword); //  Request for existing password
-  socket.on('request-new-password', userDoesNotExist); //  Request for new password
-
-  //emit('login-success', userData['username'])
   socket.on('login-success', handlePlayerLogin);
   socket.on('login-failure', handlePlayerLoginError);
   socket.on('session-error', handleSessionError);

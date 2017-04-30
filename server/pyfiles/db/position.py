@@ -11,6 +11,6 @@ class Position(db_instance.DatabaseInstance._database.Entity):
         return str(self.pos_x)+str(self.pos_y)
 
     @db_session
-    def set_position(x,y) -> None:
+    def set_position(self, x : int , y : int) -> None:
         self.pos_x = x
         self.pos_y = y

@@ -1,6 +1,6 @@
 import logging
 from pyfiles.db import database, player, character
-from pyfiles import userInput, crypto
+from pyfiles import userInput, crypto, characterController
 from pyfiles.model import  overworld
 from pony.orm.core import ObjectNotFound
 from pony.orm import db_session
@@ -16,22 +16,13 @@ def find_player(username : str) -> player.Player or None:
 
 @db_session
 def get_player_pos(username : str) -> (int, int) or None:
-    thisPlayer = player.Player[username]
+    if find_player(username) is not None:
+        this_player = player.Player[username]
 
-    if thisPlayer is not None:
-        position = thisPlayer.character.position
-        return(position.pos_x, position.pos_y)
-    return None
-
-# @db_session
-# def set_player_pos(username:str, x:int, y:int):
-#     thisPlayer = player.Player[username]
-#
-#     if thisPlayer is not None:
-#         thisPlayer.character.position.pos_x = x
-#         thisPlayer.character.position.pos_y = y
-#         return True
-#     return False
+        if this_player is not None:
+            position = this_player.character.position
+            return(position.pos_x, position.pos_y)
+        return None
 
 @db_session
 def get_character_json(username : str) -> dict or None:
@@ -73,27 +64,18 @@ def check_movement(username : str, move_x : int, move_y : int) -> bool:
 
     #Basic sanity check (1 or more tiles distance)
     if (move_x > pos_x+1 or move_x < pos_x-1 or
-        move_y > pos_y+1 or move_y < pos_y-1):
+            move_y > pos_y+1 or move_y < pos_y-1):
         return False
     else:
         return True
 
 @db_session
-def move_player(command: dict) -> bool:
-    print('MOVEMENT COMMAND TO FOLLOW')
-    print(command)
-    username = command['username']
-    move_x = command['moveX']
-    move_y = command['moveY']
-
-    if check_movement(username, move_x, move_y):
-        if set_player_pos(username, move_x, move_y):
-            print(str(move_x)+str(move_y)) #DEBUG
-            #Position updated
-            return True
-        else:
-            #Issue actually setting position value
-            return False
-    else:
-        #Invalid movement
-        return False
+def move_player(username : str, move_x : int, move_y : int) -> bool:
+    if username is not None and find_player(username) is not None:
+        this_character = player.Player[username].character
+        if this_character is not None:
+            if check_movement(username, move_x, move_y):
+                characterController.set_character_position(this_character.charname, move_x, move_y)
+                print(str(move_x)+str(move_y)) #TODO DEBUG
+                return True
+    return False

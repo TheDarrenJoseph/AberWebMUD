@@ -105,7 +105,7 @@ def handle_message(message: dict) -> None:
     logging.info('IN| player message: '+str(message))
 
     sid = request.sid
-    
+
     #Remove the sessionId so we don't rebroadcast it to anyone
     if 'sessionJson' in message and 'sessionId' in message['sessionJson'] :
         del message['sessionJson']['sessionId']
@@ -143,6 +143,9 @@ def handle_message(message: dict) -> None:
 
 
 def valid_player_session(username : str, session_id : str) -> (bool, bool):
+    """ checks that a player with username exists and has a valid active session (logged in)
+        returns (bool, bool) meaning (found_player,valid_session_exists)
+    """
     found_player = playerController.find_player(username)
 
     if found_player is not None:
@@ -153,51 +156,49 @@ def valid_player_session(username : str, session_id : str) -> (bool, bool):
 
 def handle_movement(message: dict) -> None:
     """ Handles a player movement command message send over SocketsIO """
-
     #If the movment returns True, all is good and we can send back a movement response
     #move_player also checks if the username exists for us
     logging.debug('IN| MOVEMENT MESSAGE: '+str(message))
 
-    username = message['username']
-    session_id = message['sessionId']
+    move_x = message['moveX']
+    move_y = message['moveY']
+    session_json = message['sessionJson']
+    username = session_json['username']
+    session_id = session_json['sessionId']
 
     found_player = playerController.find_player(username)
-
     valid = valid_player_session(username, session_id)
 
+    if all(valid):
+        player_pos = playerController.get_player_pos(username)
+
+        if player_pos is not None:
+            old_x = player_pos[0]
+            old_y = player_pos[1]
+            movement_success = False
+            logging.info('Character move made from location'+str(old_x)+' '+str(old_y))
+
+            if playerController.move_player(username, move_x, move_y) is True:
+                movement_success = True
+                new_pos = playerController.get_player_pos(username)
+
+                #Update every client to the new movement
+                logging.debug('OUT| movement UPDATE')
+                emit('movement-update', {
+                    'username':username,
+                    'old_x':old_x,
+                    'old_y':old_y,
+                    'pos_x':new_pos[0],
+                    'pos_y':new_pos[1]
+                }, broadcast=True)
+
+                logging.info('movement success for'+found_player.username)
+                logging.info(str(old_x)+str(old_y)+" "+str(new_pos[0])+str(new_pos[1]))
+            logging.debug('OUT| movement RESPONSE, success: '+str(movement_success))
+            emit('movement-response', {'success':movement_success}, broadcast=False)
     if valid[0]:
-        if valid[1]:
-            player_pos = playerController.get_player_pos(username)
-
-            if player_pos is not None:
-                old_x = player_pos[0]
-                old_y = player_pos[1]
-                movement_success = False
-                logging.info('Character move made from location'+str(old_x)+' '+str(old_y))
-
-                if playerController.move_player(message) is True:
-                    movement_success = True
-                    new_pos = playerController.get_player_pos(username)
-
-                    #Update every client to the new movement
-                    logging.debug('OUT| movement UPDATE')
-                    emit('movement-update', {
-                        'username':message['username'],
-                        'old_x':old_x,
-                        'old_y':old_y,
-                        'pos_x':new_pos[0],
-                        'pos_y':new_pos[1]
-                    }, broadcast=True)
-
-                    logging.info('movement success for'+found_player.username)
-                    logging.info(str(old_x)+str(old_y)+" "+str(new_pos[0])+str(new_pos[1]))
-                else:
-                    #Send a failed response back to that one user
-                    logging.debug('OUT| movement RESPONSE, success: '+str(movement_success))
-                    emit('movement-response', {'success':movement_success}, broadcast=False)
-        else:
-            logging.info('Valid user not in activeSessions, requesting password')
-            emit('request-password', username) #Client has a valid user, but not logged in
+        logging.info('Valid user not in activeSessions, requesting password')
+        emit('request-password', username) #Client has a valid user, but not logged in
 
 def handle_char_details(message: dict) -> None:
     """ Receives character data from the client, validates it, and updates the DB """

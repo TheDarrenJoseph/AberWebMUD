@@ -6,8 +6,6 @@ passlib >= 1.7.1
 psycopg2 >= 2.7
 argon2_cffi
 pony >= 0.7.1
-#Good WebSockets coverage
-eventlet >= 0.21.0
 #Server libraries
 #Good WebSockets coverage
 eventlet >= 0.21.0

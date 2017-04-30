@@ -17,7 +17,6 @@ def setup_instance(_dbHandler):
     logging.info('MAP LOADED')
 
     player1 = playerController.new_player('foo','test')
-    #player1 = _dbHandler.make_player(None, 'foo','test')
     player2 = playerController.new_player('who','test')
 
     logging.info('TEST PLAYER 1:'+str(player1))
@@ -33,8 +32,6 @@ if __name__ == "__main__":
     #Instanciate our database handler to allow lookups and creation
     DB_HANDLER = database.DatabaseHandler()
     DB_HANDLER.open_db()
-
-    #DB_HANDLER.clear_db(True) #DANGEROUS, resets all DB data for development
 
     setup_instance(DB_HANDLER) #Run DB and data setup
 

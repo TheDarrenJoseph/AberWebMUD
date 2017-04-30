@@ -11,14 +11,9 @@ class Character(db_instance.DatabaseInstance._database.Entity):
     attributes = Optional(attributes.Attributes)
 
     @db_session
-    def set_charname(self, charname) -> None:
+    def set_charname(self, charname : str) -> None:
         if charname is not None:
             self.charname = charname
-
-    @db_session
-    def set_position(self, this_position) -> None:
-        if this_position is not None:
-            self.position = this_position
 
     def set_player(self, this_player) -> None:
         if this_player is not None:
@@ -30,8 +25,6 @@ class Character(db_instance.DatabaseInstance._database.Entity):
 
     @db_session
     def get_json(self) -> dict:
-        #this_character = Character[self.charname]
-        #position = self.position
         response = {'charname':self.charname,
                     'pos_x': self.position.pos_x,
                     'pos_y': self.position.pos_y

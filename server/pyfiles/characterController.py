@@ -5,10 +5,17 @@ from pyfiles.model import  overworld
 from pony.orm.core import ObjectNotFound
 from pony.orm import db_session
 
+@db_session
+def set_character_position(charname : str, x : int, y : int) -> bool:
+    if find_character(charname) is not None:
+        character.Character.get(charname=charname).position.set_position(x, y)
+        return True
+    return False
+
 #Creates a new character and assigns it to a player
 @db_session
 def new_character(charname : str, username : str) -> player.Player:
-    if (charname is not None) and (get_character(charname) is None):
+    if (charname is not None) and (find_character(charname) is None):
         if playerController.find_player(username) is not None:
             start_pos = overworld.get_starting_pos()
 
@@ -33,7 +40,7 @@ def get_character_json(character_name : str) -> dict or None:
 
 #Checks for the Character in the DB using PonyORM
 @db_session
-def get_character(character_name : str) -> character.Character or None:
+def find_character(character_name : str) -> character.Character or None:
     try:
         return character.Character.get(charname=character_name)
 
@@ -73,8 +80,8 @@ def update_character_details(character_json : dict) -> bool:
     charname = data['charname']
 
     #New character if first sign in (no character yet)
-    if get_character(charname) is None:
-        this_character = new_character(charname, username)
+    if find_character(charname) is None:
+        new_character(charname, username)
 
     #If we can find the player, update the character
     if playerController.find_player(username) is not None:
