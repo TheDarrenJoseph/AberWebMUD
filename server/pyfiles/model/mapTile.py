@@ -1,4 +1,4 @@
 class MapTile():
-    def __init__(self):
-        self.tileType = 0
-        self.traversible = True
+    def __init__(self, tile_type=0, traversible=True):
+        self.tileType = tile_type
+        self.traversible = traversible

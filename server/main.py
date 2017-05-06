@@ -25,8 +25,8 @@ def setup_instance(_dbHandler):
 #Checks that this is the first instance/main instance of the module
 if __name__ == "__main__":
     #Set our default logging level to DEBUG
-    LOGGER = logging.getLogger()
-    LOGGER.setLevel(logging.DEBUG)
+    #LOGGER = logging.getLogger()
+    #LOGGER.setLevel(logging.DEBUG)
 
     #PonyORM Setup
     #Instanciate our database handler to allow lookups and creation
@@ -41,9 +41,10 @@ if __name__ == "__main__":
     SOCKET_HANDLER = SocketIO(flaskHandler._APP)
     socketHandler.hookup_callbacks(SOCKET_HANDLER)
 
-    #MAIN LOOP
-    #app.run()
+
     DB_HANDLER.show_tables()
+
+    #MAIN LOOP
     pdb.runcall(SOCKET_HANDLER.run(flaskHandler._APP))
 
     #Cleanup

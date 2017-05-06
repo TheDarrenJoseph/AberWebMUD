@@ -22,6 +22,9 @@ Other technologies used:
 Check the requirements.txt for dependancy version details
 Check the LICENSE file for the project's license
 
+[![js-happiness-style](https://img.shields.io/badge/JS%20code%20style-happiness-brightgreen.svg)](https://github.com/JedWatson/happiness)
+[![python-pylint-style](https://img.shields.io/badge/Python%20code%20style-pylint%20(PEP%208)-brightgreen.svg)](https://www.pylint.org/)
+
 ## Running the project
 1. You first need to satisfy python's dependencies, run 'sudo pip install -r requirements.txt' in the AberWebMUD folder
 2. Change your terminal directory to the server folder
