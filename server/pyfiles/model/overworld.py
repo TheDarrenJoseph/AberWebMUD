@@ -9,7 +9,7 @@ map_tiles = []
 
 def is_traversible(x : int, y : int) -> bool:
     """ Checks both map bounds and traversibility for a given co-ord """
-    if (x>0 and y>0 and x<=map_size_x-1 and y<=map_size_y-1):
+    if (x>=0 and y>=0 and x<=map_size_x-1 and y<=map_size_y-1):
         if map_tiles[x][y] is not None:
             return map_tiles[x][y].traversible
     else:

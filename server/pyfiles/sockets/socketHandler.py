@@ -196,7 +196,7 @@ def handle_movement(message: dict) -> None:
                 logging.info(str(old_x)+str(old_y)+" "+str(new_pos[0])+str(new_pos[1]))
             logging.debug('OUT| movement RESPONSE, success: '+str(movement_success))
             emit('movement-response', {'success':movement_success}, broadcast=False)
-    if valid[0]:
+    if valid[0] and not valid[1]:
         logging.info('Valid user not in activeSessions, requesting password')
         emit('request-password', username) #Client has a valid user, but not logged in
 

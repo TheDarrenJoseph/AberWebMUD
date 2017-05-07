@@ -25,8 +25,8 @@ def setup_instance(_dbHandler):
 #Checks that this is the first instance/main instance of the module
 if __name__ == "__main__":
     #Set our default logging level to DEBUG
-    #LOGGER = logging.getLogger()
-    #LOGGER.setLevel(logging.DEBUG)
+    LOGGER = logging.getLogger()
+    LOGGER.setLevel(logging.DEBUG)
 
     #PonyORM Setup
     #Instanciate our database handler to allow lookups and creation
