@@ -49,10 +49,8 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
 
     @db_session
     def is_change_valid(self, new_attributes : dict) -> bool:
-        #TODO validate total changes against free-points
         old_score_total = self.get_total_attribute_scores()
         changed_score_total = self.get_total_attribute_scores_json(new_attributes)
-        #total of changed attribute scores
 
         diff_score = old_score_total-changed_score_total
 

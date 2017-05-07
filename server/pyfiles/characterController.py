@@ -47,6 +47,7 @@ def find_character(character_name : str) -> character.Character or None:
     except ObjectNotFound:
         return None
 
+#Updates a character from character update event response JSON
 @db_session
 def update_character_from_json(character_json:dict) -> bool:
     username = character_json['sessionJson']['username']

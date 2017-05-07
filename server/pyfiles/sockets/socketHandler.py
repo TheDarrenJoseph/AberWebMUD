@@ -146,6 +146,8 @@ def valid_player_session(username : str, session_id : str) -> (bool, bool):
     """ checks that a player with username exists and has a valid active session (logged in)
         returns (bool, bool) meaning (found_player,valid_session_exists)
     """
+    #import pdb; pdb.set_trace()
+
     found_player = playerController.find_player(username)
 
     if found_player is not None:

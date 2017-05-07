@@ -11,10 +11,6 @@ class DatabaseHandler():
     def db_exists(self) -> bool:
         return self._db_instance._database is not None
 
-    #@pony.orm.db_session
-    #def make_player(self, charname, username, passwd):
-    #    return playerController.new_player(charname, username, passwd)
-
     #Checks an unhashed password against the salt/hash in the DB using passlib
     @staticmethod
     def check_player_password(username, password) -> bool:

@@ -1,3 +1,4 @@
+//Checks for the presence of data for each of the movement update fields
 function isValidMovementUpdateData(updateJSON) {
   var username = updateJSON['username'];
   var oldX = updateJSON['old_x'];

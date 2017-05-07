@@ -29,7 +29,6 @@ function testPositionRangeError (assert, func, x, y, expectedException) {
   try {
     func(x, y);
   } catch (err) {
-    //TODO Check for RangeError type
     console.log('Checking error message equivalance for: (' + err.message + ') and (' + expectedException.message + ')');
     assert.equal(err.message, expectedException.message);
     console.log('Assertion made for position: '+x+' '+y);

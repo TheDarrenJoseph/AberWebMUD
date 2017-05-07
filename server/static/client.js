@@ -1175,7 +1175,7 @@ function isPositionRelativeToView(x,y) {
 	return false;
 }
 
-	//Check whether or not a GLOBAL POSITION is within our map view window
+//Check whether or not a GLOBAL POSITION is within our map view window
 function isPositionInMapView(global_x, global_y) {
 	if (global_x < (mapGridStartX+tileCount) &&  global_x >= mapGridStartX &&  global_y < (mapGridStartY + tileCount) &&  global_y >= mapGridStartY) {
 		return true;
@@ -1264,6 +1264,7 @@ function pixiPosToTileCoord (x,y) {
 
 	return[clientX,clientY]
 }
+//Checks for the presence of data for each of the movement update fields
 function isValidMovementUpdateData(updateJSON) {
   var username = updateJSON['username'];
   var oldX = updateJSON['old_x'];
@@ -1286,6 +1287,7 @@ function isValidMovementUpdateData(updateJSON) {
     return false;
   }
 }
+//Sets up client elements, hooks up callbacks to enable event-driven reponses, then asks the server for a map update
 function performSetup () {
   connectSocket();
   setupPageUI();
@@ -1296,7 +1298,9 @@ function performSetup () {
   socket.emit('map-data-request');
 }
 
+//Initialises the client setup once the HTML page loads
 $(document).ready(performSetup);
+//A collection of SocketIO management functions
 var socket = null;
 
 function isSocketConnected () {

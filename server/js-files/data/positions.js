@@ -4,7 +4,7 @@ function isPositionRelativeToView(x,y) {
 	return false;
 }
 
-	//Check whether or not a GLOBAL POSITION is within our map view window
+//Check whether or not a GLOBAL POSITION is within our map view window
 function isPositionInMapView(global_x, global_y) {
 	if (global_x < (mapGridStartX+tileCount) &&  global_x >= mapGridStartX &&  global_y < (mapGridStartY + tileCount) &&  global_y >= mapGridStartY) {
 		return true;

@@ -79,6 +79,5 @@ def move_player(username: str, move_x: int, move_y: int) -> bool:
         if this_character is not None:
             if check_movement(username, move_x, move_y):
                 characterController.set_character_position(this_character.charname, move_x, move_y)
-                print(str(move_x)+str(move_y)) #TODO DEBUG
                 return True
     return False

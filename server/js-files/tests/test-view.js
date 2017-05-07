@@ -20,8 +20,7 @@ function beforeTests () {
 
 QUnit.module('view-Pixi or DOM-tests', { beforeEach: beforeTests });
 
-//TODO Functions more dependant on Pixi resources
-
+//TODO Functions more dependant on Pixi resources:
 // TEST PlayerSprite ()
 // TEST MapTileSprite (textureReference)
 // TEST getAtlasSubtexture(tileAtlasPath, subtileName)

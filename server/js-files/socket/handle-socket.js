@@ -1,3 +1,4 @@
+//A collection of SocketIO management functions
 var socket = null;
 
 function isSocketConnected () {
