@@ -6,16 +6,18 @@ special clients.
 
 ## Build info, references, and licenses
 Created with Python 3.6.0 and packaged with:
-* [Pixi.js (MIT License)] (http://www.pixijs.com/)
-* [Flask-SocketIO (MIT License)] (https://github.com/miguelgrinberg/Flask-SocketIO)
-* [QUnit (JS Foundation License)] (http://qunitjs.com/)
+* [Pixi.js v4.3.5 and  4.3.4 (MIT License)] (http://www.pixijs.com/)
+* [SocketIO 1.4.5 (MIT License)] (http://socket.io/)
+* [jQuery 3.1.1 (MIT License)] (https://jquery.com/)
+* [QUnit 2.2.1 (JS Foundation License)] (http://qunitjs.com/)
 * ["Zelda-like tilesets and sprites" by ArMM1998 (CC0 1.0)] (http://opengameart.org/content/zelda-like-tilesets-and-sprites)
 
 Other technologies used:
-* [Flask (BSD License)] (http://flask.pocoo.org/)
-* [SocketsIO (MIT License)] (http://socket.io/)
+* [Flask 0.12 (BSD License)] (http://flask.pocoo.org/)
+* [Flask-SocketIO 2.8.3 (MIT License)] (https://github.com/miguelgrinberg/Flask-SocketIO)
 * [PostgreSQL] (https://www.postgresql.org/)
-* [PonyORM (Apache License V2.0)] (https://docs.ponyorm.com/)
+* [SQLite] (https://sqlite.org/)
+* [PonyORM 0.7.1 (Apache License V2.0)] (https://docs.ponyorm.com/)
 * Texture atlas creation using ["Leshy SpriteSheet Tool - Online Sprite Sheet, Texture Atlas Packer"]
  (https://www.leshylabs.com/apps/sstool/)
 
@@ -26,7 +28,7 @@ Check the LICENSE file for the project's license
 [![python-pylint-style](https://img.shields.io/badge/Python%20code%20style-pylint%20(PEP%208)-brightgreen.svg)](https://www.pylint.org/)
 
 ## Running the project
-1. You first need to satisfy python's dependencies, run 'sudo pip install -r requirements.txt' in the AberWebMUD folder
+1. You first need to satisfy python's dependencies, run 'sudo pip install -r requirements.txt' in the AberWebMUD/root folder
 2. Change your terminal directory to the server folder
 3. (Optional) JavaScript files are concatted into the client.js file, run build.sh in the scripts folder (there's a good chance this has already been done before a Git
 commit)
