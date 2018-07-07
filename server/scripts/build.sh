@@ -26,27 +26,11 @@ function append_files(){
 	fi
 }
 
-build_static_files() {
-	echo "Creating static files."
-	touch "$MAIN_FILE";
-	touch "$TEST_FILE";		
-}
-
 # Ensures we have empty static files to cat into 
 function prepare_static_files() {
-	if [[ -f "$MAIN_FILE" && -f "$TEST_FILE" ]];
-	then
-		local MAIN_COUNT=$(wc -l < "$MAIN_FILE")
-		local TEST_COUNT=$(wc -l < "$TEST_FILE")
-
-		if [[ "$MAIN_COUNT" -gt 0 || "$TEST_COUNT" -gt 0 ]];
-		then
-			echo "Non-empty static files! ($MAIN_COUNT, $TEST_COUNT)"
-			build_static_files;
-		fi
-	else
-		build_static_files;
-	fi
+	#Use truncate to either clear or create these files 
+	truncate -s 0 "$MAIN_FILE"
+	truncate -s 0 "$TEST_FILE"
 }
 
 # MAIN Function
