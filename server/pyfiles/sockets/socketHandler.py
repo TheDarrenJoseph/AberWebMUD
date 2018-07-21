@@ -72,12 +72,14 @@ def send_welcome() -> None:
 
 
 def send_map_data() -> None:
-    if len(overworld.map_tiles) > 0:
+    theOverworld = overworld.getOverworld()
+
+    if len(theOverworld.map_tiles) > 0:
         logging.debug('OUT| map-response')
 
-        emit('map-data-response', {'map-size-x': overworld.map_size_x,
-                                   'map-size-y': overworld.map_size_y,
-                                   'data': jsonpickle.encode(overworld.map_tiles)
+        emit('map-data-response', {'map-size-x': theOverworld.map_size_x,
+                                   'map-size-y': theOverworld.map_size_y,
+                                   'data': jsonpickle.encode(theOverworld.map_tiles)
                                   }
             )
 

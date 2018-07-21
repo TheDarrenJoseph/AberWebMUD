@@ -13,7 +13,6 @@ from flask_socketio import SocketIO
 
 #Sets up players, maps, etc
 def setup_instance(_dbHandler):
-    overworld.create_map() #instanciate mapTiles
     logging.info('MAP LOADED')
 
     player1 = playerController.new_player('foo','test')
