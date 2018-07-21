@@ -69,7 +69,7 @@ def check_movement(username: str, move_x: int, move_y: int) -> bool:
     #Basic sanity check (1 or more tiles distance)
     if (move_x <= pos_x+1 and move_x >= pos_x-1 and
             move_y <= pos_y+1 and move_y >= pos_y-1 ):
-        return overworld.is_traversible(move_x,move_y)
+        return overworld.getOverworld().is_traversible(move_x,move_y)
     return False
 
 @db_session

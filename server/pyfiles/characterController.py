@@ -17,7 +17,7 @@ def set_character_position(charname : str, x : int, y : int) -> bool:
 def new_character(charname : str, username : str) -> player.Player:
     if (charname is not None) and (find_character(charname) is None):
         if playerController.find_player(username) is not None:
-            start_pos = overworld.get_starting_pos()
+            start_pos = overworld.getOverworld().get_starting_pos()
 
             #Create a new Character in the DB for the player to reference (PonyORM)
             this_character = character.Character(charname=charname,
