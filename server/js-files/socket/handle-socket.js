@@ -68,17 +68,6 @@ function handleMessageData(data) {
   updateMessageLog(messageData, username);
 }
 
-//Save our given session id for later, and display the welcome message
-function linkConnection(data){
-  if (clientSession.sessionId == null) {
-    clientSession.sessionId = data['sessionId'];
-    console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
-    setMessageLog(data['chat-data']);
-  } else {
-    console.log('Reconnected, using old SID');
-  }
-}
-
 function connectSocket() {
   socket = io.connect();
   //socket = io.connect('https://localhost');

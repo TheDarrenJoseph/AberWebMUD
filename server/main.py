@@ -15,8 +15,8 @@ from flask_socketio import SocketIO
 def setup_instance(_dbHandler):
     logging.info('MAP LOADED')
 
-    player1 = playerController.new_player('foo','test')
-    player2 = playerController.new_player('who','test')
+    player1 = playerController.new_player('foo', 'test')
+    player2 = playerController.new_player('who', 'test')
 
     logging.info('TEST PLAYER 1:'+str(player1))
     logging.info('TEST PLAYER 2:'+str(player2))
@@ -39,7 +39,6 @@ if __name__ == "__main__":
 
     SOCKET_HANDLER = SocketIO(flaskHandler._APP)
     socketHandler.hookup_callbacks(SOCKET_HANDLER)
-
 
     DB_HANDLER.show_tables()
 
