@@ -53,7 +53,7 @@ class diceRollGood(unittest.TestCase):
             self.check_value(dice_value, 20)
 
 class diceRollBad(unittest.TestCase):
-    exception_response = -1
+    exception_response = None
 
     def test_dice_roll_invalid_face(self):
         self.assertEqual(dice.rollDice(1, 101), self.exception_response) #Just over the face limit

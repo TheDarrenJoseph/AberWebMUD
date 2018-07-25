@@ -11,6 +11,7 @@ password = 'test'
 
 def setUpModule():
     DB_HANDLER = database.DatabaseHandler()
+    DB_HANDLER.open_db()
 
 def tearDownModule():
     DB_HANDLER.close_db()
@@ -21,7 +22,6 @@ class movePlayerCheckGood(unittest.TestCase):
     """
 
     def check_player_move_min(self):
-        DB_HANDLER.open_db()
         player1 = playerController.new_player(username, password)
 
         self.assertTrue(playerController.check_movement(username, 0, 0))
