@@ -6,12 +6,10 @@ from pyfiles.model import overworld
 DB_HANDLER = None
 
 def setUpModule():
-    print ("Setting up overworld tests..")
     DB_HANDLER = database.DatabaseHandler()
     DB_HANDLER.open_db()
 
 def tearDownModule():
-    print ("Tearing down overworld tests..")
     if DB_HANDLER is not None:
         DB_HANDLER.close_db()
 
@@ -19,6 +17,11 @@ class overworldCreation(unittest.TestCase):
     thisOverworld = overworld.getOverworld()
 
     def test_start_pos(self):
+
+        #Ensure the x/y sizes of the overworld divide by 2
+        self.assertEqual(0, self.thisOverworld.map_size_x % 2)
+        self.assertEqual(0, self.thisOverworld.map_size_y % 2)
+
         #Ensure the overworld start position is exactly half it's size
         startPos = self.thisOverworld.get_starting_pos()
         self.assertTrue(isinstance(startPos.pos_x, int))

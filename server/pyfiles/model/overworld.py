@@ -15,8 +15,6 @@ class Overworld(map.Map):
 
     def __init__(self):
          super().__init__(self.OVERWORLD_SIZE_X, self.OVERWORLD_SIZE_Y)
-         print ("Overworld x : "+str(self.map_size_x))
-         print ("Overworld x : "+str(self.map_size_y))
 
 # Keep a global instance so we don't have to pass it around
 ovrwrld = None
