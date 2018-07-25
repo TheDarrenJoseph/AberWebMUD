@@ -46,4 +46,4 @@ is running (database.py should detail what is expected).
 
 ## Running server tests (unittest)
 1. change directory to 'server'
-2. Run: 'python -m unittest discover tests "*.py"'
+2. Run: 'python -m unittest discover' OR 'python -m unittest discover tests "*.py"'

@@ -1,4 +1,5 @@
 from pyfiles.db import db_instance, database, character
+from pyfiles.model import overworld
 from pony.orm import *
 
 class Position(db_instance.DatabaseInstance._database.Entity):

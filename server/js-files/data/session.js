@@ -1,3 +1,6 @@
+
+var sessionIdCookieName = "sessionId"
+
 //  Local data stored for your current character
 var charAttributes = {
   str: null,
@@ -17,6 +20,20 @@ var clientSession = {
   sessionId: null,
   character: charData
 };
+
+function saveSessionIdCookie(sessionId){
+  console.log("Saving sessionId "+sessionId+" to cookie");
+  document.cookie = sessionIdCookieName+"="+sessionId+";"
+}
+
+function getSessionIdCookie(sessionId){
+  var decodedCookie = decodeURIComponent(document.cookie);
+  //Split on endline, in case we ever store more  than 1 variable
+  var cookiesList = decodedCookie.split(";")
+
+  //Then split out the mapping and return that
+  return cookiesList[0].split('=')[1]
+}
 
 function characterDetailsExist () {
   if (clientSession.character == null ||
@@ -66,14 +83,23 @@ function updateCharacterDetails (data) {
   console.log(clientSession);
 }
 
+function setClientSessionSessionId(data) {
+    //	Update the client session to contain our new data
+    if (data['sessionId'] != null) {
+      var sessId = data['sessionId'];
+
+    clientSession.sessionId = sessId;
+    //also save it in a cookie
+    saveSessionIdCookie(sessId);
+  }
+}
+
 function updateClientSessionData (data) {
 	//var playerStatus = data['player-status'];
 	console.log('Login data received: ');
 	console.log(data);
 
-	//	Update the client session to contain our new data
-  if (data['sessionId'] != null) clientSession.sessionId = data['sessionId'];
-
+  setClientSessionSessionId(data);
   updateCharacterDetails(data);
 
 	console.log('Saved session object: ');
@@ -81,9 +107,9 @@ function updateClientSessionData (data) {
 }
 
 //Save our given session id for later, and display the welcome message
-function link_connection(data){
-  if (clientSession.sessionId == null) {
-    clientSession.sessionId = data['sessionId'];
+function linkConnection(data){
+  if (getSessionIdCookie() == null) {
+    setClientSessionSessionId(data);
     console.log('Handshaked with server, session ID given:' + clientSession.sessionId);
     setMessageLog(data['messageData']); //Add the welcome message to the message log
   } else {
