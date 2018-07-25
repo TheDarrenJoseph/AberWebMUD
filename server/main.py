@@ -3,7 +3,6 @@ import passlib, ssl, logging, pdb
 import flaskHandler
 from pyfiles import userInput, playerController, crypto
 from pyfiles.db import database
-from pyfiles.model import overworld
 from pyfiles.sockets import socketHandler, sessionHandler
 #from pyfiles.db import player
 from flask_socketio import SocketIO
@@ -13,8 +12,6 @@ from flask_socketio import SocketIO
 
 #Sets up players, maps, etc
 def setup_instance(_dbHandler):
-    logging.info('MAP LOADED')
-
     player1 = playerController.new_player('foo', 'test')
     player2 = playerController.new_player('who', 'test')
 
