@@ -1,3 +1,6 @@
+# Client and Test JS files
+server/static/client.js
+server/static/test.js
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
