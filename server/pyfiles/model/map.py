@@ -9,8 +9,8 @@ MAX_SIZE_Y = 100
 
 # A literal tile map model
 class Map:
-    map_size_x = 20
-    map_size_y = 20
+    map_size_x = None
+    map_size_y = None
     map_tiles = []
 
     def is_traversible(self, x : int, y : int) -> bool:
@@ -42,10 +42,10 @@ class Map:
 
                 #Adding a random barrier tile for testing the map
                 if x == 5 and y == 5:
-                    map_tile = mapTile.MapTile(1, False)
+                    map_tile = mapTile.MapTile(1, "dummy-1", False)
 
                 self.map_tiles[x][y] = map_tile
 
-    def __init__(self, map_size_x, map_size_y):
+    def __init__(self, map_size_x=20, map_size_y=20):
         print ("New map attempt: "+str(map_size_x)+str(map_size_y))
         self.create_map(map_size_x, map_size_y)

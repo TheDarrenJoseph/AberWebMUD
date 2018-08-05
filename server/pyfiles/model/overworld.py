@@ -3,8 +3,8 @@ from pyfiles.model import map
 from pony.orm import Required, Optional, db_session
 
 class Overworld(map.Map):
-    OVERWORLD_SIZE_X = 60
-    OVERWORLD_SIZE_Y = 60
+    OVERWORLD_SIZE_X = 22
+    OVERWORLD_SIZE_Y = 22
 
     #Returns the starting position for all characters on the map
     @db_session
