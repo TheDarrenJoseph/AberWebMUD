@@ -1,16 +1,18 @@
+// Main Pixi handling point
+import * as PIXI from '../../libs/pixi.min-4-3-5.js';
+
 var titleText = 'AberWebMUD';
 var zeldaAssetPath = 'static/assets/gfx/';
 var overworldAtlasPath = zeldaAssetPath + 'overworld-texture-atlas.json';
 var zeldaObjectsAtlasPath = zeldaAssetPath + 'zelda-objects-texture-atlas.json';
 var characterAtlasPath = zeldaAssetPath + 'character-texture-atlas.json';
 
-
 var tileMappings = ['grass-plain', 'barn-front'];
 
 // Set our mapWindowSize to the smallest of our page dimensions
 // Using the smallest dimension to get a square
 // Then use 90% of this value to leave some space
-mapWindowSize = window.innerWidth;
+var mapWindowSize = window.innerWidth;
 
 if (window.innerHeight < window.innerWidth) {
 	mapWindowSize = window.innerHeight;

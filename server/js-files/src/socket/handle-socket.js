@@ -1,5 +1,6 @@
+import {socket} from '../libs/socket.io-1.4.5.js'
+
 //A collection of SocketIO management functions
-var socket = null;
 
 function isSocketConnected () {
   return socket.connected;
