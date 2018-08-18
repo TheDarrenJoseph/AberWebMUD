@@ -18,6 +18,7 @@ Other technologies used:
 * [PostgreSQL] (https://www.postgresql.org/)
 * [SQLite] (https://sqlite.org/)
 * [PonyORM 0.7.1 (Apache License V2.0)] (https://docs.ponyorm.com/)
+* [Webpack JavaScript Module Bundler] (https://webpack.js.org/)
 * Texture atlas creation using ["Leshy SpriteSheet Tool - Online Sprite Sheet, Texture Atlas Packer"]
  (https://www.leshylabs.com/apps/sstool/)
 
@@ -29,13 +30,22 @@ Check the LICENSE file for the project's license
 
 ![Main Example Screenshot](example.png)
 
+## Building the project
+The frontend is build using Webpack, you will need it/npm installed to build it 
+
+### Frontend
+
+1. Change terminal directory to `server/js-files`
+2. run `npm run build` 
+
+
 ## Running the project
 1. You first need to satisfy python's dependencies, run 'sudo pip install -r requirements.txt' in the AberWebMUD/root folder
 2. Change your terminal directory to the server folder
-3. (Optional) JavaScript files are concatted into the client.js file, run build.sh in the scripts folder (there's a good chance this has already been done before a Git
-commit)
-3. Run main.py in Python
-4. visit 'localhost:5000' in a browser
+3. ~~(Optional) JavaScript files are concatted into the client.js file, run build.sh in the scripts folder (there's a good chance this has already been done before a Git
+commit)~~
+5. Run main.py in Python
+6. visit 'localhost:5000' in a browser
 
 ## Postgres vs SQLite
 The project currently uses an SQLite DB in-memory in order to run locally for development and demonstration.
