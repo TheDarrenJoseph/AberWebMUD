@@ -6,21 +6,20 @@ special clients.
 
 ## Build info, references, and licenses
 Created with Python 3.6.0 and packaged with:
-* [Pixi.js v4.3.5 and  4.3.4 (MIT License)] (http://www.pixijs.com/)
-* [SocketIO 1.4.5 (MIT License)] (http://socket.io/)
-* [jQuery 3.1.1 (MIT License)] (https://jquery.com/)
-* [QUnit 2.2.1 (JS Foundation License)] (http://qunitjs.com/)
-* ["Zelda-like tilesets and sprites" by ArMM1998 (CC0 1.0)] (http://opengameart.org/content/zelda-like-tilesets-and-sprites)
+* [Pixi.js v4.3.5 and  4.3.4 (MIT License)](http://www.pixijs.com/)
+* [SocketIO 1.4.5 (MIT License)](http://socket.io/)
+* [jQuery 3.1.1 (MIT License)](https://jquery.com/)
+* [QUnit 2.2.1 (JS Foundation License)](http://qunitjs.com/)
+* ["Zelda-like tilesets and sprites" by ArMM1998 (CC0 1.0)](http://opengameart.org/content/zelda-like-tilesets-and-sprites)
 
 Other technologies used:
-* [Flask 0.12 (BSD License)] (http://flask.pocoo.org/)
-* [Flask-SocketIO 2.8.3 (MIT License)] (https://github.com/miguelgrinberg/Flask-SocketIO)
-* [PostgreSQL] (https://www.postgresql.org/)
-* [SQLite] (https://sqlite.org/)
-* [PonyORM 0.7.1 (Apache License V2.0)] (https://docs.ponyorm.com/)
-* [Webpack JavaScript Module Bundler] (https://webpack.js.org/)
-* Texture atlas creation using ["Leshy SpriteSheet Tool - Online Sprite Sheet, Texture Atlas Packer"]
- (https://www.leshylabs.com/apps/sstool/)
+* [Flask 0.12 (BSD License)](http://flask.pocoo.org/)
+* [Flask-SocketIO 2.8.3 (MIT License)](https://github.com/miguelgrinberg/Flask-SocketIO)
+* [PostgreSQL](https://www.postgresql.org/)
+* [SQLite](https://sqlite.org/)
+* [PonyORM 0.7.1 (Apache License V2.0)](https://docs.ponyorm.com/)
+* [Webpack JavaScript Module Bundler](https://webpack.js.org/)
+* ["Leshy SpriteSheet Tool - Online Sprite Sheet, Texture Atlas Packer"](https://www.leshylabs.com/apps/sstool/)
 
 Check the requirements.txt for dependancy version details
 Check the LICENSE file for the project's license
