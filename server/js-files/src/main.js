@@ -1,5 +1,5 @@
 import $ from 'libs/jquery-3.1.1.js';
-import { SocketHandler } from 'src/socket/handle-socket';
+import { SocketHandler } from 'src/handler/socket/handle-socket';
 //	import { setupPageUI } from './ui/pixi/setup-ui';
 
 console.log('=== AberWebMUD Web Client ===')
