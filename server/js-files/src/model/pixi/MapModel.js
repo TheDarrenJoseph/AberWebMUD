@@ -22,6 +22,9 @@ class MapClass {
 			sprite: null
 		};
 
+		//	Get the window size from our Pixi Controller for now.
+		this.mapWindowSize = 0;
+
 		// tileCount is the number of tiles we can fit into this square area
 		// Rounding down (floor) to get a good tile count
 		this.tileCount = Math.floor(this.mapWindowSize / this.tileSize);
@@ -49,4 +52,4 @@ class MapClass {
 }
 
 var currentMap = new MapClass();
-export { currentMap as Map };
+export { currentMap as MapModel };

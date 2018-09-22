@@ -1,8 +1,25 @@
 import * as PIXI from 'libs/pixi.min-4-3-5.js';
 import { SpriteHelper } from 'src/helper/pixi/SpriteHelper.js';
 import { PositionHelper } from 'src/helper/PositionHelper.js';
+import { GridCharacter } from 'src/model/pixi/GridCharacter.js';
 
 class PixiMapViewClass {
+	constructor () {
+		this.setupWindowDimensions();
+	}
+
+	// Set default window size
+	setupWindowDimensions () {
+		// Set our mapWindowSize to the smallest of our page dimensions
+		// Using the smallest dimension to get a square
+		// Then use 90% of this value to leave some space
+		this.mapWindowSize = window.innerWidth;
+
+		if (window.innerHeight < window.innerWidth) {
+			this.mapWindowSize = window.innerHeight;
+		}
+	}
+
 	setupPixiContainers (tileCount) {
 		this.stage = new PIXI.Container();
 		this.dialogContainer = new PIXI.Container();
@@ -23,6 +40,7 @@ class PixiMapViewClass {
 
 	//	Creates an empty 2D array to store players in our view
 	createMapCharacterArray (tileCount) {
+		console.log('Tilecount: ' + tileCount);
 		var mapCharacterArray = Array(tileCount);
 		for (var x = 0; x < tileCount; x++) {
 			mapCharacterArray[x] = Array(tileCount); // 2nd array dimension per row
@@ -74,16 +92,13 @@ class PixiMapViewClass {
 
 			if (PositionHelper.isPositionRelativeToView(localX, localY)) {
 				var characterSprite = SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player');
-				var pixiPos = tileCoordToPixiPos(localX,localY);
+				var pixiPos = PositionHelper.tileCoordToPixiPos(localX, localY);
 
 				console.log('PIXI POS for new char: ' + pixiPos[0] + ' ' + pixiPos[1]);
 				characterSprite.x = pixiPos[0];
 				characterSprite.y = pixiPos[1];
 
-				PixiMapView.mapCharacterArray[localX][localY] = new GridCharacter(charactername, gridX, gridY, characterSprite);
-
-				drawMapCharacterArray ();
-
+				this.mapCharacterArray[localX][localY] = new GridCharacter(charactername, gridX, gridY, characterSprite);
 				return characterSprite;
 			} else {
 				console.log('New player not in our view at this position: ' + gridX + ' ' + gridY);

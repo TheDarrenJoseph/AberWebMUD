@@ -2,9 +2,9 @@ import { PageChatView } from 'src/view/page/PageChatView.js';
 import { PageStatsDialogView } from 'src/view/page/PageStatsDialogView.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { PixiMapView } from 'src/view/pixi/PixiMapView.js';
-import { MapController } from 'src/handler/pixi/MapController.js';
-import { PixiController } from 'src/handler/pixi/PixiController.js';
-import { SessionController } from 'src/handler/pixi/SessionController.js';
+import { MapController } from 'src/controller/pixi/MapController.js';
+import { PixiController } from 'src/controller/pixi/PixiController.js';
+import { SessionController } from 'src/controller/SessionController.js';
 
 //	Hooking up to a bunch of other controllers for now
 import { Session } from 'src/model/SessionModel.js';
@@ -60,6 +60,8 @@ class PageController {
 			MapController.showMapPosition(Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
 			//	Creates the new character to represent the player
 			PixiMapView.newCharacterOnMap(Session.clientSession.character.charname, Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
+			// And redraw
+			MapController.drawMapCharacterArray();
 
 			PageView.UI_ENABLED = true;
 		}

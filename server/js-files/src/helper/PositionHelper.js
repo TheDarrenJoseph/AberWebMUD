@@ -1,5 +1,5 @@
-import { MapModel } from 'src/model/MapModel.js';
-import { MapController } from 'src/handler/pixi/MapController.js';
+import { MapModel } from 'src/model/pixi/MapModel.js';
+import { MapController } from 'src/controller/pixi/MapController.js';
 
 class PositionHelper {
 	//	Check whether or not this position is a view-relative one using x/y from 0 - tileCount

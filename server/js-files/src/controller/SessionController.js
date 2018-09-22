@@ -1,6 +1,5 @@
 import { SESSION_ID_COOKIE_NAME, Session } from 'src/model/SessionModel.js';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
-// import { MapModel } from 'src/model/MapModel.js';
 
 class SessionController {
 	static saveSessionIdCookie (sessionId) {

@@ -1,5 +1,5 @@
 # Data model for tiles read in from json resource atlasses
-class MapTile():
+class MapModelTile():
 
     tileType = None
     tileName = None

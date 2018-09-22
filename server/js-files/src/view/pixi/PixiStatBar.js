@@ -47,4 +47,4 @@ class PixiStatBar {
 	}
 }
 
-export default PixiStatBar;
+export { PixiStatBar };

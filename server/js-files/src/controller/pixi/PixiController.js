@@ -23,15 +23,6 @@ var overworldAtlasPath = zeldaAssetPath + 'overworld-texture-atlas.json';
 var zeldaObjectsAtlasPath = zeldaAssetPath + 'zelda-objects-texture-atlas.json';
 var characterAtlasPath = zeldaAssetPath + 'character-texture-atlas.json';
 
-// Set our mapWindowSize to the smallest of our page dimensions
-// Using the smallest dimension to get a square
-// Then use 90% of this value to leave some space
-var mapWindowSize = window.innerWidth;
-
-if (window.innerHeight < window.innerWidth) {
-	mapWindowSize = window.innerHeight;
-}
-
 //	Handles the PixiJS renderer
 class PixiControllerClass {
 	constructor () {
@@ -40,8 +31,12 @@ class PixiControllerClass {
 			resolution: 1
 		};
 
+		// Store the mapWindowSize given to us by the view
+		let mapWindowSize = PixiMapView.mapWindowSize;
+		MapModel.mapWindowSize = mapWindowSize;
+
 		// Create our PixiJS renderer space
-		// var renderer = PIXI.autoDetectRenderer(500, 500, renderingOptions);
+		// Create a renderer with a square canvas of the view's suggested size
 		this.renderer = PIXI.autoDetectRenderer(mapWindowSize, mapWindowSize);
 		this.renderer.autoresize = true;
 
@@ -82,7 +77,7 @@ class PixiControllerClass {
 																						mapTileSize,
 																						mapTileSize,
 																						0,
-																						mapWindowSize - mapTileSize,
+																						MapModel.mapWindowSize - mapTileSize,
 																						true);
 
 		PixiMapView.controlsContainer.addChild(consoleButtonSprite);
@@ -95,8 +90,8 @@ class PixiControllerClass {
 		'chest-single',
 		MapModel.tileSize,
 		MapModel.tileSize * 2,
-		mapWindowSize - (MapModel.tileSize * 2),
-		mapWindowSize - MapModel.tileSize,
+		MapModel.mapWindowSize - (MapModel.tileSize * 2),
+		MapModel.mapWindowSize - MapModel.tileSize,
 		true
 		);
 
@@ -106,8 +101,8 @@ class PixiControllerClass {
 		'chest-single',
 		MapModel.tileSize,
 		MapModel.tileSize * 2,
-		mapWindowSize - MapModel.tileSize * 4,
-		mapWindowSize - MapModel.tileSize,
+		MapModel.mapWindowSize - MapModel.tileSize * 4,
+		MapModel.mapWindowSize - MapModel.tileSize,
 		true
 		);
 
@@ -181,6 +176,8 @@ class PixiControllerClass {
 			console.log('A character has moved.. \nUser:' + username + ' to ' + posX + ' ' + posY);
 			// updateCharacterSpritePos(username, old_x, old_y, pos_x, pos_y);
 			PixiMapView.newCharacterOnMap(username, posX, posY);
+			// And redraw
+			MapController.drawMapCharacterArray();
 		} else {
 			throw new Error('Missing movement update data ' + JSON.stringify(updateJSON));
 		}

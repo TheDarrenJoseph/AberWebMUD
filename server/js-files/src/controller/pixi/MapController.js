@@ -1,6 +1,6 @@
 import * as PIXI from 'libs/pixi.min-4-3-5.js';
 
-import { PixiController } from 'src/controller/pixi/PixiControllerjs';
+import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PixiMapView } from 'src/view/pixi/PixiMapView.js';
 import { PositionHelper } from 'src/helper/PositionHelper.js';
 // import { SpriteHelper } from 'src/helper/pixi/SpriteHelper.js';
@@ -77,17 +77,6 @@ class MapControllerClass {
 		}
 
 		PixiController.renderStage();
-	}
-
-	static GridCharacter (charname, x, y, sprite) {
-		if (!PositionHelper.isPositionInOverworld(x, y)) throw new RangeError('Invalid position for GridCharacter! (must be valid overworld co-ord)');
-
-		return {
-			charname: charname,
-			pos_x: x,
-			pos_y: y,
-			sprite: sprite
-		};
 	}
 
 	getAtlasSubtexture (tileAtlasPath, subtileName) {
