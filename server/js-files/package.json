@@ -1,5 +1,9 @@
 {
-"scripts": {
-  "build": "npx webpack --config webpack.config.js"
-}
+	"private": true,
+	"scripts": {
+		"build": "npx webpack --config webpack.config.js"
+	},
+	"dependencies": {
+		"webpack": "^4.19.1"
+	}
 }
