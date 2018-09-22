@@ -19,7 +19,7 @@ const serverConfig = {
   }
 }
 
-//In case we need a seperate tests bundling
+//	In case we need a separate tests bundling
 const testsConfig = {
   target: TARGET,
   mode: MODE, // "production" | "development" | "none"
@@ -31,7 +31,7 @@ const testsConfig = {
   }
 }
 
-//Node.js exports, intereted by Webpack
+//	Node.js exports, intereted by Webpack
 module.exports = [
 serverConfig, testsConfig
 ];
