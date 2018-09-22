@@ -1,14 +1,24 @@
 import $ from 'libs/jquery-3.1.1.js';
 
+import { PageView } from 'src/view/page/PageView.js';
+import { SessionController } from 'src/controller/SessionController.js';
+
 //	2 arrays of the same length to allow looping for creating each line of the table
 var attributeNames = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 var numberInputIds = ['strNumber', 'dexNumber', 'conNumber', 'intNumber', 'wisNumber', 'chaNumber'];
 var minAttributeVal = 1;
 var maxAttributeVal = 100;
 
+var _SAVE_STATS_BUTTON_CLASS_SELECTOR = '#save-stats-button';
+var _STATS_INFO_FIELD_CLASS_SELECTOR = '#stats-info';
 
 // DOM View for the stats dialog window
-class UIPageStatsDialogView {
+class PageStatsDialogView {
+	// And in the darkness bind them
+	static bindSaveCharacterDetails (callback) {
+		$(_SAVE_STATS_BUTTON_CLASS_SELECTOR).click(this.sendCharDetails());
+	}
+
 	static createSelectorOption (tagValue, text) {
 		var classSelector = document.createElement('option');
 		classSelector.setAttribute('value', tagValue);
@@ -61,11 +71,11 @@ class UIPageStatsDialogView {
 	}
 
 	static clearStatInfo () {
-		$('#stats-info').val(''); //	JQuery find the field and set it to blank
+		$(_STATS_INFO_FIELD_CLASS_SELECTOR).val(''); //	JQuery find the field and set it to blank
 	}
 
 	static updateStatsInfoLog (message, username) {
-		var statsField = $('#stats-info');
+		var statsField = $(_STATS_INFO_FIELD_CLASS_SELECTOR);
 		var msg = message;
 
 		//	Add a user (server/client) tag to the message
@@ -131,7 +141,22 @@ class UIPageStatsDialogView {
 
 	//	Brings up the stats window
 	static showStatWindow () {
-		showWindow('statWindowId');
+		PageView.showWindow('statWindowId');
+	}
+
+	static requestCharacterDetails () {
+		this.showStatWindow();
+		this.updateStatsInfoLog('You need to set your character details.', 'client');
+	}
+
+	//	Checks that the player's character details are set
+	//	and asks them to set them if false
+	static checkCharacterDetails () {
+		if (!SessionController.characterDetailsExist()) {
+			PageStatsDialogView.requestCharacterDetails();
+		} else {
+			PageView.characterDetailsConfirmed();
+		}
 	}
 
 	static getStatsCharacterName () {
@@ -171,9 +196,9 @@ class UIPageStatsDialogView {
 	//	Grabs Character Name, Class, and Attribute values
 	static getStats () {
 		return {
-			'charname' : getStatsCharacterName(),
-			'charclass' : getStatsCharacterClass(),
-			'attributes' : getStatsAttributeValues()
+			'charname': PageStatsDialogView.getStatsCharacterName(),
+			'charclass': PageStatsDialogView.getStatsCharacterClass(),
+			'attributes': PageStatsDialogView.getStatsAttributeValues()
 		};
 	}
 
@@ -182,19 +207,21 @@ class UIPageStatsDialogView {
 		for (var i = 0; i < numberInputIds.length; i++) {
 			var statId = '#' + numberInputIds[i];
 			var inputVal = attrValuesJSON[attributeNames[i]];
-			var statValue = $(statId).val(inputVal);
-		}
 
+			// Set the value of the field
+			$(statId).val(inputVal);
+		}
 	}
 
 	//	Doesn't seem to hook up to anything yet?
 	static setStatsFromJsonResponse (statsValuesJson) {
 		console.log('Setting from: ' + statsValuesJson);
-		var charname = statsValuesJson['charname'];
-		var charclass = statsValuesJson['charclass'];
-		var posX = statsValuesJson['pos_x'];
-		var posY = statsValuesJson['pos_x'];
-		var freePoints = statsValuesJson['free_points'];
+
+		// var charname = statsValuesJson['charname'];
+		// var charclass = statsValuesJson['charclass'];
+		// var posX = statsValuesJson['pos_x'];
+		// var posY = statsValuesJson['pos_x'];
+		// var freePoints = statsValuesJson['free_points'];
 
 		var attrValuesJSON = {'STR': statsValuesJson['STR'],
 			'DEX': statsValuesJson['DEX'],
@@ -203,8 +230,8 @@ class UIPageStatsDialogView {
 			'WIS': statsValuesJson['WIS'],
 			'CHA': statsValuesJson['CHA']};
 
-		setStatsAttributeValues(attrValuesJSON);
+		PageStatsDialogView.setStatsAttributeValues(attrValuesJSON);
 	}
 }
 
-export { UIPageStatsDialogView };
+export { PageStatsDialogView };

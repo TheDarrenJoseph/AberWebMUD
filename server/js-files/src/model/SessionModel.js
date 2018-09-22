@@ -1,4 +1,4 @@
-const SESSION_ID_COOKIE_NAME = 'sessionId';
+export const SESSION_ID_COOKIE_NAME = 'sessionId';
 
 class SessionModel {
 	constructor () {
@@ -22,6 +22,15 @@ class SessionModel {
 			character: this.charData
 		};
 	};
+
+	setCharAttributes (str, dex, con, int, wis, cha) {
+		this.charAtrributes.str = str;
+		this.charAtrributes.str = dex;
+		this.charAtrributes.str = con;
+		this.charAtrributes.wis = int;
+		this.charAtrributes.wis = wis;
+	}
 }
 
-export { SessionModel };
+var session = new SessionModel();
+export {session as Session};

@@ -1,5 +1,0 @@
-class StatsModel {
-
-}
-
-export { StatsModel };

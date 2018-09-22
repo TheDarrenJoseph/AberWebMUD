@@ -1,4 +1,6 @@
-import { SessionModel as Session } from 'src/model/SessionModel';
+import { SESSION_ID_COOKIE_NAME, Session } from 'src/model/SessionModel.js';
+import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
+// import { MapModel } from 'src/model/MapModel.js';
 
 class SessionController {
 	static saveSessionIdCookie (sessionId) {
@@ -60,6 +62,16 @@ class SessionController {
 		console.log(Session.clientSession);
 	};
 
+	//	Save our given session id for later, and display the welcome message
+	static linkConnectionToSession (data) {
+		if (SessionController.getSessionIdCookie() == null) {
+			Session.setClientSessionSessionId(data);
+			console.log('Handshaked with server, session ID given:' + Session.getClientSession().sessionId);
+		} else {
+			console.log('Reconnected, using old SID');
+		}
+	};
+
 	static setClientSessionSessionId (data) {
 		//	Update the client session to contain our new data
 		if (data['sessionId'] != null) {
@@ -67,7 +79,7 @@ class SessionController {
 
 			Session.clientSession.sessionId = sessId;
 			//	Also save it in a cookie
-			this.saveSessionIdCookie(sessId);
+			SessionController.saveSessionIdCookie(sessId);
 		}
 	};
 
@@ -76,17 +88,15 @@ class SessionController {
 		console.log('Login data received: ');
 		console.log(data);
 
-		this.setClientSessionSessionId(data);
-		this.updateCharacterDetails(data);
+		SessionController.setClientSessionSessionId(data);
+		SessionController.updateCharacterDetails(data);
 
 		console.log('Saved session object: ');
 		console.log(Session.clientSession);
 	};
 
-	static saveMapUpdate (mapData) {
-		Session.overworldMap = JSON.parse(mapData['data']);
-		Session.overworldMapSizeX = mapData['map-size-x'];
-		Session.overworldMapSizeY = mapData['map-size-y'];
+	static saveMapUpdate (mapJson) {
+		MessageHandler.updateMapFromResponse(Map, mapJson);
 		console.log('MAP DATA RECEIVED');
 	};
 }
