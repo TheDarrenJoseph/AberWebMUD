@@ -1,6 +1,10 @@
 # Client and Test JS files
 server/static/client.js
-server/static/test.js
+server/static/tests.js
+
+# Locally installed node modules
+node_modules/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -19,5 +19,7 @@ def rollDice(dice_num : int, face_count : int) -> int:
 
     total = 0
     for die in range(0, dice_num):
-        total += randint(1, face_count) # rolls 1 to faceCount
+        #1 to face_count random ints
+        result = randint(1, face_count)
+        total += result
     return total
