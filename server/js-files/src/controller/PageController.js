@@ -16,6 +16,10 @@ import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 //	Very loose controller for the Page
 //	Binding to click / key events using jQuery and controlling the overall UI elements
 class PageController {
+	static setupPageUI () {
+		PageController.bindEvents(); //	Hookup message sending and other controls
+	}
+
 	// boolean switch for message / password sending
 	static bindMessageInputPurpose (messageInput) {
 		if (messageInput === true) {
@@ -76,15 +80,11 @@ class PageController {
 
 	static bindEvents () {
 		PageController.bindMessageInputPurpose(true);
-		PageController.bindSaveCharacterDetails();
+		PageStatsDialogView.bindSaveCharacterDetails(PageController.sendCharDetails);
 	}
 
 	static sendCharDetails () {
 		SocketHandler.sendCharacterDetails(PageStatsDialogView.getStats());
-	}
-
-	static bindSaveCharacterDetails () {
-		PageStatsDialogView.bindSaveCharacterDetails(PageController.sendCharDetails);
 	}
 
 	static checkConnection () {

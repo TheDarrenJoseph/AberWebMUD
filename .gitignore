@@ -1,6 +1,5 @@
-# Client and Test JS files
-server/static/client.js
-server/static/tests.js
+# Client JS files
+server/static/*.js
 
 # Locally installed node modules
 node_modules/

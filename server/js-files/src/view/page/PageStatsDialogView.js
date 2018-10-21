@@ -1,4 +1,4 @@
-import $ from 'libs/jquery-3.1.1.js';
+import $ from 'libs/jquery.js';
 
 import { PageView } from 'src/view/page/PageView.js';
 import { SessionController } from 'src/controller/SessionController.js';
@@ -16,7 +16,7 @@ var _STATS_INFO_FIELD_CLASS_SELECTOR = '#stats-info';
 class PageStatsDialogView {
 	// And in the darkness bind them
 	static bindSaveCharacterDetails (callback) {
-		$(_SAVE_STATS_BUTTON_CLASS_SELECTOR).click(this.sendCharDetails());
+		$(_SAVE_STATS_BUTTON_CLASS_SELECTOR).click(callback);
 	}
 
 	static createSelectorOption (tagValue, text) {
@@ -65,7 +65,7 @@ class PageStatsDialogView {
 
 		statsTable.append(statsTableHeaderRow);
 
-		this.createTableRows(statsTable);
+		PageStatsDialogView.createTableRows(statsTable);
 
 		return statsTable;
 	}
@@ -107,11 +107,11 @@ class PageStatsDialogView {
 		var classSelector = document.createElement('select');
 		classSelector.setAttribute('id', 'class-selection');
 		classSelector.setAttribute('disabled', true);
-		classSelector.append(this.createSelectorOption('fighter', 'Fighter'));
-		classSelector.append(this.createSelectorOption('spellcaster', 'Spellcaster'));
+		classSelector.append(PageStatsDialogView.createSelectorOption('fighter', 'Fighter'));
+		classSelector.append(PageStatsDialogView.createSelectorOption('spellcaster', 'Spellcaster'));
 
 		//	'Attributes' section
-		var statsTable = this.createStatsTable();
+		var statsTable = PageStatsDialogView.createStatsTable();
 
 		//	This allows displaying any needed info
 		var statsInfo = document.createElement('textarea');
@@ -135,7 +135,7 @@ class PageStatsDialogView {
 	}
 
 	static createStatsWindow () {
-		var statWindowDiv = this.generateStatWindow();
+		var statWindowDiv = PageStatsDialogView.generateStatWindow();
 		$('#stat-window').append(statWindowDiv);
 	}
 
@@ -145,8 +145,8 @@ class PageStatsDialogView {
 	}
 
 	static requestCharacterDetails () {
-		this.showStatWindow();
-		this.updateStatsInfoLog('You need to set your character details.', 'client');
+		PageStatsDialogView.showStatWindow();
+		PageStatsDialogView.updateStatsInfoLog('You need to set your character details.', 'client');
 	}
 
 	//	Checks that the player's character details are set

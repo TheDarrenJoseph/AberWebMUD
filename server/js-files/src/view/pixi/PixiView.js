@@ -1,6 +1,5 @@
 //	Holds and generic Pixi View code / or code that's yet to be refactored
-
-import * as PIXI from 'libs/pixi.min-4-3-5.js';
+import * as PIXI from 'libs/pixi.min.js';
 
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
 import { PixiMapView } from 'src/view/pixi/PixiMapView.js';

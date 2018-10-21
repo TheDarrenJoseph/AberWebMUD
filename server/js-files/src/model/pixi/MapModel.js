@@ -1,5 +1,5 @@
-class MapClass {
-	constructor () {
+export class MapClass {
+	constructor (mapWindowSize) {
 		this.mapTiles = [];
 		this.mapSizeX = 0; //	Sizes of the map
 		this.mapSizeY = 0;
@@ -23,7 +23,7 @@ class MapClass {
 		};
 
 		//	Get the window size from our Pixi Controller for now.
-		this.mapWindowSize = 0;
+		this.mapWindowSize = mapWindowSize;
 
 		// tileCount is the number of tiles we can fit into this square area
 		// Rounding down (floor) to get a good tile count
@@ -50,6 +50,3 @@ class MapClass {
 		return [gridX - this.halfTileCountFloored, gridY - this.halfTileCountFloored];
 	}
 }
-
-var currentMap = new MapClass();
-export { currentMap as MapModel };

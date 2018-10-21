@@ -1,4 +1,4 @@
-import * as PIXI from 'libs/pixi.min-4-3-5.js';
+import * as PIXI from 'libs/pixi.min.js';
 
 class SpriteHelper {
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
