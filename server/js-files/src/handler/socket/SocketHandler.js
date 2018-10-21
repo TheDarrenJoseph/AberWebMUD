@@ -1,4 +1,4 @@
-import * as io from 'libs/socket.io-1.4.5.js';
+import * as io from 'libs/socket.io.js';
 
 //	Other Handlers
 import { PixiController } from 'src/controller/pixi/PixiController.js';
@@ -65,7 +65,6 @@ class SocketHandler {
 
 		//	Try to connect
 		socket = io.connect();
-		//	socket = io.connect('https://localhost');
 
 		//	return an indication of success/failure.
 		return SocketHandler.isSocketConnected();

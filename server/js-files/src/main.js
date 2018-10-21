@@ -1,6 +1,7 @@
-import $ from 'libs/jquery-3.1.1.js';
+import $ from 'libs/jquery.js';
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
-//	import { setupPageUI } from './ui/pixi/setup-ui';
+import { PixiController } from 'src/controller/pixi/PixiController.js';
+import { PageController } from 'src/controller/PageController.js';
 
 console.log('=== AberWebMUD Web Client ===');
 
@@ -9,9 +10,11 @@ function performSetup () {
 	console.log('Starting client..');
 
 	//	Get the general UI ready
-	// setupPageUI();
+	PageController.setupPageUI();
+	PixiController.setupPixiUI();
 
 	var connected = SocketHandler.connectSocket();
+	console.log('Socket: ' + connected);
 	if (connected) {
 		// setupChat();
 		// setStatusUpdateCallbacks();

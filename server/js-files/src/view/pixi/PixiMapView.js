@@ -1,4 +1,5 @@
-import * as PIXI from 'libs/pixi.min-4-3-5.js';
+import * as PIXI from 'libs/pixi.min.js';
+
 import { SpriteHelper } from 'src/helper/pixi/SpriteHelper.js';
 import { PositionHelper } from 'src/helper/PositionHelper.js';
 import { GridCharacter } from 'src/model/pixi/GridCharacter.js';
@@ -26,8 +27,8 @@ class PixiMapViewClass {
 		this.controlsContainer = new PIXI.Container();
 
 		// Using ParticleContainer for large amounts of sprites
-		this.mapContainer = new PIXI.ParticleContainer();
-		this.characterContainer = new PIXI.ParticleContainer();
+		this.mapContainer = new PIXI.particles.ParticleContainer();
+		this.characterContainer = new PIXI.particles.ParticleContainer();
 
 		//	Sprites for the map view
 		this.tileSpriteArray = null;
@@ -40,7 +41,7 @@ class PixiMapViewClass {
 
 	//	Creates an empty 2D array to store players in our view
 	createMapCharacterArray (tileCount) {
-		console.log('Tilecount: ' + tileCount);
+		// console.log('Tilecount: ' + tileCount);
 		var mapCharacterArray = Array(tileCount);
 		for (var x = 0; x < tileCount; x++) {
 			mapCharacterArray[x] = Array(tileCount); // 2nd array dimension per row

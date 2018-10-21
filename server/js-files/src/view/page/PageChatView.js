@@ -1,4 +1,4 @@
-import $ from 'libs/jquery-3.1.1.js';
+import $ from 'libs/jquery.js';
 
 // DOM view for the chat
 class PageChatView {

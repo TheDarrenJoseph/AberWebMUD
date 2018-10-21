@@ -1,4 +1,4 @@
-import $ from 'libs/jquery-3.1.1.js';
+import $ from 'libs/jquery.js';
 
 import { PageChatView } from 'src/view/page/PageChatView.js';
 import { PageStatsDialogView } from 'src/view/page/PageStatsDialogView.js';

@@ -1,4 +1,4 @@
-import * as PIXI from 'libs/pixi.min-4-3-5.js';
+import * as PIXI from 'libs/pixi.min.js';
 
 import { MapModel } from 'src/model/pixi/MapModel.js';
 import { PageChatView } from 'src/view/page/PageChatView.js';
@@ -31,14 +31,11 @@ class PixiControllerClass {
 			resolution: 1
 		};
 
-		// Store the mapWindowSize given to us by the view
-		let mapWindowSize = PixiMapView.mapWindowSize;
-		MapModel.mapWindowSize = mapWindowSize;
-
 		// Create our PixiJS renderer space
 		// Create a renderer with a square canvas of the view's suggested size
-		this.renderer = PIXI.autoDetectRenderer(mapWindowSize, mapWindowSize);
+		this.renderer = PIXI.autoDetectRenderer(PixiMapView.mapWindowSize, PixiMapView.mapWindowSize);
 		this.renderer.autoresize = true;
+		console.log('Created renderer: ' + this.renderer);
 
 		//	Maps tile codes to resource keys
 		this.tileMappings = ['grass-plain', 'barn-front'];
@@ -144,23 +141,9 @@ class PixiControllerClass {
 		PageView.appendToConsoleButtonClass(contextButtons);
 	}
 
-	assetsLoaded () {
-		// Check that WebGL is supported and that we've managed to use it
-		var rendererType;
-		if (PIXI.utils.isWebGLSupported() && (this.renderer instanceof PIXI.WebGLRenderer)) {
-			rendererType = 'WebGL';
-		} else { rendererType = 'Canvas'; }
-
-		console.log('Using renderer option: ' + rendererType);
-
-		PageView.appendToMainWindow(this.renderer.view);
-
-		this.showLoginControls();
-	}
-
 	//	Handles a movement
 	// 'movement-update', {'username':message['username'],'oldX':oldX, 'oldY':oldY,'pos_x':pos_x,'pos_y':pos_y}
-	static handleMovementUpdate (updateJSON) {
+	handleMovementUpdate (updateJSON) {
 		var username = updateJSON['username'];
 		// var oldX = updateJSON['old_x'];
 		// var oldY = updateJSON['old_y'];
@@ -183,25 +166,39 @@ class PixiControllerClass {
 		}
 	}
 
-	static setupPageUI () {
+	assetsLoaded () {
+		console.log(this);
+		// Check that WebGL is supported and that we've managed to use it
+		var rendererType = 'Canvas';
+		var renderer = this.renderer;
+		if (PIXI.utils.isWebGLSupported() && (renderer instanceof PIXI.WebGLRenderer)) {
+			rendererType = 'WebGL';
+		}
+		console.log('Using renderer option: ' + rendererType);
+
+		PageView.appendToMainWindow(this.renderer.view);
+
+		this.showLoginControls();
+	}
+
+	setupPixiUI () {
+		console.log('Setting up' + this);
 		PageChatView.clearMessageLog();
 		PageChatView.hidePasswordInput();
-
-		this.bindEvents(); //	Hookup message sending and other controls
 
 		// Callback for after assets have loaded (for drawing)
 		PIXI.loader.add([overworldAtlasPath,
 			zeldaObjectsAtlasPath,
-			characterAtlasPath]).load(this.assetsLoaded);
+			characterAtlasPath]).load(this.assetsLoaded.apply(this));
 	}
 
-	static stageClicked () {
+	stageClicked () {
 		var mouseEvent = this.renderer.plugins.interaction.pointer.originalEvent;
 		//	console.log(pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY));
 		setTimeout(function () { return PageController.stageDoubleClicked(mouseEvent); }, 150);
 	}
 
-	static stageDoubleClicked (mouseEvent) {
+	stageDoubleClicked (mouseEvent) {
 		if (mouseEvent.type === 'pointerdown') {
 			console.log('movement click!');
 

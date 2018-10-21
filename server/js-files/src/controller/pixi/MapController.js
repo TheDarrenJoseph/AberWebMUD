@@ -1,15 +1,19 @@
-import * as PIXI from 'libs/pixi.min-4-3-5.js';
+import * as PIXI from 'libs/pixi.min.js';
 
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PixiMapView } from 'src/view/pixi/PixiMapView.js';
 import { PositionHelper } from 'src/helper/PositionHelper.js';
 // import { SpriteHelper } from 'src/helper/pixi/SpriteHelper.js';
-import { MapModel } from 'src/model/pixi/MapModel.js';
+import { MapClass } from 'src/model/pixi/MapModel.js';
 
 class MapControllerClass {
 	constructor () {
-		PixiMapView.setupPixiContainers(MapModel.tileCount);
-		this.setupCalculateMapWindowDimensions();
+		// Setup the pixi map view so we have our window dimensions
+		PixiMapView.setupCalculateMapWindowDimensions();
+
+		this.mapModel = new MapClass(PixiMapView.mapWindowSize);
+		console.log(this.mapModel.tileCount);
+		PixiMapView.setupPixiContainers(this.mapModel.tileCount);
 	}
 
 	//	tileSpriteArray -- the grid array of sprites available to the UI
@@ -19,16 +23,16 @@ class MapControllerClass {
 		PixiMapView.mapContainer.removeChildren(); //	Clear the map display container first
 
 		//	Check there's at least enough tiles to fill our grid (square map)
-		if (MapModel.mapTiles.length >= MapModel.tileCount) {
-			var endX = startX + MapModel.tileCount;
-			var endY = startY + MapModel.tileCount;
+		if (this.mapModel.mapTiles.length >= this.mapModel.tileCount) {
+			var endX = startX + this.mapModel.tileCount;
+			var endY = startY + this.mapModel.tileCount;
 
 			console.log('MAP DRAWING| to grid from: ' + startX + ' ' + startY + ' to ' + endX + ' ' + endY);
 
 			//	Local looping to iterate over the view tiles
 			//	Oh gosh condense this please!
-			for (var x = 0; x < MapModel.tileCount; x++) {
-				for (var y = 0; y < MapModel.tileCount; y++) {
+			for (var x = 0; x < this.mapModel.tileCount; x++) {
+				for (var y = 0; y < this.mapModel.tileCount; y++) {
 					//	Accessing one of the window tiles
 					var tileSprite = PixiMapView.tileSpriteArray[x][y];
 
@@ -38,7 +42,7 @@ class MapControllerClass {
 						var globalY = globalXY[1];
 
 						if (PositionHelper.isPositionInOverworld(globalX, globalY)) {
-							var tileFromServer = MapModel.mapTiles[globalX][globalY];
+							var tileFromServer = this.mapModel.mapTiles[globalX][globalY];
 
 							if (tileSprite != null && tileFromServer != null) { //	Check the data for this tile exists
 								//	var thisSprite = PixiMapView.mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
@@ -65,8 +69,8 @@ class MapControllerClass {
 	drawMapCharacterArray () {
 		PixiMapView.characterContainer.removeChildren();
 
-		for (var x = 0; x < MapModel.tileCount; x++) {
-			for (var y = 0; y < MapModel.tileCount; y++) {
+		for (var x = 0; x < this.mapModel.tileCount; x++) {
+			for (var y = 0; y < this.mapModel.tileCount; y++) {
 				var thisCharacter = PixiMapView.mapCharacterArray[x][y];
 
 				if (thisCharacter != null && thisCharacter.sprite != null) {
@@ -100,7 +104,7 @@ class MapControllerClass {
 
 	setMapViewPosition (startX, startY) {
 		//	Checks that we have half the view out of the map maximum
-		if (startX >= MapModel.halfViewMinus && startX < MapModel.endViewX && startY >= MapModel.halfViewMinus && startY < MapModel.endViewY) {
+		if (startX >= this.mapModel.halfViewMinus && startX < this.mapModel.endViewX && startY >= this.mapModel.halfViewMinus && startY < this.mapModel.endViewY) {
 			//	Adjusting the start values for drawing the map
 			this.mapGridStartX = startX;
 			this.mapGridStartY = startY;
@@ -111,10 +115,10 @@ class MapControllerClass {
 
 	//	Moves the UI to a new position and draws the map there
 	showMapPosition (gridX, gridY) {
-		MapModel.getViewPosition(gridX, gridY);
+		this.mapModel.getViewPosition(gridX, gridY);
 
 		//	This will throw a RangeError if our position is invalid (doubles as a sanity-check)
-		this.setMapViewPosition(gridX - MapModel.halfTileCountFloored, gridY - MapModel.halfTileCountFloored);
+		this.setMapViewPosition(gridX - this.mapModel.halfTileCountFloored, gridY - this.mapModel.halfTileCountFloored);
 		console.log('Drawing map from this position: ' + gridX + ' ' + gridY);
 		//	Draw the view at this position
 		this.drawMapToGrid(gridX, gridY);
