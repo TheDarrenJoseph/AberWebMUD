@@ -1,19 +1,19 @@
-import { MapModel } from 'src/model/pixi/MapModel.js';
+import { Map } from 'src/model/pixi/Map.js';
 import { MapController } from 'src/controller/pixi/MapController.js';
 
-class PositionHelper {
+export class PositionHelper {
 	//	Check whether or not this position is a view-relative one using x/y from 0 - tileCount
 	static isPositionRelativeToView (x, y) {
-		if (x < MapModel.tileCount && x >= 0 && y < MapModel.tileCount && y >= 0) return true;
+		if (x < Map.tileCount && x >= 0 && y < Map.tileCount && y >= 0) return true;
 		return false;
 	}
 
 	//	Check whether or not a GLOBAL POSITION is within our map view window
 	static isPositionInMapView (globalX, globalY) {
-		if (globalX < (MapController.mapGridStartX + MapModel.tileCount) &&
-				globalX >= MapController.mapGridStartX &&
-				globalY < (MapController.mapGridStartY + MapModel.tileCount) &&
-				globalY >= MapController.mapGridStartY) {
+		if (globalX < (MapController.mapViewStartX + Map.tileCount) &&
+				globalX >= MapController.mapViewStartX &&
+				globalY < (MapController.mapViewStartY + Map.tileCount) &&
+				globalY >= MapController.mapViewStartY) {
 			return true;
 		} else {
 			return false;
@@ -41,8 +41,8 @@ class PositionHelper {
 			throw new RangeError('Local tile pos for conversion not relative to the map view');
 		} else {
 			//	Shift each of these positions by the starting position of our map view
-			localX += MapController.mapGridStartX;
-			localY += MapController.mapGridStartY;
+			localX += MapController.mapViewStartX;
+			localY += MapController.mapViewStartY;
 
 			//	Double check we're returning a sane overworld position
 			if (!PositionHelper.isPositionInOverworld(localX, localY)) {
@@ -56,19 +56,19 @@ class PositionHelper {
 	//	We only view the map through our view window,
 	//	This static adjusts the global position (with relative offset) to a value relative to the grid view
 	static globalTilePosToLocal (globalX, globalY) {
-		var mapGridStartX = MapController.mapGridStartX;
-		var mapGridStartY = MapController.mapGridStartY;
+		var mapViewStartX = MapController.mapViewStartX;
+		var mapViewStartY = MapController.mapViewStartY;
 
 		if (!PositionHelper.isPositionInOverworld(globalX, globalY)) {
 			throw new RangeError('Global tile pos for conversion not in the overworld');
 		} else {
-			if (globalX < mapGridStartX ||
-					globalY < mapGridStartY ||
-					globalX > mapGridStartX + MapModel.tileCount ||
-					globalY > mapGridStartY + MapModel.tileCount) {
+			if (globalX < mapViewStartX ||
+					globalY < mapViewStartY ||
+					globalX > mapViewStartX + Map.tileCount ||
+					globalY > mapViewStartY + Map.tileCount) {
 				throw new RangeError('Global tile pos for conversion not in the local view');
 			}
-			return [globalX - mapGridStartX, globalY - mapGridStartY];
+			return [globalX - mapViewStartX, globalY - mapViewStartY];
 		}
 	}
 
@@ -110,4 +110,4 @@ class PositionHelper {
 	}
 }
 
-export { PositionHelper };
+export default PositionHelper;

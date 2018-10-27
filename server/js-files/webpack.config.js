@@ -1,18 +1,18 @@
 const path = require('path');
 const TARGET = 'web';
-const MODE = 'development';
+const MODE = 'development'; // "production" | "development" | "none"
 const OUT_PATH = path.resolve(__dirname, '../static/');
 const ALIASES = {
 	libs: path.resolve(__dirname, 'libs/'),
-	src: path.resolve(__dirname, 'src/')
+	src: path.resolve(__dirname, 'src/'),
+	test: path.resolve(__dirname, 'test/')
 };
 
 const serverConfig = {
 	target: TARGET,
-	mode: MODE, // "production" | "development" | "none"
+	mode: MODE,
 	entry: './src/main.js',
 	resolve: { alias: ALIASES },
-
 	output: {
 		filename: 'main.js',
 		path: OUT_PATH
@@ -27,7 +27,7 @@ if (MODE === 'development') {
 //	In case we need a separate tests bundling
 const testsConfig = {
 	target: TARGET,
-	mode: MODE, // "production" | "development" | "none"
+	mode: MODE,
 	entry: './test/main.js',
 	resolve: { alias: ALIASES },
 	output: {

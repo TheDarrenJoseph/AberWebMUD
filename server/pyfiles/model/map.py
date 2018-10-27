@@ -8,7 +8,7 @@ MAX_SIZE_X = 100
 MAX_SIZE_Y = 100
 
 # A literal tile map model
-class MapModel:
+class Map:
     map_size_x = None
     map_size_y = None
     map_tiles = []
@@ -38,11 +38,11 @@ class MapModel:
                 self.map_tiles[x].append([])
 
                 # Create a new default tile
-                map_tile = mapTile.MapModelTile()
+                map_tile = mapTile.MapTile()
 
                 #Adding a random barrier tile for testing the map
                 if x == 5 and y == 5:
-                    map_tile = mapTile.MapModelTile(1, "dummy-1", False)
+                    map_tile = mapTile.MapTile(1, "dummy-1", False)
 
                 self.map_tiles[x][y] = map_tile
 

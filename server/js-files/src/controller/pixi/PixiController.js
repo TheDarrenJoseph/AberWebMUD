@@ -1,6 +1,6 @@
 import * as PIXI from 'libs/pixi.min.js';
 
-import { MapModel } from 'src/model/pixi/MapModel.js';
+import { Map } from 'src/model/pixi/Map.js';
 import { PageChatView } from 'src/view/page/PageChatView.js';
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 import { MapController } from 'src/controller/pixi/MapController.js';
@@ -67,14 +67,14 @@ class PixiControllerClass {
 	}
 
 	setupConsoleButton () {
-		var mapTileSize = MapModel.tileSize;
+		var mapTileSize = Map.tileSize;
 
 		var consoleButtonSprite = this.createSprite(zeldaObjectsAtlasPath,
 																						'chat-bubble-blank',
 																						mapTileSize,
 																						mapTileSize,
 																						0,
-																						MapModel.mapWindowSize - mapTileSize,
+																						Map.mapWindowSize - mapTileSize,
 																						true);
 
 		PixiMapView.controlsContainer.addChild(consoleButtonSprite);
@@ -85,10 +85,10 @@ class PixiControllerClass {
 		//	var inventoryButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 0, 16, 16);
 		var inventoryButtonSprite = this.createSprite(zeldaObjectsAtlasPath,
 		'chest-single',
-		MapModel.tileSize,
-		MapModel.tileSize * 2,
-		MapModel.mapWindowSize - (MapModel.tileSize * 2),
-		MapModel.mapWindowSize - MapModel.tileSize,
+		Map.tileSize,
+		Map.tileSize * 2,
+		Map.mapWindowSize - (Map.tileSize * 2),
+		Map.mapWindowSize - Map.tileSize,
 		true
 		);
 
@@ -96,10 +96,10 @@ class PixiControllerClass {
 
 		var statsButtonSprite = this.createSprite(zeldaObjectsAtlasPath,
 		'chest-single',
-		MapModel.tileSize,
-		MapModel.tileSize * 2,
-		MapModel.mapWindowSize - MapModel.tileSize * 4,
-		MapModel.mapWindowSize - MapModel.tileSize,
+		Map.tileSize,
+		Map.tileSize * 2,
+		Map.mapWindowSize - Map.tileSize * 4,
+		Map.mapWindowSize - Map.tileSize,
 		true
 		);
 
@@ -112,7 +112,7 @@ class PixiControllerClass {
 		var statBars = this.setupStatBars();
 		console.log(statBars);
 		statBars[0].setValue(Session.clientSession.character.health);
-		statBars[0].drawBackgroundBar(MapModel.thirdMapWindowSize, this.mapTileSize);
+		statBars[0].drawBackgroundBar(Map.thirdMapWindowSize, this.mapTileSize);
 		statBars[0].drawInnerBar();
 	}
 
@@ -130,7 +130,7 @@ class PixiControllerClass {
 
 		this.displayStatBars();
 
-		PixiMapView.tileSpriteArray = PixiMapView.setupMapUI(overworldAtlasPath, MapModel.tileCount, MapModel.tileSize);
+		PixiMapView.tileSpriteArray = PixiMapView.setupMapUI(overworldAtlasPath, Map.tileCount, Map.tileSize);
 
 		this.setupConsoleButton();
 		var contextButtons = this.setupContextButtons();

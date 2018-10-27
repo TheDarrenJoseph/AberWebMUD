@@ -4,14 +4,16 @@ import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PixiMapView } from 'src/view/pixi/PixiMapView.js';
 import { PositionHelper } from 'src/helper/PositionHelper.js';
 // import { SpriteHelper } from 'src/helper/pixi/SpriteHelper.js';
-import { MapClass } from 'src/model/pixi/MapModel.js';
+import { Map } from 'src/model/pixi/Map.js';
 
-class MapControllerClass {
+// Kind of a singleton class for now
+class MapController {
 	constructor () {
 		// Setup the pixi map view so we have our window dimensions
 		PixiMapView.setupCalculateMapWindowDimensions();
 
-		this.mapModel = new MapClass(PixiMapView.mapWindowSize);
+		// Instanciate a map model
+		this.mapModel = new Map(PixiMapView.mapWindowSize);
 		console.log(this.mapModel.tileCount);
 		PixiMapView.setupPixiContainers(this.mapModel.tileCount);
 	}
@@ -106,8 +108,8 @@ class MapControllerClass {
 		//	Checks that we have half the view out of the map maximum
 		if (startX >= this.mapModel.halfViewMinus && startX < this.mapModel.endViewX && startY >= this.mapModel.halfViewMinus && startY < this.mapModel.endViewY) {
 			//	Adjusting the start values for drawing the map
-			this.mapGridStartX = startX;
-			this.mapGridStartY = startY;
+			this.mapModel.mapViewStartX = startX;
+			this.mapModel.mapViewStartY = startY;
 		} else {
 			throw new RangeError('Position not in overworld: ' + startX + ' ' + startY);
 		}
@@ -126,5 +128,6 @@ class MapControllerClass {
 }
 
 // Create an instance we can refer to nicely (hide instanciation)
-var mapController = new MapControllerClass();
+let mapController = new MapController();
+export default mapController;
 export { mapController as MapController };

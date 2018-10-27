@@ -1,9 +1,8 @@
-export class MapClass {
+export class Map {
 	constructor (mapWindowSize) {
 		this.mapTiles = [];
 		this.mapSizeX = 0; //	Sizes of the map
 		this.mapSizeY = 0;
-		this.tileCount = null;
 		//	Some arbitrary default
 		this.tileSize = 40;
 
@@ -12,15 +11,8 @@ export class MapClass {
 		this.thisPlayer = null;
 
 		//	These are the start co-ords of our map window (tile view) to allow map scrolling
-		this.mapGridStartX = 0;
-		this.mapGridStartY = 0;
-
-		this.gridCharacter = {
-			charactername: null,
-			pos_x: null,
-			pos_y: null,
-			sprite: null
-		};
+		this.mapViewStartX = 0;
+		this.mapViewStartY = 0;
 
 		//	Get the window size from our Pixi Controller for now.
 		this.mapWindowSize = mapWindowSize;

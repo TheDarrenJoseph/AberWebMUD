@@ -2,7 +2,7 @@ from pyfiles.db import position
 from pyfiles.model import map
 from pony.orm import Required, Optional, db_session
 
-class Overworld(map.MapModel):
+class Overworld(map.Map):
     OVERWORLD_SIZE_X = 22
     OVERWORLD_SIZE_Y = 22
 

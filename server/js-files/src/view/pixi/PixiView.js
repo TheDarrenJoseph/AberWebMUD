@@ -4,7 +4,7 @@ import * as PIXI from 'libs/pixi.min.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
 import { PixiMapView } from 'src/view/pixi/PixiMapView.js';
 
-import { MapModel } from 'src/model/pixi/MapModel.js';
+import { Map } from 'src/model/pixi/Map.js';
 
 class PixiViewClass {
 	setupDialogWindow (halfMapWindowSize) {
@@ -25,7 +25,7 @@ class PixiViewClass {
 	setupStatBars (mapWindowSize, thirdMapWindowSize) {
 		let healthBarPosX = mapWindowSize - thirdMapWindowSize - 2;
 		let healthBarPosY = 0;
-		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, thirdMapWindowSize, MapModel.mapTileSize);
+		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, thirdMapWindowSize, Map.mapTileSize);
 
 		PixiMapView.controlsContainer.addChild(healthBar.backgroundBar);
 		PixiMapView.controlsContainer.addChild(healthBar.innerBar);
