@@ -31,10 +31,7 @@ if __name__ == "__main__":
 
     setup_instance(DB_HANDLER) #Run DB and data setup
 
-    #Enable engineIO Logging
-    engineio_logger = True
-
-    SOCKET_HANDLER = SocketIO(flaskHandler._APP)
+    SOCKET_HANDLER = SocketIO(flaskHandler._APP, engineio_logger=True)
     socketHandler.hookup_callbacks(SOCKET_HANDLER)
 
     DB_HANDLER.show_tables()
