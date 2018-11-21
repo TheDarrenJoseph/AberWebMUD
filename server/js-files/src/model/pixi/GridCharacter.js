@@ -1,7 +1,8 @@
-import { PositionHelper } from 'src/helper/PositionHelper.js';
+import { MapPositionHelper } from 'src/helper/MapPositionHelper\.js';
 
+// Constructor for a standardised character JSON
 function GridCharacter (charname, x, y, sprite) {
-	if (!PositionHelper.isPositionInOverworld(x, y)) throw new RangeError('Invalid position for GridCharacter! (must be valid overworld co-ord)');
+	if (!PositionHelper.isPositionInMap(x, y)) throw new RangeError('Invalid position for GridCharacter! (must be valid overworld co-ord)');
 
 	return {
 		charname: charname,

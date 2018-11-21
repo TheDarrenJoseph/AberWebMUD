@@ -1,7 +1,7 @@
 import $ from 'libs/jquery.js';
 
 // DOM view for the chat
-class PageChatView {
+export default class PageChatView {
 	static updateInputField (character) {
 		var inputField;
 		inputField = $('#message-input');
@@ -83,5 +83,3 @@ class PageChatView {
 		thisButton.click(keyUpMethod);
 	}
 }
-
-export { PageChatView };

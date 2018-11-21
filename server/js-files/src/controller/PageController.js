@@ -1,10 +1,9 @@
-import { PageChatView } from 'src/view/page/PageChatView.js';
-import { PageStatsDialogView } from 'src/view/page/PageStatsDialogView.js';
+import PageChatView from 'src/view/page/PageChatView.js';
+import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
+
 import { PageView } from 'src/view/page/PageView.js';
-import { PixiMapView } from 'src/view/pixi/PixiMapView.js';
-import { MapController } from 'src/controller/pixi/MapController.js';
 import { PixiController } from 'src/controller/pixi/PixiController.js';
-import { SessionController } from 'src/controller/SessionController.js';
+import SessionController from 'src/controller/SessionController.js';
 
 //	Hooking up to a bunch of other controllers for now
 import { Session } from 'src/model/SessionModel.js';
@@ -15,7 +14,7 @@ import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 // Static helper class
 //	Very loose controller for the Page
 //	Binding to click / key events using jQuery and controlling the overall UI elements
-class PageController {
+export default class PageController {
 	static setupPageUI () {
 		PageController.bindEvents(); //	Hookup message sending and other controls
 	}
@@ -28,6 +27,15 @@ class PageController {
 
 		if (messageInput === false) {
 			PageChatView.bindMessageButton(PageController.passwordFieldKeyupTrigger);
+		}
+	}
+
+	static handlePlayerLoginError (data) {
+		console.log(data);
+		if (data['playerExists']) {
+			PageChatView.updateMessageLog('Login failure (bad password)', 'server');
+		} else {
+			PageChatView.updateMessageLog('Login failure (player does not exist)', 'server');
 		}
 	}
 
@@ -49,25 +57,6 @@ class PageController {
 			} else {
 				PageStatsDialogView.updateStatsInfoLog('Invalid character details/update failure', 'server');
 			}
-		}
-	}
-
-	//	Continues the login process after a user inputs their character details
-	static characterDetailsConfirmed () {
-		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.clientSession);
-		//	Hide the stats window
-		PageView.hideWindow('statWindowId');
-
-		if (!PageView.UI_ENABLED) {
-			PixiController.setupUI();
-			PageController.enableUI(); //	Enables player interactions
-			MapController.showMapPosition(Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
-			//	Creates the new character to represent the player
-			PixiMapView.newCharacterOnMap(Session.clientSession.character.charname, Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
-			// And redraw
-			MapController.drawMapCharacterArray();
-
-			PageView.UI_ENABLED = true;
 		}
 	}
 
@@ -174,5 +163,3 @@ class PageController {
 		PixiController.renderStage();
 	}
 }
-
-export { PageController };

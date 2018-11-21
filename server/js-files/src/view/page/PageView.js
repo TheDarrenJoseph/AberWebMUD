@@ -1,16 +1,12 @@
 import $ from 'libs/jquery.js';
 
-import { PageChatView } from 'src/view/page/PageChatView.js';
-import { PageStatsDialogView } from 'src/view/page/PageStatsDialogView.js';
-import { SessionController } from 'src/controller/SessionController.js';
-
 // Class ID mappings
 var htmlWindows = { messageWindowId: '#message-window', statWindowId: '#stat-window', inventoryWindowId: '#inventory-window' };
 
 export var UI_ENABLED = false;
 
 //	General UI Page View
-class PageView {
+export class PageView {
 	static showWindow (dialog) {
 		$(htmlWindows[dialog]).show();
 	}
@@ -59,22 +55,6 @@ class PageView {
 		PageView.toggleWindow('messageWindowId');
 	}
 
-	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
-	static handlePlayerLogin (data) {
-		//	console.log(data);
-		SessionController.updateClientSessionData(data);
-		PageStatsDialogView.checkCharacterDetails(); //	Check/Prompt for character details
-	}
-
-	static handlePlayerLoginError (data) {
-		console.log(data);
-		if (data['playerExists']) {
-			PageChatView.updateMessageLog('Login failure (bad password)', 'server');
-		} else {
-			PageChatView.updateMessageLog('Login failure (player does not exist)', 'server');
-		}
-	}
-
 	static appendToConsoleButtonClass (contextButtons) {
 		$('#console-button').append(contextButtons);
 	}
@@ -82,6 +62,15 @@ class PageView {
 	static appendToMainWindow (content) {
 		$('#main-window').append(content);
 	}
-}
 
-export { PageView };
+	static getWindowDimensions () {
+		// Set our mapWindowSize to the smallest of our page dimensions
+		// Using the smallest dimension to get a square
+		// Then use 90% of this value to leave some space
+		if (window.innerHeight < window.innerWidth) {
+			return window.innerHeight;
+		} else {
+			return window.innerWidth;
+		}
+	}
+}

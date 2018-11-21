@@ -1,24 +1,21 @@
+// Helper class for creating PixiJS sprites
 import * as PIXI from 'libs/pixi.min.js';
+import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 
-class SpriteHelper {
+export default class SpriteHelper {
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
 	static makeSpriteFromAtlas (tileAtlasPath, subtileName, tileSize) {
-		var atlasTexture = PIXI.loader.resources[tileAtlasPath];
+		// Load the named subtile from the given atlas
+		var spriteTexture = AtlasHelper.getAtlasSubtexture(tileAtlasPath, subtileName);
 
 		//	Check the texture
-		if (atlasTexture != null) {
-			var subTexture = atlasTexture.textures[subtileName];
-
-			if (subTexture != null) {
-				var thisSprite = new PIXI.Sprite(subTexture);
-				thisSprite.height = tileSize;
-				thisSprite.width = tileSize;
-				return thisSprite;
-			} else {
-				console.log('No tile atlas subtile (not in tile atlas JSON?): ' + subtileName);
-			}
+		if (spriteTexture != null) {
+			let thisSprite = new PIXI.Sprite(spriteTexture);
+			thisSprite.height = tileSize;
+			thisSprite.width = tileSize;
+			return thisSprite;
 		} else {
-			console.log('Error loading tile atlas (not known to loader?): ' + tileAtlasPath);
+			console.log('Could not create sprite from atlas with given parameters: ' + tileAtlasPath + ':' + subtileName + ':' + tileSize);
 		}
 
 		return null;
@@ -47,7 +44,7 @@ class SpriteHelper {
 	// 	console.log('X: '+new_x_global);
 	// 	console.log('Y: '+new_y_global);
 	//
-	// 	if (isPositionInOverworld(old_x_global, old_y_global) && isPositionInOverworld(new_x_global, new_y_global)) {
+	// 	if (isPositionInMap(old_x_global, old_y_global) && isPositionInMap(new_x_global, new_y_global)) {
 	// 		//Have they only moved within the screen?
 	// 		if (isPositionInMapView(old_x_global, old_y_global)) {
 	// 			//Moves the sprite to the new position
@@ -70,5 +67,3 @@ class SpriteHelper {
 	// 	}
 	// }
 }
-
-export { SpriteHelper };

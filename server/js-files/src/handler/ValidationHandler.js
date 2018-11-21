@@ -1,5 +1,5 @@
 //	Static helper class
-class ValidationHandler {
+export default class ValidationHandler {
 	//	Checks for the presence of data for each of the movement update fields
 	static isValidMovementUpdateData (updateJSON) {
 		var username = updateJSON['username'];
@@ -24,5 +24,3 @@ class ValidationHandler {
 		}
 	}
 }
-
-export { ValidationHandler };
