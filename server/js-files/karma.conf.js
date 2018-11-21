@@ -56,7 +56,7 @@ module.exports = function (config) {
 		browsers: ['Firefox'],
 		// Continuous Integration mode
 		// if true, Karma captures browsers, runs the tests and exits
-		singleRun: false,
+		singleRun: true,
 		// Let the browser die if it gets killed / crashes
 		retryLimit: 0,
 		// Concurrency level
