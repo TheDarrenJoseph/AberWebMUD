@@ -34,15 +34,23 @@ The frontend is build using Webpack, you will need it/npm installed to build it
 
 ### Frontend
 
+To build both client and test code:
 1. Change terminal directory to `server/js-files`
 2. run `npm run build` 
 
+Testing:
+* If you've already built the client and test code, you can then run the JS tests with 'npx karma start' to test what parts of the client have been covered.
+* Otherwise you can just use `npm test` to build and run just the test code (and any included/tested client code)
 
-## Running the project
+Output:
+Webpack will create:
+* static/main.js -- Main Client code bundle (served up as part of the main application webpage from Flask)
+* static/tests.js -- Test Code, currently just ran using.
+* *.js.map files  -- Source Maps for the client/test code to facilitate debugging in-browser.
+
+## Backend / Running the server
 1. You first need to satisfy python's dependencies, run 'sudo pip install -r requirements.txt' in the AberWebMUD/root folder
 2. Change your terminal directory to the server folder
-3. ~~(Optional) JavaScript files are concatted into the client.js file, run build.sh in the scripts folder (there's a good chance this has already been done before a Git
-commit)~~
 5. Run main.py in Python
 6. visit 'localhost:5000' in a browser
 

@@ -1,13 +1,15 @@
 // Main Controller class for delegating to other controllers
 // aka the Controller Controller
 
+// Default imports
 import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
 import SessionController from 'src/controller/SessionController.js';
+import PageController from 'src/controller/PageController.js';
 
+// Named imports
 import { MapController } from 'src/controller/MapController.js';
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 import { PixiController } from 'src/controller/pixi/PixiController.js';
-import { PageController } from 'src/controller/PageController.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { Session } from 'src/model/SessionModel.js';
 
