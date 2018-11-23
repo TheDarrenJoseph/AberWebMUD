@@ -15,7 +15,7 @@ import { Session } from 'src/model/SessionModel.js';
 
 class GameControllerClass {
 	constructor () {
-		this.mapController = new MapController(this.pixiView.getRenderer());
+		this.mapController = new MapController(PixiController.pixiView.getRenderer());
 	}
 
 	//  Sets up client elements, hooks up callbacks to enable event-driven reponses, then asks the server for a map update

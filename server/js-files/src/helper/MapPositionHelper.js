@@ -13,22 +13,18 @@ export class MapPositionHelper {
 	localTilePosToGlobal (localX, localY) {
 		//	Ensure these are view tile co-ordinates
 		if (this.pixiMapView.isPositionRelativeToView(localX, localY)) {
-			console.log('MapViewStartX: '+this.pixiMapView.mapViewStartX);
-			console.log('MapViewStartY: '+this.pixiMapView.mapViewStartY);
-
 			//	Shift each of these positions by the starting position of our map view
 			let shiftedLocalX = localX + this.pixiMapView.mapViewStartX;
-			let shiftedLocalY = localY + this.pixiMapView.MapViewStartY;
+			let shiftedLocalY = localY + this.pixiMapView.mapViewStartY;
 
 			//	Double check we're returning a sane global map position
 			if (this.pixiMapView.mapModel.isPositionInMap(localX, localY)) {
 				return [shiftedLocalX, shiftedLocalY];
 			} else {
-				console.log(localX + ' ' + localY + ' to global conversion failed against: ' + this.pixiMapView.mapSizes);
-				throw new RangeError('Local tile pos for conversion plus offset, not in the global map: ' + ': ' + localX + ',' + localY);
+				throw new RangeError('Local tile pos converted: ' + shiftedLocalX + ',' + shiftedLocalY + ' not in the global map, local:' + ': ' + localX + ',' + localY);
 			}
 		} else {
-			throw new RangeError('Local tile pos for conversion not relative to the map view' + ': ' + localX + ',' + localY);
+			throw new RangeError('Local tile pos not in the the map view, cannot convert, local: ' + ': ' + localX + ',' + localY);
 		}
 	}
 

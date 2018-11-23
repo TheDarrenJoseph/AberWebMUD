@@ -46,9 +46,9 @@ export default class SpriteHelper {
 	//
 	// 	if (isPositionInMap(old_x_global, old_y_global) && isPositionInMap(new_x_global, new_y_global)) {
 	// 		//Have they only moved within the screen?
-	// 		if (isPositionInMapView(old_x_global, old_y_global)) {
+	// 		if (isGlobalPositionInMapView(old_x_global, old_y_global)) {
 	// 			//Moves the sprite to the new position
-	// 			if (isPositionInMapView(new_x_global, new_y_global)) {
+	// 			if (isGlobalPositionInMapView(new_x_global, new_y_global)) {
 	// 				//var localNewPos = globalTilePosToLocal(new_x_global, new_y_global);
 	// 				console.log('Moving '+charname+'!');
 	//
@@ -60,7 +60,7 @@ export default class SpriteHelper {
 	//
 	//       deleteMapCharacter(old_x_global,old_y_global); //Delete the old sprite
 	//
-	// 		} else if (isPositionInMapView(new_x_global, new_y_global)) { //Moved into screen from
+	// 		} else if (isGlobalPositionInMapView(new_x_global, new_y_global)) { //Moved into screen from
 	// 			newCharacterOnMap (charname, new_x_global, new_y_global); //Create a sprite to show them!
 	// 			console.log(charname+' has walked into view!');
 	// 		}
