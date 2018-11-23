@@ -4,12 +4,12 @@
 export var DEFAULT_MAP_SIZE_XY = 20;
 
 export default class Map {
-	constructor () {
+	constructor (tileCount = DEFAULT_MAP_SIZE_XY) {
 		this.mapTiles = [];
 
 		//	Sizes of the map
-		this.mapSizeX = DEFAULT_MAP_SIZE_XY;
-		this.mapSizeY = DEFAULT_MAP_SIZE_XY;
+		this.mapSizeX = tileCount;
+		this.mapSizeY = tileCount;
 
 		console.log(this);
 	}
