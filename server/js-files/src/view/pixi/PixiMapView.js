@@ -33,8 +33,8 @@ export default class PixiMapView {
 		this.mapViewEndX = this.mapViewStartX + this.zeroIndexedTileCount;
 		this.mapViewEndY = this.mapViewStartY + this.zeroIndexedTileCount;
 
-		this.halfTileCountFloored = Math.floor(this.tileCount / 2);
-		this.halfTileCountCeiled = Math.ceil(this.tileCount / 2);
+		this.halfZeroIndexedTileCountFloored = Math.floor(this.zeroIndexedTileCount / 2);
+		this.halfZeroIndexedTileCountCeiled = Math.ceil(this.zeroIndexedTileCount / 2);
 
 		// Map Window Size based on fittable tiles
 		this.mapWindowSize = (this.tileCount * this.tileSize);
@@ -43,15 +43,15 @@ export default class PixiMapView {
 		// Lowest valid map start position is minus half of the map
 		// This allows an edge of the map to be in the middle of the screen
 		// The lower bound should always round down, and the upper round up
-		this.lowestViewPosition = -this.halfTileCountFloored;
-		this.highestViewPosition = this.tileCount - this.halfTileCountCeiled;
+		this.lowestViewPosition = -this.halfZeroIndexedTileCountFloored;
+		this.highestViewPosition = this.zeroIndexedTileCount - this.halfZeroIndexedTileCountCeiled;
 
 		// Allow half under/overhang of the map viewing window
 		this.mapViewMinPosition = [this.lowestViewPosition, this.lowestViewPosition];
 		this.mapViewMaxPosition = [this.highestViewPosition, this.highestViewPosition];
 
 		// For quick debugging
-		console.log(this);
+		// console.log(this);
 	}
 
 	setupPixiContainers (tileCount) {
@@ -270,12 +270,12 @@ export default class PixiMapView {
 	getHighestInMapPosition () {
 		let largestX = this.tileCount - 1;
 		if (this.mapViewStartX > 0) {
-			largestX = this.tileCount - this.mapViewStartX;
+			largestX = this.zeroIndexedTileCount - this.mapViewStartX;
 		}
 
 		let largestY = this.tileCount - 1;
 		if (this.mapViewStartY > 0) {
-			largestY = this.tileCount - this.mapViewStartY;
+			largestY = this.zeroIndexedTileCount - this.mapViewStartY;
 		}
 
 		return [largestX, largestY];
@@ -299,6 +299,11 @@ export default class PixiMapView {
 		this.mapViewStartY = startY;
 	}
 
+	// Get the number of tiles used squared for the view window
+	getTilecount () {
+		return this.tileCount;
+	}
+
 	// Starting co-ords of the map window
 	getMapViewStartPosition () {
 		return [this.mapViewStartX, this.mapViewStartY];
@@ -313,6 +318,6 @@ export default class PixiMapView {
 	}
 
 	getViewPosition (gridX, gridY) {
-		return [gridX - this.halfTileCountFloored, gridY - this.halfTileCountFloored];
+		return [gridX - this.halfZeroIndexedTileCountFloored, gridY - this.halfZeroIndexedTileCountFloored];
 	}
 }

@@ -17,12 +17,18 @@ export class MapController {
 	// Create a map controller for a specific map view
 	// renderer - the renderer from the main pixi view
 	// windowSize - the window size to use in pixels
-	constructor (renderer) {
+	constructor (renderer, map = new Map(), pixiMapView = null) {
 		// Setup the pixi map view so we have our window dimensions
 		this.windowSize = PageView.getWindowDimensions();
 
-		this.mapModel = new Map();
-		this.pixiMapView = new PixiMapView(this.mapModel, PixiController.getTileMappings(), renderer, PixiController.getOverworldAtlasPath(), this.windowSize);
+		console.log("Chose mapModel for MapController: "+map.getMapSizes());
+
+		this.mapModel = map;
+		if (pixiMapView === null) {
+			this.pixiMapView = new PixiMapView(this.mapModel, PixiController.getTileMappings(), renderer, PixiController.getOverworldAtlasPath(), this.windowSize);
+		} else {
+			this.pixiMapView = pixiMapView;
+		}
 		console.log('Setup Map Window Size: ' + this.windowSize);
 		console.log('Map View Tilecount: ' + this.pixiMapView.tileCount);
 		this.pixiMapView.setupPixiContainers(this.pixiMapView.tileCount);
@@ -68,7 +74,7 @@ export class MapController {
 		this.mapModel.getViewPosition(gridX, gridY);
 
 		//	This will throw a RangeError if our position is invalid (doubles as a sanity-check)
-		this.setMapViewPosition(gridX - this.mapModel.halfTileCountFloored, gridY - this.mapModel.halfTileCountFloored);
+		this.setMapViewPosition(gridX - this.mapModel.halfZeroIndexedTileCountFloored, gridY - this.mapModel.halfZeroIndexedTileCountFloored);
 		console.log('Drawing map from this position: ' + gridX + ' ' + gridY);
 		//	Draw the view at this position
 		PixiMapView.drawMapToGrid(gridX, gridY);

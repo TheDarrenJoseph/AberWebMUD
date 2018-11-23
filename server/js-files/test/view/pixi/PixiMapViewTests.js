@@ -29,6 +29,17 @@ function beforeEachTest (assert) {
 // Hookup before each test setup / assertion
 QUnit.module('pixiMapViewTests', { before: beforeAll, beforeEach: beforeEachTest })
 
+// Ensure the pixi map view data builds as we expect it to
+QUnit.test(
+TEST_TAG + 'new-pixi-map-view', function (assert) {
+	let testPixiMapView = new PixiMapView(new Map(20), null, PixiController.pixiView.getRenderer(), null, DEFAULT_TILE_SIZE * 20);
+	assert.deepEqual(testPixiMapView.tileCount, 20, 'Check mapview tilecount');
+	assert.deepEqual(testPixiMapView.zeroIndexedTileCount, 19, 'Check mapview zero-indexed tilecount.');
+	assert.deepEqual(testPixiMapView.halfZeroIndexedTileCountFloored, 9, 'Check mapview half-tilecount floored.');
+	assert.deepEqual(testPixiMapView.halfZeroIndexedTileCountCeiled, 10, 'Check mapview half-tilecount ceiled.');
+}
+);
+
 // Checking the lowest local position that's in the map mapModel
 // Our view can over/underhang the actual map tiles
 // This helps to find the starting range of the real map tiles for validation
@@ -125,10 +136,10 @@ QUnit.test(
 		pixiMapView.setMapViewPosition(9, 0);
 		highestPos = pixiMapView.getHighestInMapPosition();
 		// Tile count 20 - starting y of 9 = 11
-		assert.deepEqual(highestPos, [11, 19], '(Overhanging X Floored) Checking highest possible in-map mapview pos.');
+		assert.deepEqual(highestPos, [10, 19], '(Overhanging X Floored) Checking highest possible in-map mapview pos.');
 
 		// 3.2 Set x view pos half overhanging (Ceiled)
-		pixiMapView.setMapViewPosition(10, 0);
+		pixiMapView.setMapViewPosition(9, 0);
 		highestPos = pixiMapView.getHighestInMapPosition();
 		assert.deepEqual(highestPos, [10, 19], '(Overhanging X Ceiled) Checking highest possible in-map mapview pos.');
 
@@ -146,11 +157,13 @@ QUnit.test(
 		pixiMapView.setMapViewPosition(0, 9);
 		highestPos = pixiMapView.getHighestInMapPosition();
 		// Tile count 20 - starting y of 9 = 11
-		assert.deepEqual(highestPos, [19, 11], '(Overhanging Y Floored) Checking highest possible in-map mapview pos.');
+		assert.deepEqual(highestPos, [19, 10], '(Overhanging Y Floored) Checking highest possible in-map mapview pos.');
 
 		// 5.1 Set y view pos half overhanging (Ceiled)
+		// Position 10 (11) is inclusive and will leave 9 tiles afterwards
+		// So max is 10 tiles - 1 to zero index == 9
 		pixiMapView.setMapViewPosition(0, 10);
 		highestPos = pixiMapView.getHighestInMapPosition();
-		assert.deepEqual(highestPos, [19, 10], '(Overhanging Y Ceiled) Checking highest possible in-map mapview pos.');
+		assert.deepEqual(highestPos, [19, 9], '(Overhanging Y Ceiled) Checking highest possible in-map mapview pos.');
 	}
 	);

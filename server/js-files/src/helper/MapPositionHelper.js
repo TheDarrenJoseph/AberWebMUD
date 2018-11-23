@@ -3,6 +3,24 @@
 export var POS_TILE_TO_PIXI_INVALID_TILE_ERROR = 'Tile-to-Pixi conversion, tile position invalid!';
 export var POS_TILE_TO_PIXI_INVALID_PIXI_ERROR = 'Tile-to-Pixi conversion, pixi position invalid!';
 
+// A slightly crappy way of building checkable exception messages for now
+export var POS_LOCAL_TO_GLOBAL_LOCAL_INVALID_START = 'Local tile pos not in the local map view. local: ';
+export function POS_LOCAL_TO_GLOBAL_LOCAL_INVALID (localX, localY) {
+	return new RangeError(POS_LOCAL_TO_GLOBAL_LOCAL_INVALID_START + 'local: ' + ': ' + localX + ',' + localY);
+}
+export var POS_LOCAL_TO_GLOBAL_CONVERTED_INVALID_START = 'Local tile pos converted not in the global map. converted: ';
+export function POS_LOCAL_TO_GLOBAL_CONVERTED_INVALID (shiftedLocalX, shiftedLocalY, localX, localY) {
+	return new RangeError(POS_LOCAL_TO_GLOBAL_CONVERTED_INVALID_START + shiftedLocalX + ',' + shiftedLocalY + ' local: ' + ': ' + localX + ',' + localY);
+}
+export var POS_GLOBAL_TO_LOCAL_NOT_IN_MAP_START = 'Global tile pos for conversion not in the global map:';
+export function POS_GLOBAL_TO_LOCAL_NOT_IN_MAP (globalX, globalY) {
+	throw new RangeError(POS_GLOBAL_TO_LOCAL_NOT_IN_MAP_START + ': ' + globalX + ',' + globalY);
+}
+export var POS_GLOBAL_TO_LOCAL_NOT_IN_VIEW_START = 'Global tile pos for conversion not in the map view:';
+export function POS_GLOBAL_TO_LOCAL_NOT_IN_VIEW (globalX, globalY) {
+	throw new RangeError(POS_GLOBAL_TO_LOCAL_NOT_IN_VIEW_START + ': ' + globalX + ',' + globalY);
+}
+
 export class MapPositionHelper {
 	constructor (pixiMapView) {
 		this.pixiMapView = pixiMapView;
@@ -21,10 +39,10 @@ export class MapPositionHelper {
 			if (this.pixiMapView.mapModel.isPositionInMap(localX, localY)) {
 				return [shiftedLocalX, shiftedLocalY];
 			} else {
-				throw new RangeError('Local tile pos converted: ' + shiftedLocalX + ',' + shiftedLocalY + ' not in the global map, local:' + ': ' + localX + ',' + localY);
+				throw POS_LOCAL_TO_GLOBAL_CONVERTED_INVALID(shiftedLocalX, shiftedLocalY, localX, localY);
 			}
 		} else {
-			throw new RangeError('Local tile pos not in the the map view, cannot convert, local: ' + ': ' + localX + ',' + localY);
+			throw POS_LOCAL_TO_GLOBAL_LOCAL_INVALID(localX, localY);
 		}
 	}
 
@@ -35,13 +53,10 @@ export class MapPositionHelper {
 		var mapViewStartY = this.pixiMapView.mapViewStartY;
 
 		if (!this.pixiMapView.mapModel.isPositionInMap(globalX, globalY)) {
-			throw new RangeError('Global tile pos for conversion not in the global map: ' + ': ' + globalX + ',' + globalY);
+			throw POS_GLOBAL_TO_LOCAL_NOT_IN_MAP(globalX, globalY);
 		} else {
-			if (globalX < mapViewStartX ||
-					globalY < mapViewStartY ||
-					globalX > mapViewStartX + this.pixiMapView.tileCount ||
-					globalY > mapViewStartY + this.pixiMapView.tileCount) {
-				throw new RangeError('Global tile pos for conversion not in the local view: ' + ': ' + globalX + ',' + globalY);
+			if (!this.pixiMapView.isGlobalPositionInMapView(globalX, globalY)) {
+				throw POS_GLOBAL_TO_LOCAL_NOT_IN_VIEW(globalX, globalY);
 			}
 			return [globalX - mapViewStartX, globalY - mapViewStartY];
 		}

@@ -8,7 +8,7 @@ var MAPCONTROLLER_TEST_TAG = '|MAP CONTROLLER|';
 let pixiView = new PixiView();
 let mapController = new MapController(pixiView);
 
-// Valid map view range is ( -halfTileCountFloored to halfTileCountFloored )
+// Valid map view range is ( -halfZeroIndexedTileCountFloored to halfZeroIndexedTileCountFloored )
 QUnit.test(MAPCONTROLLER_TEST_TAG + 'set-map-view-position-valid', function (assert) {
 	// 1.	Smallest global position valid
 	mapController.setMapViewPosition(0, 0);
@@ -17,7 +17,7 @@ QUnit.test(MAPCONTROLLER_TEST_TAG + 'set-map-view-position-valid', function (ass
 	assert.equal(startPositions[1], 0, 'Map view start y should be 0');
 
 	// 2.	Smallest relative position negative 1/2 window tilecount
-	let lowestRange = -mapController.pixiMapView.halfTileCountFloored;
+	let lowestRange = -mapController.pixiMapView.halfZeroIndexedTileCountFloored;
 	console.log('Lowest map view overhang co-ords: ' + lowestRange + ',' + lowestRange);
 	mapController.setMapViewPosition(lowestRange, lowestRange);
 	startPositions = mapController.getPixiMapView().getMapViewStartPosition();
@@ -26,8 +26,8 @@ QUnit.test(MAPCONTROLLER_TEST_TAG + 'set-map-view-position-valid', function (ass
 
 	// 3. Should be able to move the start of the view
 	// to be 1/2 window tilecount away from the end of map
-	let halfOverhangingX = mapController.getMap().mapSizeX - mapController.getPixiMapView().halfTileCountFloored;
-	let halfOverhangingY = mapController.getMap().mapSizeY - mapController.getPixiMapView().halfTileCountFloored;
+	let halfOverhangingX = mapController.getMap().mapSizeX - mapController.getPixiMapView().halfZeroIndexedTileCountFloored;
+	let halfOverhangingY = mapController.getMap().mapSizeY - mapController.getPixiMapView().halfZeroIndexedTileCountFloored;
 	console.log('End of map view overhang co-ords: ' + halfOverhangingX + ',' + halfOverhangingY);
 
 	mapController.setMapViewPosition(halfOverhangingX, halfOverhangingY);
@@ -39,10 +39,10 @@ QUnit.test(MAPCONTROLLER_TEST_TAG + 'set-map-view-position-valid', function (ass
 
 // Check we throw the expected range error for any invalid positions
 QUnit.test(MAPCONTROLLER_TEST_TAG + 'set-map-view-position-invalid', function (assert) {
-	var justUnderRange = -mapController.getPixiMapView().halfTileCountFloored - 1;
-	var lowestRange = -mapController.getPixiMapView().halfTileCountFloored;
+	var justUnderRange = -mapController.getPixiMapView().halfZeroIndexedTileCountFloored - 1;
+	var lowestRange = -mapController.getPixiMapView().halfZeroIndexedTileCountFloored;
 
-	//	Independant x under range (Map view should allow halfTileCountFloored offset)
+	//	Independant x under range (Map view should allow halfZeroIndexedTileCountFloored offset)
 	testPositionRangeError(assert, mapController.setMapViewPosition, mapController, justUnderRange, lowestRange, POS_NOT_VALID_MAP_VIEW_ERROR);
 	//	Independant y under range
 	testPositionRangeError(assert, mapController.setMapViewPosition, mapController, lowestRange, justUnderRange, POS_NOT_VALID_MAP_VIEW_ERROR);

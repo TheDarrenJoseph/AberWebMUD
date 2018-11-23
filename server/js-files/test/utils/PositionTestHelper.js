@@ -9,7 +9,7 @@ export function testPositionRangeError (assert, func, context, x, y, messageStar
 	} catch (err) {
 		assert.ok(err instanceof RangeError, 'Checking error: (' + err + ') is a RangeError');
 		passed = err instanceof RangeError && err.message.startsWith(messageStartsWith);
-		message = 'Checking position ' + x + ',' + y + ' throws error message starting with: ' + messageStartsWith;
+		message = 'Checking position ' + x + ',' + y + '\n throws error message starting with: \'' + messageStartsWith + '\'\n Original Error message: \'' + err.message + '\'';
 	}
 
 	// Ensure our catch assertion was performed, passing the message if a failed
