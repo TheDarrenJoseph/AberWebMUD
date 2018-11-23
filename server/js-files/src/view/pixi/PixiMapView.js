@@ -9,7 +9,6 @@ export var DEFAULT_TILE_SIZE = 40;
 
 export default class PixiMapView {
 	constructor (mapModel, tileMappings, renderer, overworldAtlasPath, windowSize) {
-
 		// For map model position validations
 		this.mapModel = mapModel;
 
@@ -21,13 +20,18 @@ export default class PixiMapView {
 
 		// tileCount is the number of tiles we can fit into this square area
 		this.tileCount = this.getFittableTiles(windowSize, this.tileSize);
+		// This allows us to use tilecount as an offset / position later on
+		this.zeroIndexedTileCount = this.tileCount - 1;
 
 		//	These are the start/end integer co-ords of our map window (tile view)
+		// These correspond to global map positions
 		this.mapViewStartX = 0;
 		this.mapViewStartY = 0;
+
+		// Global ending position of the map view
 		// Remove 1 from tileCount for zero indexing
-		this.mapViewEndX = this.mapViewStartX + (this.tileCount - 1);
-		this.mapViewEndY = this.mapViewStartY + (this.tileCount - 1);
+		this.mapViewEndX = this.mapViewStartX + this.zeroIndexedTileCount;
+		this.mapViewEndY = this.mapViewStartY + this.zeroIndexedTileCount;
 
 		this.halfTileCountFloored = Math.floor(this.tileCount / 2);
 		this.halfTileCountCeiled = Math.ceil(this.tileCount / 2);
@@ -228,8 +232,20 @@ export default class PixiMapView {
 						startY <= this.highestViewPosition);
 	}
 
+	//	Checks to see if a local (view-based) tile pos is in the map
+	isLocalPositionInMap (localX, localY) {
+		let positionInStartingRange = localX >= this.mapViewStartX && localX >= this.mapViewStartY;
+
+		// Calculate the end of the contained map
+		let mapEndingX = this.mapViewStartX + this.mapModel.mapSizeX;
+		let mapEndingY = this.mapViewStartY + this.mapModel.mapSizeY;
+		let positionInEndingRange = localX <= mapEndingX && localX <= mapEndingY;
+
+		return (positionInStartingRange && positionInEndingRange);
+	}
+
 	//	Check whether or not a GLOBAL POSITION is within our map view window
-	isPositionInMapView (globalX, globalY) {
+	isGlobalPositionInMapView (globalX, globalY) {
 		if (globalX < (this.mapViewStartX + this.tileCount) &&
 				globalX >= this.mapViewStartX &&
 				globalY < (this.mapViewStartY + this.tileCount) &&
@@ -240,11 +256,36 @@ export default class PixiMapView {
 		}
 	}
 
+	// Returns the smallest valid local view position that's on a map tile
+	getLowestInMapPosition () {
+		// We only need to adjust these values if the view is underhanging
+		let lowestX = (this.mapViewStartX < 0) ? Math.abs(this.mapViewStartX) : 0;
+		let lowestY = (this.mapViewStartY < 0) ? Math.abs(this.mapViewStartY) : 0;
+
+		// Use abs to bump up any negatives to be the start of the map
+		return [lowestX, lowestY];
+	}
+
+	// Returns the largest valid local view position (that's in the map model)
+	getHighestInMapPosition () {
+		let largestX = this.tileCount - 1;
+		if (this.mapViewStartX > 0) {
+			largestX = this.tileCount - this.mapViewStartX;
+		}
+
+		let largestY = this.tileCount - 1;
+		if (this.mapViewStartY > 0) {
+			largestY = this.tileCount - this.mapViewStartY;
+		}
+
+		return [largestX, largestY];
+	}
+
 	getFittableTiles (windowSize, tileSize) {
 		// Rounding down (floor) to get a valid tile count on odd.
 		let fittableTiles = Math.floor(windowSize / tileSize);
-		// Ensure tileCount is even
-		if (fittableTiles % 2 === 0) {
+		// Ensure tileCount is even to allow nice halving.
+		if (fittableTiles % 3 === 0) {
 			fittableTiles--;
 		}
 
