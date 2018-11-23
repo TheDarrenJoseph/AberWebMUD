@@ -1,7 +1,5 @@
 import $ from 'libs/jquery.js';
-
 import { PageView } from 'src/view/page/PageView.js';
-import { SessionController } from 'src/controller/SessionController.js';
 
 //	2 arrays of the same length to allow looping for creating each line of the table
 var attributeNames = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
@@ -13,7 +11,7 @@ var _SAVE_STATS_BUTTON_CLASS_SELECTOR = '#save-stats-button';
 var _STATS_INFO_FIELD_CLASS_SELECTOR = '#stats-info';
 
 // DOM View for the stats dialog window
-class PageStatsDialogView {
+export default class PageStatsDialogView {
 	// And in the darkness bind them
 	static bindSaveCharacterDetails (callback) {
 		$(_SAVE_STATS_BUTTON_CLASS_SELECTOR).click(callback);
@@ -149,16 +147,6 @@ class PageStatsDialogView {
 		PageStatsDialogView.updateStatsInfoLog('You need to set your character details.', 'client');
 	}
 
-	//	Checks that the player's character details are set
-	//	and asks them to set them if false
-	static checkCharacterDetails () {
-		if (!SessionController.characterDetailsExist()) {
-			PageStatsDialogView.requestCharacterDetails();
-		} else {
-			PageView.characterDetailsConfirmed();
-		}
-	}
-
 	static getStatsCharacterName () {
 		return $('#char-name-input').val();
 	}
@@ -233,5 +221,3 @@ class PageStatsDialogView {
 		PageStatsDialogView.setStatsAttributeValues(attrValuesJSON);
 	}
 }
-
-export { PageStatsDialogView };

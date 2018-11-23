@@ -1,6 +1,5 @@
 const path = require('path');
 const TARGET = 'web';
-const MODE = 'development'; // "production" | "development" | "none"
 const OUT_PATH = path.resolve(__dirname, '../static/');
 const ALIASES = {
 	libs: path.resolve(__dirname, 'libs/'),
@@ -8,23 +7,30 @@ const ALIASES = {
 	test: path.resolve(__dirname, 'test/')
 };
 
-const serverConfig = {
+//	In case we need a separate tests bundling
+const testsConfig = {
 	target: TARGET,
-	mode: MODE,
-	entry: './src/main.js',
+	mode: 'development',
+	devtool: 'source-map',
+	entry: './test/main.js',
 	resolve: { alias: ALIASES },
 	output: {
-		filename: 'main.js',
+		filename: 'tests.js',
 		path: OUT_PATH
+	},
+	module: {
+		rules: [
+			{
+				// Use the source map loader for all JS files to bundle them in
+			//	test: /\.js$/,
+			//	use: [ 'source-map-loader' ],
+			//	enforce: 'pre'
+			}
+		]
 	}
 };
 
-// Enable development source mapping
-if (MODE === 'development') {
-	serverConfig.devtool = 'cheap-module-source-map';
-}
-
 //	Node.js exports, intereted by Webpack
 module.exports = [
-	serverConfig
+	testsConfig
 ];

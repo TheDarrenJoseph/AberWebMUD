@@ -1,7 +1,7 @@
 import { SESSION_ID_COOKIE_NAME, Session } from 'src/model/SessionModel.js';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 
-class SessionController {
+export default class SessionController {
 	static saveSessionIdCookie (sessionId) {
 		console.log('Saving sessionId ' + sessionId + ' to cookie');
 		document.cookie = SESSION_ID_COOKIE_NAME + '=' + sessionId + ';';
@@ -28,10 +28,22 @@ class SessionController {
 		return true;
 	};
 
+	static getClientSessionUsername () {
+		return Session.clientSession.username;
+	}
+
+	static getClientSessionId () {
+		return Session.clientSession.sessionId;
+	}
+
+	static getClientSessionCharacter () {
+		return Session.clientSession.character;
+	}
+
 	//	Extracts the session data  (username and session ID) into a JSON object
 	static getSessionInfoJSON () {
-		var username = Session.clientSession.username;
-		var sessionId = Session.clientSession.sessionId;
+		var username = SessionController.getClientSessionUsername();
+		var sessionId = SessionController.getClientSessionId();
 
 		return {sessionId: sessionId, username: username};
 	};
@@ -40,25 +52,27 @@ class SessionController {
 	//	{"charname":"roo","pos_x":10,"pos_y":10,"health":100,"charclass":"fighter","free_points":5,"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}
 	static updateCharacterDetails (data) {
 		console.log(data);
-		Session.clientSession.character.charname = data['charname'];
-		Session.clientSession.character.class = data['charclass'];
-		Session.clientSession.character.pos_x = data['pos_x'];
-		Session.clientSession.character.pos_y = data['pos_y'];
-		Session.clientSession.character.class = data['charclass'];
-		Session.clientSession.character.health = data['health'];
-		Session.clientSession.character.free_points = data['free_points'];
+		let character = SessionController.getClientSessionCharacter();
 
-		Session.clientSession.character.attributes.str = data['STR'];
-		Session.clientSession.character.attributes.dex = data['DEX'];
-		Session.clientSession.character.attributes.con = data['CON'];
-		Session.clientSession.character.attributes.int = data['INT'];
-		Session.clientSession.character.attributes.wis = data['WIS'];
-		Session.clientSession.character.attributes.cha = data['CHA'];
+		character.charname = data['charname'];
+		character.class = data['charclass'];
+		character.pos_x = data['pos_x'];
+		character.pos_y = data['pos_y'];
+		character.class = data['charclass'];
+		character.health = data['health'];
+		character.free_points = data['free_points'];
 
-		console.log(Session.clientSession.character.attributes);
+		character.attributes.str = data['STR'];
+		character.attributes.dex = data['DEX'];
+		character.attributes.con = data['CON'];
+		character.attributes.int = data['INT'];
+		character.attributes.wis = data['WIS'];
+		character.attributes.cha = data['CHA'];
 
-		console.log('clientSession updated.');
-		console.log(Session.clientSession);
+		// For debugging
+		console.log(character.attributes);
+		console.log('clientSession char details updated.');
+		console.log('SID: ' + SessionController.getClientSessionId());
 	};
 
 	//	Save our given session id for later, and display the welcome message
@@ -99,5 +113,3 @@ class SessionController {
 		console.log('MAP DATA RECEIVED');
 	};
 }
-
-export { SessionController };

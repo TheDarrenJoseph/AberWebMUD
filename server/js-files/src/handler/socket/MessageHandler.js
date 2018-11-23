@@ -1,4 +1,4 @@
-import { SessionController } from 'src/controller/SessionController.js';
+import SessionController from 'src/controller/SessionController.js';
 
 //	Export vars we may want to unpack
 export var SESSION_JSON_NAME = 'sessionJson';
