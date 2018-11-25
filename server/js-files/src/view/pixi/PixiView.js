@@ -7,6 +7,10 @@ import PixiMapView from 'src/view/pixi/PixiMapView.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
 
+// HTML 5 Canvas
+const RENDERER_CANVAS = 'Canvas';
+const RENDERER_WEBGL = 'WebGL';
+
 export default class PixiView {
 	constructor (windowSize) {
 		// Ask the page view what our available space in the window is
@@ -42,6 +46,16 @@ export default class PixiView {
 	isPixiRenderer (renderer) {
 		return (renderer instanceof PIXI.WebGLRenderer ||
 						renderer instanceof PIXI.CanvasRenderer);
+	}
+
+	getRendererType () {
+		let rendererType = RENDERER_CANVAS;
+		// Check that WebGL is supported and that we've managed to use it
+		if (PIXI.utils.isWebGLSupported() && (this.renderer instanceof PIXI.WebGLRenderer)) {
+			rendererType = RENDERER_WEBGL;
+		}
+
+		return rendererType;
 	}
 
 	// Builds the one PixiJS Renderer to rule them all
@@ -115,27 +129,26 @@ export default class PixiView {
 	}
 
 	static createInventoryButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
-		return this.createSprite(zeldaObjectsAtlasPath,
-		'chest-single',
-		PixiMapView.tileSize,
-		PixiMapView.tileSize * 2,
+		return this.createSprite(tileAtlasPath,
+		subtileName,
+		tileSize,
+		tileSize * 2,
 		mapWindowSize - (tileSize * 2),
 		mapWindowSize - tileSize,
 		true
 		);
 	}
 
-	static createStatsButtont (zeldaObjectsAtlasPath) {
-		return this.createSprite(zeldaObjectsAtlasPath,
-		'chest-single',
-		PixiMapView.tileSize,
-		PixiMapView.tileSize * 2,
-		PixiMapView.mapWindowSize - MapView.tileSize * 4,
-		PixiMapView.mapWindowSize - MapView.tileSize,
+	static createStatsButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
+		return this.createSprite(tileAtlasPath,
+		subtileName,
+		tileSize,
+		tileSize * 2,
+		mapWindowSize - tileSize * 4,
+		PixiMapView.mapWindowSize - tileSize,
 		true
 	);
 	}
-
 }
 
 export { PixiView };

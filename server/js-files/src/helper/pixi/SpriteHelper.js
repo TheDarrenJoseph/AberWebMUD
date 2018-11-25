@@ -21,6 +21,18 @@ export default class SpriteHelper {
 		return null;
 	}
 
+	static createSprite (atlasPath, subtileName, tileHeight, tileWidth, x, y, interactive) {
+		let thisSprite = SpriteHelper.makeSpriteFromAtlas(atlasPath, subtileName);
+		thisSprite.height = tileHeight;
+		thisSprite.width = tileWidth;
+
+		thisSprite.x = x;
+		thisSprite.y = y;
+
+		thisSprite.interactive = interactive;
+		return thisSprite;
+	}
+
 	static PlayerSprite (characterAtlasPath) {
 		return SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player');
 	}

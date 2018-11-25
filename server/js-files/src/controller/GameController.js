@@ -7,7 +7,6 @@ import SessionController from 'src/controller/SessionController.js';
 import PageController from 'src/controller/PageController.js';
 
 // Named imports
-import { MapController } from 'src/controller/MapController.js';
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PageView } from 'src/view/page/PageView.js';
@@ -15,7 +14,6 @@ import { Session } from 'src/model/SessionModel.js';
 
 class GameControllerClass {
 	constructor () {
-		this.mapController = new MapController(PixiController.pixiView.getRenderer());
 	}
 
 	//  Sets up client elements, hooks up callbacks to enable event-driven reponses, then asks the server for a map update

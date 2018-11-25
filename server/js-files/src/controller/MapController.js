@@ -7,7 +7,7 @@ import Map from 'src/model/Map.js';
 import PixiMapView from 'src/view/pixi/PixiMapView.js';
 
 // Named imports
-import { PixiController } from 'src/controller/pixi/PixiController.js';
+import { PixiController, ASSET_PATH_OVERWORLD } from 'src/controller/pixi/PixiController.js';
 import { PageView } from 'src/view/page/PageView.js';
 // import { SpriteHelper } from 'src/helper/pixi/SpriteHelper.js';
 
@@ -21,11 +21,11 @@ export class MapController {
 		// Setup the pixi map view so we have our window dimensions
 		this.windowSize = PageView.getWindowDimensions();
 
-		console.log("Chose mapModel for MapController: "+map.getMapSizes());
+		console.log('Chose mapModel for MapController: ' + map.getMapSizes());
 
 		this.mapModel = map;
 		if (pixiMapView === null) {
-			this.pixiMapView = new PixiMapView(this.mapModel, PixiController.getTileMappings(), renderer, PixiController.getOverworldAtlasPath(), this.windowSize);
+			this.pixiMapView = new PixiMapView(this.mapModel, PixiController.getTileMappings(), renderer, ASSET_PATH_OVERWORLD, this.windowSize);
 		} else {
 			this.pixiMapView = pixiMapView;
 		}

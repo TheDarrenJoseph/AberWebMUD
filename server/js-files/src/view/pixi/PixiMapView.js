@@ -8,13 +8,13 @@ import { GridCharacter } from 'src/model/pixi/GridCharacter.js';
 export var DEFAULT_TILE_SIZE = 40;
 
 export default class PixiMapView {
-	constructor (mapModel, tileMappings, renderer, overworldAtlasPath, windowSize) {
+	constructor (mapModel, tileMappings, renderer, ASSET_PATH_OVERWORLD, windowSize) {
 		// For map model position validations
 		this.mapModel = mapModel;
 
 		this.tileMappings = tileMappings;
 		this.renderer = renderer;
-		this.overworldAtlasPath = overworldAtlasPath;
+		this.ASSET_PATH_OVERWORLD = ASSET_PATH_OVERWORLD;
 
 		this.tileSize = DEFAULT_TILE_SIZE;
 
@@ -50,11 +50,16 @@ export default class PixiMapView {
 		this.mapViewMinPosition = [this.lowestViewPosition, this.lowestViewPosition];
 		this.mapViewMaxPosition = [this.highestViewPosition, this.highestViewPosition];
 
+		//	Sprites for the map viewPixiMapView
+		this.tileSpriteArray = this.setupMapUI();
+		//	Sprites for the players in the current map view
+		this.mapCharacterArray = this.createMapCharacterArray(this.tileCount);
+
 		// For quick debugging
 		// console.log(this);
 	}
 
-	setupPixiContainers (tileCount) {
+	setupPixiContainers () {
 		// Top level container for all children
 		this.parentContainer = new PIXI.Container();
 
@@ -62,11 +67,6 @@ export default class PixiMapView {
 		this.mapContainer = new PIXI.particles.ParticleContainer();
 		this.characterContainer = new PIXI.particles.ParticleContainer();
 		this.parentContainer.addChild(this.mapContainer, this.characterContainer);
-
-		//	Sprites for the map viewPixiMapView
-		this.tileSpriteArray = null;
-		//	Sprites for the players in the current map view
-		this.mapCharacterArray = this.createMapCharacterArray(tileCount);
 	}
 
 	getParentContainer () {
@@ -96,16 +96,19 @@ export default class PixiMapView {
 		return mapCharacterArray;
 	}
 
-	setupMapUI (overworldAtlasPath, tileCount, tileSize) {
+	setupMapUI () {
+		// Create enough dummy tiles for the map model
+		let tileCount = this.mapModel.tileCount;
+
 		// Create a pretty crappy 2d array of tileCount size
 		var tileSpriteArray = Array(tileCount);
 		for (var x = 0; x < tileCount; x++) {
 			tileSpriteArray[x] = Array(tileCount); // 2nd array dimension per row
 			for (var y = 0; y < tileCount; y++) {
 				// Create a new Pixi Sprite
-				var tileSprite = SpriteHelper.makeSpriteFromAtlas(this.overworldAtlasPath, 'grass-plain');
-				tileSprite.position.x = x * tileSize;
-				tileSprite.position.y = y * tileSize;
+				var tileSprite = SpriteHelper.makeSpriteFromAtlas(this.ASSET_PATH_OVERWORLD, 'grass-plain');
+				tileSprite.position.x = x * this.tileSize;
+				tileSprite.position.y = y * this.tileSize;
 				tileSprite.interactive = true;
 				tileSprite.interactive = true;
 				tileSprite.name = '' + x + '' + y;
@@ -183,7 +186,7 @@ export default class PixiMapView {
 
 							if (tileSprite != null && tileFromServer != null) { //	Check the data for this tile exists
 								//	var thisSprite = PixiMapView.mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
-								var subTexture = this.getAtlasSubtexture(this.overworldAtlasPath, this.tileMappings[tileFromServer.tileType]);
+								var subTexture = this.getAtlasSubtexture(this.ASSET_PATH_OVERWORLD, this.tileMappings[tileFromServer.tileType]);
 
 								//	If the texture exists, set this sprite's texture,
 								// and add it back to the container
