@@ -20,9 +20,7 @@ function beforeEachTest (assert) {
 QUnit.module('PixiMapViewTests', { before: beforeAll, beforeEach: beforeEachTest })
 
 // Ensure the pixi map view data builds as we expect it to
-QUnit.test(
+QUnit.skip(
 TEST_TAG + 'getAtlasSubtexture', function (assert) {
 	var spriteTexture = AtlasHelper.getAtlasSubtexture(tileAtlasPath, subtileName);
-
-
 });

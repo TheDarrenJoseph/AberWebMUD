@@ -45,6 +45,14 @@ export default class AtlasHelper {
 		await atlasPromise;
 	}
 
+	static isAtlasLoading (atlasPath) {
+		return PIXI.loader.resources[atlasPath] !== undefined && PIXI.loader.resources[atlasPath]. isLoading;
+	}
+
+	static isAtlasLoaded (atlasPath) {
+		return PIXI.loader.resources[atlasPath] !== undefined && PIXI.loader.resources[atlasPath].isComplete;
+	}
+
 	static async getAtlasSubtexture (tileAtlasPath, subtileName) {
 		// Create an atlas Promise for loading the atlas
 		// Hookup to a method for handling the returned spriteSheet
@@ -62,7 +70,8 @@ export default class AtlasHelper {
 		// console.log('Loader state:');
 		// console.log(PIXI.loader);
 
-		if (PIXI.loader.resources[tileAtlasPath] !== undefined && PIXI.loader.resources[tileAtlasPath].isComplete) {
+		// Check for already processing / processed
+		if (AtlasHelper.isAtlasLoading(tileAtlasPath) || AtlasHelper.isAtlasLoaded(tileAtlasPath)) {
 			console.log('Atlas already loaded: ' + tileAtlasPath);
 			return new Promise((resolve) =>
 			resolve(callback(PIXI.loader, PIXI.loader.resources, tileAtlasPath)));
@@ -87,30 +96,30 @@ export default class AtlasHelper {
 		// Allowing us to do s	etup ready for our loaded asset.
 		if (resourceQueue.length > 0) {
 			let resource = resourceQueue.pop();
+			// Lock the loader before performing any action
+			loaderBusy = true;
 
 			// Use a promise to wrap the load callback
 			return new Promise((resolve) => {
-				loaderBusy = true;
+				// Add the fully qualified path to the files to the loader
+				// Queue up the atlas
+				// console.log('Adding resource to loader.');
+				// console.log(resource);
+				PIXI.loader.reset();
+				PIXI.loader.add(resource);
+
 				// Load a PIXI.Spritesheet
 				PIXI.loader.load((loader, resources) => {
-					loader.reset();
-
-					// Add the fully qualified path to the files to the loader
-					// Queue up the atlas
-					console.log('Adding resource to loader.');
-					console.log(resource);
-					PIXI.loader.add(resource);
+					console.log('Resource loaded: ' + resource);
 
 									// Free up the loader
 					loaderBusy = false;
-					console.log('loader free!');
 					// Fire off an event signalling the loader is free
 					document.dispatchEvent(new Event('loaderFree'));
 
 					// Clear a listener mapping if present
-					if (loaderListenerMappings.resource !== undefined) {
+					if (loaderListenerMappings[resource] !== undefined) {
 						let mapping = loaderListenerMappings[resource];
-						console.log('Clearing listener for resource: ' + resource);
 						// Clear the event listener so we don't trigger a pop
 						document.removeEventListener('loaderFree', mapping);
 					}
