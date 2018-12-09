@@ -12,15 +12,17 @@ const RENDERER_CANVAS = 'Canvas';
 const RENDERER_WEBGL = 'WebGL';
 
 export default class PixiView {
-	constructor (windowSize) {
+	constructor (windowSize = PageView.getWindowDimensions()) {
 		// Ask the page view what our available space in the window is
-		this.windowSize = PageView.getWindowDimensions();
+		this.windowSize = windowSize;
 
 		// Top level container for all children
 		this.parentContainer = new PIXI.Container();
 		this.dialogContainer = new PIXI.Container();
 		this.controlsContainer = new PIXI.Container();
 		this.parentContainer.addChild(this.dialogContainer, this.controlsContainer);
+
+		this.statBars = this.setupStatBars();
 
 		this.setupDialogWindow();
 	}
@@ -112,13 +114,14 @@ export default class PixiView {
 
 	//	Creates the needed stat bars
 	//	Returns an array of these statbars for later adjustment
-	setupStatBars (mapWindowSize, thirdMapWindowSize) {
+	setupStatBars (mapWindowSize) {
+		let thirdMapWindowSize = Math.floor(mapWindowSize / 3);
 		let healthBarPosX = mapWindowSize - thirdMapWindowSize - 2;
 		let healthBarPosY = 0;
 		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, thirdMapWindowSize, Map.mapTileSize);
 
-		PixiMapView.controlsContainer.addChild(healthBar.backgroundBar);
-		PixiMapView.controlsContainer.addChild(healthBar.innerBar);
+		this.controlsContainer.addChild(healthBar.backgroundBar);
+		this.controlsContainer.addChild(healthBar.innerBar);
 
 		return [healthBar];
 	}
@@ -127,6 +130,19 @@ export default class PixiView {
 		// Toggle dialogBackground Container visibility
 		this.dialogBackground.visible = bool;
 	}
+
+	setHealthBarValue(health) {
+		this.statBars[0].setValue(Session.clientSession.character.health);
+		this.statBars[0].drawInnerBar();
+	}
+
+	showStatBars () {
+		console.log(this.statBars);
+		this.statBars[0].setValue(0);
+		this.statBars[0].drawBackgroundBar(Map.thirdMapWindowSize, this.mapTileSize);
+		this.statBars[0].drawInnerBar();
+	}
+
 
 	static createInventoryButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
 		return this.createSprite(tileAtlasPath,

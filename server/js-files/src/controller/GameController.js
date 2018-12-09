@@ -13,9 +13,6 @@ import { PageView } from 'src/view/page/PageView.js';
 import { Session } from 'src/model/SessionModel.js';
 
 class GameControllerClass {
-	constructor () {
-	}
-
 	//  Sets up client elements, hooks up callbacks to enable event-driven reponses, then asks the server for a map update
 	performSetup () {
 		console.log('Starting client..');

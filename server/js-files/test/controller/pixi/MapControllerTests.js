@@ -1,12 +1,14 @@
 import PixiView from 'src/view/pixi/PixiView.js';
 
+import { Map } from 'src/model/Map.js';
 import { MapController, POS_NOT_VALID_MAP_VIEW_ERROR } from 'src/controller/MapController.js';
 import { testPositionRangeError } from 'test/utils/PositionTestHelper.js';
+import { ASSET_PATH_OVERWORLD } from 'src/controller/pixi/PixiController.js';
 
 var MAPCONTROLLER_TEST_TAG = '|MAP CONTROLLER|';
 
 let pixiView = new PixiView();
-let mapController = new MapController(pixiView);
+let mapController = new MapController(pixiView.getRenderer(), new Map(), null, ASSET_PATH_OVERWORLD);
 
 // Valid map view range is ( -halfZeroIndexedTileCountFloored to halfZeroIndexedTileCountFloored )
 QUnit.test(MAPCONTROLLER_TEST_TAG + 'set-map-view-position-valid', function (assert) {

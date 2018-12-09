@@ -1,8 +1,7 @@
 // Central controller for Pixi Views
-import * as PIXI from 'libs/pixi.min.js';
+import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 
 // Default imports
-import Map from 'src/model/Map.js';
 import PageChatView from 'src/view/page/PageChatView.js';
 import SocketHandler from 'src/handler/socket/SocketHandler.js';
 import PageController from 'src/controller/PageController.js';
@@ -12,9 +11,9 @@ import PixiView from 'src/view/pixi/PixiView.js';
 import PixiMapView from 'src/view/pixi/PixiMapView.js';
 
 // Named imports
+import { MapController } from 'src/controller/MapController.js';
 import { Session } from 'src/model/SessionModel.js';
 import { PageView } from 'src/view/page/PageView.js';
-import { MapController } from 'src/controller/MapController.js';
 
 // import { ValidationHandler } from 'src/handler/ValidationHandler.js';
 
@@ -22,7 +21,8 @@ import { MapController } from 'src/controller/MapController.js';
 //	App Constants
 export const titleText = 'AberWebMUD';
 
-export const ASSET_PATH_ZELDA = 'static/assets/gfx/';
+export const ROOT_URL = window.location.origin;
+export const ASSET_PATH_ZELDA = ROOT_URL + '/static/assets/gfx/';
 export const ASSET_PATH_OVERWORLD = ASSET_PATH_ZELDA + 'overworld-texture-atlas.json';
 export const ASSET_PATH_ZELDA_OBJECTS = ASSET_PATH_ZELDA + 'zelda-objects-texture-atlas.json';
 export const ASSET_PATH_CHARACTERS = ASSET_PATH_ZELDA + 'character-texture-atlas.json';
@@ -32,25 +32,17 @@ class PixiControllerClass {
 	constructor () {
 		this.windowSize = PageView.getWindowDimensions();
 		this.pixiView = new PixiView(this.windowSize);
-		// MapController with it's own model/view
-		this.mapController = new MapController(this.pixiView.getRenderer());
+
+		this.renderer = this.pixiView.getRenderer();
+
+	// MapController with it's own model/view
+	// (renderer, map = new Map(), pixiMapView = null, ASSET_PATH_OVERWORLD)
+		this.mapController = new MapController(this.renderer, undefined, null, ASSET_PATH_OVERWORLD);
 
 		// resolution 1 for now as default (handles element scaling)
-		//this.renderingOptions = {
+		//	this.renderingOptions = {
 		//	resolution: 1
-		//};
-
-		//	Maps tile codes to resource keys
-		this.tileMappings = ['grass-plain', 'barn-front'];
-	}
-
-	getTileMappings () {
-		return this.tileMappings;
-	}
-
-	// Slightly cleaner way to access the indexed tile keys
-	getTileMapping (tileTypeIndex) {
-		return this.tileMappings[tileTypeIndex];
+		//	};
 	}
 
 	setupConsoleButton () {
@@ -72,17 +64,20 @@ class PixiControllerClass {
 		var mapTileSize = this.mapController.getPixiMapView().windowSize;
 
 		//	var inventoryButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 0, 16, 16);
-		var inventoryButtonSprite = PixiView.createInventoryButton(ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
+		var inventoryButtonSprite = this.pixiView.createInventoryButton(ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
 		PixiMapView.controlsContainer.addChild(inventoryButtonSprite);
 
-		var statsButtonSprite = PixiView.createStatsButton(ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
+		var statsButtonSprite = this.pixiView.createStatsButton(ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
 		PixiMapView.controlsContainer.addChild(statsButtonSprite);
 
 		return [inventoryButtonSprite, statsButtonSprite];
 	}
 
 	setupUI () {
-		this.showStatBars();
+		// Set the health bar value
+		this.pixiView.setHealthBarValue(Session.clientSession.character.health);
+		// Show the stat bar
+		this.pixiView.showStatBars();
 
 		this.setupConsoleButton();
 		var contextButtons = this.setupContextButtons();
@@ -93,10 +88,9 @@ class PixiControllerClass {
 		PageView.appendToConsoleButtonClass(contextButtons);
 	}
 
-
 	assetsLoaded () {
 		console.log(this);
-		console.log('Using renderer option: ' + this.getRendererType());
+		console.log('Using renderer option: ' + this.pixiView.getRendererType());
 		PageView.appendToMainWindow(this.renderer.view);
 		this.showLoginControls();
 	}
@@ -106,10 +100,11 @@ class PixiControllerClass {
 		PageChatView.clearMessageLog();
 		PageChatView.hidePasswordInput();
 
-		// Callback for after assets have loaded (for drawing)
-		PIXI.loader.add([ASSET_PATH_OVERWORLD,
-			ASSET_PATH_ZELDA_OBJECTS,
-			ASSET_PATH_CHARACTERS]).load(this.assetsLoaded.apply(this));
+		// Ensure our atlasses are loaded
+		AtlasHelper.loadAtlas(ASSET_PATH_OVERWORLD);
+		AtlasHelper.loadAtlas(ASSET_PATH_ZELDA_OBJECTS);
+		AtlasHelper.loadAtlas(ASSET_PATH_CHARACTERS);
+		this.assetsLoaded.apply(this);
 	}
 
 	// Sets the timeout trigger for a double-click
@@ -138,14 +133,6 @@ class PixiControllerClass {
 		}
 	}
 
-	showStatBars () {
-		var statBars = this.setupStatBars();
-		console.log(statBars);
-		statBars[0].setValue(Session.clientSession.character.health);
-		statBars[0].drawBackgroundBar(Map.thirdMapWindowSize, this.mapTileSize);
-		statBars[0].drawInnerBar();
-	}
-
 	// Shows just the controls needed for login
 	// Hiding all other controls
 	showLoginControls () {
@@ -158,7 +145,7 @@ class PixiControllerClass {
 
 	//	Show the main chat view
 	showDialog () {
-		PixiView.setDialogBackgroundVisibility(true);
+		this.pixiView.setDialogBackgroundVisibility(true);
 		this.renderStage(); //	update the view to show this
 	}
 

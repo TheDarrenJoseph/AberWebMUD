@@ -1,28 +1,30 @@
 // Helper class for creating PixiJS sprites
 import * as PIXI from 'libs/pixi.min.js';
 import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
+import { DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
 
 export default class SpriteHelper {
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
-	static makeSpriteFromAtlas (tileAtlasPath, subtileName, tileSize) {
+	static async makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight = DEFAULT_TILE_SIZE, tileWidth = DEFAULT_TILE_SIZE) {
 		// Load the named subtile from the given atlas
-		var spriteTexture = AtlasHelper.getAtlasSubtexture(tileAtlasPath, subtileName);
+		var spriteTexture = await AtlasHelper.getAtlasSubtexture(tileAtlasPath, subtileName);
+		console.log('Loaded sprite texture: ');
+		console.log(spriteTexture);
 
 		//	Check the texture
 		if (spriteTexture != null) {
 			let thisSprite = new PIXI.Sprite(spriteTexture);
-			thisSprite.height = tileSize;
-			thisSprite.width = tileSize;
+			thisSprite.height = tileHeight;
+			thisSprite.width = tileWidth;
 			return thisSprite;
 		} else {
-			console.log('Could not create sprite from atlas with given parameters: ' + tileAtlasPath + ':' + subtileName + ':' + tileSize);
+			throw String('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' + tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']');
 		}
-
-		return null;
 	}
 
 	static createSprite (atlasPath, subtileName, tileHeight, tileWidth, x, y, interactive) {
-		let thisSprite = SpriteHelper.makeSpriteFromAtlas(atlasPath, subtileName);
+		let thisSprite = SpriteHelper.makeSpriteFromAtlas(atlasPath, subtileName, tileHeight, tileWidth);
+
 		thisSprite.height = tileHeight;
 		thisSprite.width = tileWidth;
 
@@ -34,7 +36,7 @@ export default class SpriteHelper {
 	}
 
 	static PlayerSprite (characterAtlasPath) {
-		return SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player');
+		return SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
 	}
 
 	// function deleteMapCharacter(global_x, global_y) {

@@ -7,25 +7,22 @@ import Map from 'src/model/Map.js';
 import PixiMapView from 'src/view/pixi/PixiMapView.js';
 
 // Named imports
-import { PixiController, ASSET_PATH_OVERWORLD } from 'src/controller/pixi/PixiController.js';
 import { PageView } from 'src/view/page/PageView.js';
 // import { SpriteHelper } from 'src/helper/pixi/SpriteHelper.js';
 
 export var POS_NOT_VALID_MAP_VIEW_ERROR = 'Cannot set Map view start position, map view position invalid';
 
-export class MapController {
+export default class MapController {
 	// Create a map controller for a specific map view
 	// renderer - the renderer from the main pixi view
-	// windowSize - the window size to use in pixels
-	constructor (renderer, map = new Map(), pixiMapView = null) {
+	constructor (renderer, map = new Map(), pixiMapView = null, ASSET_PATH_OVERWORLD) {
 		// Setup the pixi map view so we have our window dimensions
 		this.windowSize = PageView.getWindowDimensions();
 
-		console.log('Chose mapModel for MapController: ' + map.getMapSizes());
-
 		this.mapModel = map;
+
 		if (pixiMapView === null) {
-			this.pixiMapView = new PixiMapView(this.mapModel, PixiController.getTileMappings(), renderer, ASSET_PATH_OVERWORLD, this.windowSize);
+			this.pixiMapView = new PixiMapView(this.mapModel, renderer, ASSET_PATH_OVERWORLD, this.windowSize);
 		} else {
 			this.pixiMapView = pixiMapView;
 		}
@@ -100,3 +97,5 @@ export class MapController {
 		return this.pixiMapView;
 	}
 }
+
+export { MapController };

@@ -7,12 +7,15 @@ import { GridCharacter } from 'src/model/pixi/GridCharacter.js';
 
 export var DEFAULT_TILE_SIZE = 40;
 
+var DEFAULT_TILE_MAPPINGS = ['grass-plain', 'barn-front'];
+
 export default class PixiMapView {
-	constructor (mapModel, tileMappings, renderer, ASSET_PATH_OVERWORLD, windowSize) {
+	constructor (mapModel, renderer, ASSET_PATH_OVERWORLD, windowSize) {
 		// For map model position validations
 		this.mapModel = mapModel;
 
-		this.tileMappings = tileMappings;
+		//	Maps tile codes to resource keys
+		this.tileMappings = DEFAULT_TILE_MAPPINGS;
 		this.renderer = renderer;
 		this.ASSET_PATH_OVERWORLD = ASSET_PATH_OVERWORLD;
 
@@ -85,6 +88,15 @@ export default class PixiMapView {
 		this.renderer.render(this.this.mapContainer);
 	}
 
+	getTileMappings () {
+		return this.tileMappings;
+	}
+
+	// Slightly cleaner way to access the indexed tile keys
+	getTileMapping (tileTypeIndex) {
+		return this.tileMappings[tileTypeIndex];
+	}
+
 	//	Creates an empty 2D array to store players in our view
 	createMapCharacterArray (tileCount) {
 		// console.log('Tilecount: ' + tileCount);
@@ -98,26 +110,31 @@ export default class PixiMapView {
 
 	setupMapUI () {
 		// Create enough dummy tiles for the map model
-		let tileCount = this.mapModel.tileCount;
-
 		// Create a pretty crappy 2d array of tileCount size
-		var tileSpriteArray = Array(tileCount);
-		for (var x = 0; x < tileCount; x++) {
-			tileSpriteArray[x] = Array(tileCount); // 2nd array dimension per row
-			for (var y = 0; y < tileCount; y++) {
-				// Create a new Pixi Sprite
-				var tileSprite = SpriteHelper.makeSpriteFromAtlas(this.ASSET_PATH_OVERWORLD, 'grass-plain');
-				tileSprite.position.x = x * this.tileSize;
-				tileSprite.position.y = y * this.tileSize;
-				tileSprite.interactive = true;
-				tileSprite.interactive = true;
-				tileSprite.name = '' + x + '' + y;
+		var tileSpriteArray = Array(this.tileCount);
+		for (var x = 0; x < this.tileCount; x++) {
+			tileSpriteArray[x] = Array(this.tileCount); // 2nd array dimension per row
+			for (var y = 0; y < this.tileCount; y++) {
+				let spritePromise = SpriteHelper.makeSpriteFromAtlas(this.ASSET_PATH_OVERWORLD, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
 
-				//	allocate it to the tileSpriteArray
-				tileSpriteArray[x][y] = tileSprite;
+				spritePromise.then(tileSprite => {
+					// Create a new Pixi Sprite
+					console.log('Tile sprite made');
+					console.log(tileSprite);
 
-				// and to the Pixi Container
-				this.mapContainer.addChild(tileSprite);
+					let pixelX = x * this.tileSize;
+					let pixelY = y * this.tileSize;
+					let spritePos = new PIXI.Point(pixelX, pixelY);
+					tileSprite.position = spritePos;
+					tileSprite.interactive = true;
+					tileSprite.name = '' + x + '' + y;
+
+					//	allocate it to the tileSpriteArray
+					tileSpriteArray[x][y] = tileSprite;
+
+					// and to the Pixi Container
+					this.mapContainer.addChild(tileSprite);
+				});
 			}
 		}
 
@@ -324,3 +341,5 @@ export default class PixiMapView {
 		return [gridX - this.halfZeroIndexedTileCountFloored, gridY - this.halfZeroIndexedTileCountFloored];
 	}
 }
+
+export { PixiMapView };
