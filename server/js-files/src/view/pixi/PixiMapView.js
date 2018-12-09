@@ -58,6 +58,8 @@ export default class PixiMapView {
 		//	Sprites for the players in the current map view
 		this.mapCharacterArray = this.createMapCharacterArray(this.tileCount);
 
+		this.mapPositionHelper = new MapPositionHelper(this);
+
 		// For quick debugging
 		// console.log(this);
 	}
@@ -147,17 +149,16 @@ export default class PixiMapView {
 		console.log('new char.. ' + charactername + gridX + gridY);
 
 		if (!this.mapModel.isPositionInMap(gridX, gridY)) {
-			console.log('bad pos: ' + gridX + ' ' + gridY);
-			return false; //	Do nothing ican't access lexical declarationf the coordinates don't exist on the map
+			throw new RangeError('Invalid position for GridCharacter! (must be valid overworld co-ord): ' + gridX + ',' + gridY);
 		} else {
 			//	Convert global co-ords to local view ones so we can modify the UI
-			var localPos = MapPositionHelper.globalTilePosToLocal(gridX, gridY);
+			var localPos = this.mapPositionHelper.globalTilePosToLocal(gridX, gridY);
 			var localX = localPos[0];
 			var localY = localPos[1];
 
 			if (this.isPositionRelativeToView(localX, localY)) {
 				var characterSprite = SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player');
-				var pixiPos = MapPositionHelper.tileCoordToPixiPos(localX, localY);
+				var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
 
 				console.log('PIXI POS for new char: ' + pixiPos[0] + ' ' + pixiPos[1]);
 				characterSprite.x = pixiPos[0];
