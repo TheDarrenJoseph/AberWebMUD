@@ -41,9 +41,13 @@ export default class AtlasHelper {
 	static getResource (resourcePath) {
 		return PIXI.loader.resources[resourcePath];
 	}
-
+	
+	static isResourceQueued (resourcePath) {
+		return AtlasHelper.getQueuedResourceIndex(resourcePath) !== -1 
+	}
+	
 	static isResourceLoading (resourcePath) {
-		return AtlasHelper.getQueuedResourceIndex(resourcePath) !== -1 && PIXI.loader.resources[resourcePath] !== undefined && PIXI.loader.resources[resourcePath].isLoading;
+		PIXI.loader.resources[resourcePath] !== undefined && PIXI.loader.resources[resourcePath].isLoading;
 	}
 
 	static isResourceLoaded (resourcePath) {
@@ -143,7 +147,8 @@ export default class AtlasHelper {
 
 			let loading = AtlasHelper.isResourceLoading(atlasPath);
 			let loaded = AtlasHelper.isResourceLoaded(atlasPath);
-
+			let queued = AtlasHelper.isResourceQueued(atlasPath);
+			
 			// If we've loaded the atlas, callback straight away
 			if (loaded) {
 				// console.log('loadAtlasSubtexture - Atlas is already loaded: ' + atlasPath);
@@ -152,7 +157,9 @@ export default class AtlasHelper {
 			} else if (loading) {
 				// console.log('loadAtlasSubtexture - Atlas is loading, adding callback. ' + atlasPath);
 				AtlasHelper.getLoader().onComplete.add(() => {
-					// console.log('loadAtlasSubtexture - loading atlas is finished.');
+					console.log('loadAtlasSubtexture - loading atlas is finished.');
+					let atlas = AtlasHelper.getResource(atlasPath);
+					console.log(atlas);
 					onSheetCall();
 				});
 			} else {
@@ -170,9 +177,12 @@ export default class AtlasHelper {
 	}
 
 	static attemptLoadPixiResource (resourcePath, resourceQueueIndex, callback) {
+		let resourcePathToLoad = resourcePath;
+		
 		let loading = AtlasHelper.isResourceLoading(resourcePath);
 		let loaded = AtlasHelper.isResourceLoaded(resourcePath);
-		
+		let queued = AtlasHelper.isResourceQueued(resourcePath);
+
 		if (loaded) {
 			console.log('Resource already loaded..' + resourcePath);
 			callback();
@@ -182,19 +192,21 @@ export default class AtlasHelper {
 			console.log('Resource already loading..' + resourcePath);
 			AtlasHelper.getLoader().onComplete.add(callback);
 		}
-
+	
+		// Try to use the loader
 		if (!loading && !loaded && !loaderBusy) {
-			if (resourceQueueIndex !== -1) {
-				resourcePath = resourceQueue[resourceQueueIndex];
+			// We've already queued up  a resource
+			if (queued) {
+				resourcePathToLoad = resourceQueue[resourceQueueIndex];
 				console.log('Loading queued resource: ' + resourcePath);
-				// We've already queued up  a resource
 				AtlasHelper._loadPixiResource(resourceQueue[resourceQueueIndex], callback);
 			} else {
 				console.log('Loading resource: ' + resourcePath);
 				AtlasHelper._loadPixiResource(resourcePath, callback);
 			}
 		}
-
+		
+		// Queue up resources if the loader is busy and try again
 		if (!loading && !loaded && loaderBusy) {
 			
 			let resourceQueueIndex = -1;
@@ -214,7 +226,7 @@ export default class AtlasHelper {
 			};
 
 			console.log('Waiting for loader free to load resource: ' + resourcePath);
-			AtlasHelper.mapResourceCallbackForLoaderFree(resourcePath, tryAgain);
+			AtlasHelper.mapResourceCallbackForLoaderFree(resourcePathToLoad, tryAgain);
 		}
 	}
 
