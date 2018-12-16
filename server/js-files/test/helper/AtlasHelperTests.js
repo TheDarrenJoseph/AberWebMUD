@@ -1,13 +1,15 @@
 import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 
+var TEST_TAG = '|ATLAS-HELPER|';
+
 // Setup / assertions before any test runs
 function beforeAll (assert) {
-	assert.ok(renderer instanceof PIXI.WebGLRenderer ||
-					renderer instanceof PIXI.CanvasRenderer, 'Check test Pixi renderer is instanciated.');
+	//assert.ok(renderer instanceof PIXI.WebGLRenderer ||
+	//				renderer instanceof PIXI.CanvasRenderer, 'Check test Pixi renderer is instanciated.');
 
 		// Assert things that really should be true
-		assert.equal(DEFAULT_TILE_SIZE, 40, 'Check default tile size (pixels) is as expected.')
-		assert.equal(TEST_WINDOW_SIZE, 800, 'Check test window size (pixels) is as expected.')
+		//assert.equal(DEFAULT_TILE_SIZE, 40, 'Check default tile size (pixels) is as expected.')
+		//assert.equal(TEST_WINDOW_SIZE, 800, 'Check test window size (pixels) is as expected.')
 	// DO SOME STUFF
 }
 
@@ -21,6 +23,6 @@ QUnit.module('PixiMapViewTests', { before: beforeAll, beforeEach: beforeEachTest
 
 // Ensure the pixi map view data builds as we expect it to
 QUnit.skip(
-TEST_TAG + 'getAtlasSubtexture', function (assert) {
-	var spriteTexture = AtlasHelper.getAtlasSubtexture(tileAtlasPath, subtileName);
+TEST_TAG + 'promiseAtlasSubtexture', function (assert) {
+	// var spriteTexture = AtlasHelper.promiseAtlasSubtexture(tileAtlasPath, subtileName);
 });

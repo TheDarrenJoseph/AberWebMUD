@@ -2,10 +2,9 @@
 //	Holds and generic Pixi View code / or code that's yet to be refactored
 import * as PIXI from 'libs/pixi.min.js';
 
-import PixiMapView from 'src/view/pixi/PixiMapView.js';
-
 import { PageView } from 'src/view/page/PageView.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
+import { Session } from 'src/model/SessionModel.js';
 
 // HTML 5 Canvas
 const RENDERER_CANVAS = 'Canvas';
@@ -82,10 +81,6 @@ export default class PixiView {
 		return this.parentContainer;
 	}
 
-	getMapView () {
-		return this.pixiMapView;
-	}
-
 	// Re-renders the parent container with all children
 	renderAll () {
 		this.renderer.render(this.parentContainer); // Re-renders the stage to show blank
@@ -131,7 +126,7 @@ export default class PixiView {
 		this.dialogBackground.visible = bool;
 	}
 
-	setHealthBarValue(health) {
+	setHealthBarValue (health) {
 		this.statBars[0].setValue(Session.clientSession.character.health);
 		this.statBars[0].drawInnerBar();
 	}
@@ -142,7 +137,6 @@ export default class PixiView {
 		this.statBars[0].drawBackgroundBar(Map.thirdMapWindowSize, this.mapTileSize);
 		this.statBars[0].drawInnerBar();
 	}
-
 
 	static createInventoryButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
 		return this.createSprite(tileAtlasPath,
@@ -161,7 +155,7 @@ export default class PixiView {
 		tileSize,
 		tileSize * 2,
 		mapWindowSize - tileSize * 4,
-		PixiMapView.mapWindowSize - tileSize,
+		mapWindowSize - tileSize,
 		true
 	);
 	}

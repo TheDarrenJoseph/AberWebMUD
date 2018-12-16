@@ -15,20 +15,20 @@ export var POS_NOT_VALID_MAP_VIEW_ERROR = 'Cannot set Map view start position, m
 export default class MapController {
 	// Create a map controller for a specific map view
 	// renderer - the renderer from the main pixi view
-	constructor (renderer, map = new Map(), pixiMapView = null, ASSET_PATH_OVERWORLD) {
+	constructor (renderer, map = new Map(), pixiMapView = null, assetPaths) {
 		// Setup the pixi map view so we have our window dimensions
 		this.windowSize = PageView.getWindowDimensions();
-
+		
 		this.mapModel = map;
 
 		if (pixiMapView === null) {
-			this.pixiMapView = new PixiMapView(this.mapModel, renderer, ASSET_PATH_OVERWORLD, this.windowSize);
+			this.pixiMapView = new PixiMapView(this.mapModel, renderer, this.windowSize, assetPaths);
 		} else {
 			this.pixiMapView = pixiMapView;
 		}
 		console.log('Setup Map Window Size: ' + this.windowSize);
 		console.log('Map View Tilecount: ' + this.pixiMapView.tileCount);
-		this.pixiMapView.setupPixiContainers(this.pixiMapView.tileCount);
+		//this.pixiMapView.setupPixiContainers(this.pixiMapView.tileCount);
 
 		this.mapPositionHelper = new MapPositionHelper(this.pixiMapView);
 	}

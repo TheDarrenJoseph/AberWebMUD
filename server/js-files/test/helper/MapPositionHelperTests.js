@@ -6,7 +6,7 @@ import { Map, DEFAULT_MAP_SIZE_XY } from 'src/model/Map.js';
 import MapController from 'src/controller/MapController.js';
 import { testPositionRangeError } from 'test/utils/PositionTestHelper.js';
 import { PixiView } from 'src/view/pixi/PixiView.js';
-import { ASSET_PATH_OVERWORLD } from 'src/controller/pixi/PixiController.js';
+import { ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
 
 import { POS_LOCAL_TO_GLOBAL_LOCAL_INVALID_START, POS_TILE_TO_PIXI_INVALID_PIXI_ERROR } from 'src/helper/MapPositionHelper.js';
 
@@ -37,9 +37,9 @@ function beforeEachTest (assert) {
 	pixiView = new PixiView();
 	renderer = pixiView.getRenderer();
 	mapModel = new Map(20);
-	pixiMapView = new PixiMapView(mapModel, renderer, null, testWindowSize);
+	pixiMapView = new PixiMapView(mapModel, renderer, testWindowSize, ASSET_PATHS);
 	// (renderer, map = new Map(), pixiMapView = null, ASSET_PATH_OVERWORLD)
-	mapController = new MapController(renderer, mapModel, pixiMapView, ASSET_PATH_OVERWORLD);
+	mapController = new MapController(renderer, mapModel, pixiMapView, ASSET_PATHS);
 
 	mapViewTilecount = mapController.getPixiMapView().getTilecount();
 	mapPositionHelper = mapController.getPositionHelper();

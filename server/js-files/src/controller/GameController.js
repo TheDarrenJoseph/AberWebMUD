@@ -12,7 +12,24 @@ import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { Session } from 'src/model/SessionModel.js';
 
-class GameControllerClass {
+export default class GameController {
+	//	Checks that the player's character details are set
+	//	and asks them to set them if false
+	checkCharacterDetails () {
+		if (!SessionController.characterDetailsExist()) {
+			PageStatsDialogView.requestCharacterDetails();
+		} else {
+			this.characterDetailsConfirmed();
+		}
+	}
+
+	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
+	handlePlayerLogin (data) {
+		//	console.log(data);
+		SessionController.updateClientSessionData(data);
+		this.checkCharacterDetails(); //	Check/Prompt for character details
+	}
+
 	//  Sets up client elements, hooks up callbacks to enable event-driven reponses, then asks the server for a map update
 	performSetup () {
 		console.log('Starting client..');
@@ -20,6 +37,8 @@ class GameControllerClass {
 		//	Get the general UI ready
 		PageController.setupPageUI();
 		PixiController.setupPixiUI();
+		this.checkCharacterDetails();
+		this.characterDetailsConfirmed();
 
 		var connected = SocketHandler.connectSocket();
 		console.log('Socket: ' + connected);
@@ -30,25 +49,8 @@ class GameControllerClass {
 		}
 	}
 
-	//	Checks that the player's character details are set
-	//	and asks them to set them if false
-	static checkCharacterDetails () {
-		if (!SessionController.characterDetailsExist()) {
-			PageStatsDialogView.requestCharacterDetails();
-		} else {
-			PageView.characterDetailsConfirmed();
-		}
-	}
-
-	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
-	static handlePlayerLogin (data) {
-		//	console.log(data);
-		SessionController.updateClientSessionData(data);
-		GameController.checkCharacterDetails(); //	Check/Prompt for character details
-	}
-
 	//	Continues the login process after a user inputs their character details
-	static characterDetailsConfirmed () {
+	characterDetailsConfirmed () {
 		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.clientSession);
 		//	Hide the stats window
 		PageView.hideWindow('statWindowId');
@@ -68,5 +70,4 @@ class GameControllerClass {
 }
 
 // Create an instance we can refer to nicely (hide instanciation)
-let GameController = new GameControllerClass();
 export { GameController };

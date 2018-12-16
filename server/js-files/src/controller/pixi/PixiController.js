@@ -21,23 +21,27 @@ import { PageView } from 'src/view/page/PageView.js';
 //	App Constants
 export const titleText = 'AberWebMUD';
 
-export const ROOT_URL = window.location.origin;
-export const ASSET_PATH_ZELDA = ROOT_URL + '/static/assets/gfx/';
-export const ASSET_PATH_OVERWORLD = ASSET_PATH_ZELDA + 'overworld-texture-atlas.json';
-export const ASSET_PATH_ZELDA_OBJECTS = ASSET_PATH_ZELDA + 'zelda-objects-texture-atlas.json';
-export const ASSET_PATH_CHARACTERS = ASSET_PATH_ZELDA + 'character-texture-atlas.json';
+const rootUrl = window.location.origin;
+const assetPathZelda = rootUrl + '/static/assets/gfx/';
+const assetPathOverworld = assetPathZelda + 'overworld-texture-atlas.json';
+const assetPathCharacters = assetPathZelda + 'character-texture-atlas.json';
+const assetPathObjects = assetPathZelda + 'zelda-objects-texture-atlas.json';
+
+export const ASSET_PATHS = {
+	ASSET_PATH_OVERWORLD : assetPathOverworld,
+	ASSET_PATH_CHARACTERS: assetPathCharacters,
+	ASSET_PATH_OBJECTS: assetPathCharacters
+}
 
 //	Handles the PixiJS renderer
 class PixiControllerClass {
 	constructor () {
 		this.windowSize = PageView.getWindowDimensions();
 		this.pixiView = new PixiView(this.windowSize);
-
+		
 		this.renderer = this.pixiView.getRenderer();
 
-	// MapController with it's own model/view
-	// (renderer, map = new Map(), pixiMapView = null, ASSET_PATH_OVERWORLD)
-		this.mapController = new MapController(this.renderer, undefined, null, ASSET_PATH_OVERWORLD);
+		this.mapController = new MapController(this.renderer, undefined, null, ASSET_PATHS);
 
 		// resolution 1 for now as default (handles element scaling)
 		//	this.renderingOptions = {
@@ -48,7 +52,7 @@ class PixiControllerClass {
 	setupConsoleButton () {
 		var mapTileSize = this.mapController.getPixiMapView().tileSize;
 
-		var consoleButtonSprite = SpriteHelper.createSprite(ASSET_PATH_ZELDA_OBJECTS,
+		var consoleButtonSprite = SpriteHelper.createSprite(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS,
 																						'chat-bubble-blank',
 																						mapTileSize,
 																						mapTileSize,
@@ -64,10 +68,10 @@ class PixiControllerClass {
 		var mapTileSize = this.mapController.getPixiMapView().windowSize;
 
 		//	var inventoryButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 0, 16, 16);
-		var inventoryButtonSprite = this.pixiView.createInventoryButton(ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
+		var inventoryButtonSprite = this.pixiView.createInventoryButton(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
 		PixiMapView.controlsContainer.addChild(inventoryButtonSprite);
 
-		var statsButtonSprite = this.pixiView.createStatsButton(ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
+		var statsButtonSprite = this.pixiView.createStatsButton(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
 		PixiMapView.controlsContainer.addChild(statsButtonSprite);
 
 		return [inventoryButtonSprite, statsButtonSprite];
@@ -101,9 +105,9 @@ class PixiControllerClass {
 		PageChatView.hidePasswordInput();
 
 		// Ensure our atlasses are loaded
-		AtlasHelper.loadAtlas(ASSET_PATH_OVERWORLD);
-		AtlasHelper.loadAtlas(ASSET_PATH_ZELDA_OBJECTS);
-		AtlasHelper.loadAtlas(ASSET_PATH_CHARACTERS);
+		AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_OVERWORLD);
+		AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS);
+		AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_CHARACTERS);
 		this.assetsLoaded.apply(this);
 	}
 

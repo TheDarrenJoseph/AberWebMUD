@@ -1,133 +1,254 @@
-// Helper class for working with texture PixiJS atlasses / spritesheets
+// Helper class for working with texture PixiJS atlasses / atlass
 import * as PIXI from 'libs/pixi.min.js';
 
 // Use PixiJS's premade resource loader
 //	PIXI.loaders.Loader
 
-let resourceQueue = [];
-let loaderBusy = false;
+// We keep our own queue of what's been sent to the loader
+// So we can queue up stuff for the next .load() batch
+var loaderQueue = [];
+var loaderBusy = false;
 
-function loadSubtexture (spriteSheet, subtileName) {
-	// DEBUG
-	var subTexture = spriteSheet.textures[subtileName];
-	if (subTexture != null) {
-		return subTexture;
-	} else {
-		throw String('No tile atlas subtile (not in tile atlas JSON?): ' + subtileName);
+// Event Mapping for a resource
+class ResourceMapping {
+	constructor (resourcePath, event, callback) {
+		this.event = event;
+		document.addEventListener('loaderFree', this.mapping);
+		// Setup the mapping
+		this.mapping = function () {
+			console.log('ResourceMapping called: ' + this.event);
+			this.clearLoaderListener();
+			callback();
+		};
+	}
+
+	clearLoaderListener () {
+		console.log('ResourceMapping complete: ' + this.event);
+		document.removeEventListener('loaderFree', this.mapping);
 	}
 }
-
-// Extract the subTexture from a loaded spritesheet asses
-function getLoadedSpritesheet (loader, resources, tileAtlasPath) {
-	// Try using our loaded resource
-	let atlasTexture = resources[tileAtlasPath];
-
-	if (atlasTexture != null) {
-		let spriteSheet = atlasTexture.spritesheet;
-		//	Check the texture
-		if (spriteSheet != null) {
-			return spriteSheet;
-		} else {
-			throw String('Error loading tile atlas (not known to loader?): ' + tileAtlasPath);
-		}
-	}
-}
-
-var loaderListenerMappings = {};
 
 // Wrappers operations on a PixiJS texture atlas
 export default class AtlasHelper {
-	static async loadAtlas (tileAtlasPath) {
-		let atlasPromise = AtlasHelper.promiseAtlasLoading(tileAtlasPath, (loader, resources, tileAtlasPath) => {
-			return tileAtlasPath;
-		});
-
-		await atlasPromise;
+	static getLoader () {
+		return PIXI.loader;
 	}
 
-	static isAtlasLoading (atlasPath) {
-		return PIXI.loader.resources[atlasPath] !== undefined && PIXI.loader.resources[atlasPath]. isLoading;
+	static getResources () {
+		return PIXI.loader.resources;
 	}
 
-	static isAtlasLoaded (atlasPath) {
-		return PIXI.loader.resources[atlasPath] !== undefined && PIXI.loader.resources[atlasPath].isComplete;
+	static getResource (resourcePath) {
+		return PIXI.loader.resources[resourcePath];
 	}
 
-	static async getAtlasSubtexture (tileAtlasPath, subtileName) {
-		// Create an atlas Promise for loading the atlas
-		// Hookup to a method for handling the returned spriteSheet
-		// Then load the subtexturee
-		let atlasPromise = AtlasHelper.promiseAtlasLoading(tileAtlasPath, getLoadedSpritesheet);
-		let spriteSheet = await atlasPromise;
-		loadSubtexture(spriteSheet, subtileName);
+	static isResourceLoading (resourcePath) {
+		return AtlasHelper.getQueuedResourceIndex(resourcePath) !== -1 && PIXI.loader.resources[resourcePath] !== undefined && PIXI.loader.resources[resourcePath].isLoading;
+	}
 
-		console.log('Awaited promise resolved with:');
-		console.log(spriteSheet);
-		return spriteSheet;
-	};
+	static isResourceLoaded (resourcePath) {
+		return PIXI.loader.resources[resourcePath] !== undefined && PIXI.loader.resources[resourcePath].isComplete;
+	}
 
-	static promiseAtlasLoading (tileAtlasPath, callback) {
-		// console.log('Loader state:');
-		// console.log(PIXI.loader);
+	static isLoaderBusy () {
+		return loaderBusy;
+	}
 
-		// Check for already processing / processed
-		if (AtlasHelper.isAtlasLoading(tileAtlasPath) || AtlasHelper.isAtlasLoaded(tileAtlasPath)) {
-			console.log('Atlas already loaded: ' + tileAtlasPath);
-			return new Promise((resolve) =>
-			resolve(callback(PIXI.loader, PIXI.loader.resources, tileAtlasPath)));
-		} else if (resourceQueue.indexOf(tileAtlasPath) === -1) {
-			console.log('Queuing up Atlas: ' + tileAtlasPath);
-			resourceQueue.push(tileAtlasPath);
+	// Extract the subTexture from a loaded atlas
+	// atlas - A fully loaded Pixi Resource describing the .json atlas
+	// subtileName - the frameId of the subTexture
+	static _getLoadedAtlasTexture (atlas, frameId, callback) {
+		// Try using our loaded resource
+		if (atlas !== undefined && atlas !== null) {
+			let textures = atlas.textures;
 
-			if (!loaderBusy) {
-				AtlasHelper.promiseResourceLoading(callback);
-			} else {
-				console.log('Awaiting free loader');
-				// Call us back when the loader is free
-				let callbackFunc = function () { AtlasHelper.promiseResourceLoading(callback); };
-				loaderListenerMappings[tileAtlasPath] = callbackFunc;
-				document.addEventListener('loaderFree', callbackFunc);
+			if (frameId === undefined || frameId === null) {
+				throw new RangeError('No subtileName to load provided.');
 			}
+
+			if (textures !== undefined && textures !== null) {
+				let subTexture = textures[frameId];
+				if (subTexture !== undefined && subTexture !== null) {
+					callback(subTexture);
+				} else {
+					throw new RangeError('Error loading tile atlas subtexture / frameId: ' + frameId);
+				}
+			} else {
+				throw new RangeError('No textures in the provided atlas:' + atlas);
+			}
+		} else {
+			throw new RangeError('No atlas to load subtexture from: ' + atlas);
+		}
+	}
+	
+	static getQueuedResourceIndex (resourcePath) {
+		return loaderQueue.indexOf(resourcePath);
+	}
+	
+	// Add a resource to the queue if possible
+	// returns the index if success
+	// throws an Error if we've queued it up before
+	static addToLoaderQueue (resourcePath) {
+		var queueIndex = loaderQueue.indexOf(resourcePath);
+		if (queueIndex == -1) {
+			loaderQueue.push(resourcePath);
+			return loaderQueue.indexOf(resourcePath);
+		} else {
+			throw Error('Duplicate! Resource path already queued for the Loader: ' + resourcePath);
+		}
+	}
+	
+	static removeFromLoaderQueue(resourcePath) {
+		var queueIndex = loaderQueue.indexOf(resourcePath);
+		if (queueIndex !== -1) {
+			// Remove it from the queue
+			return loaderQueue.splice(queueIndex, 1);
+		}
+	}
+	
+	// For once a resource is loaded, log it and reset stuff
+	static _resourceLoaded (...resourcePaths) {
+		resourcePaths.forEach(resourcePath => {
+			console.log('Resource completely loaded: ' + resourcePath);
+		});
+		AtlasHelper._freeLoader();
+	}
+
+	static _freeLoader () {
+		// Free up the loader
+		loaderBusy = false;
+		// Fire off an event signalling the loader is free
+		document.dispatchEvent(new Event('loaderFree'));
+	}
+
+	// Setup a callback for when the loader is free
+	// Also maps it so we can handle listeners for it
+	static mapResourceCallbackForLoaderFree (resourcePath, callback) {
+		return new ResourceMapping('loaderFree', resourcePath, callback);
+		// resourceMappings.push(mapping);
+	}
+
+	static loadAtlasSubtexture (atlasPath, subtileName, callback) {
+		let argMessage = 'Attempting load of atlas: ' + atlasPath + ', ' + subtileName + ', ' + callback;
+
+		if (atlasPath !== null && atlasPath !== undefined &&
+		subtileName !== null && subtileName !== undefined &&
+		callback !== null && callback !== undefined) {
+			// This is the call we want to make
+			// but it requires atlasPath to be loaded
+			var onSheetCall = function () {
+				let atlas = AtlasHelper.getResource(atlasPath);
+				AtlasHelper._getLoadedAtlasTexture(atlas, subtileName, callback);
+			};
+
+			let loading = AtlasHelper.isResourceLoading(atlasPath);
+			let loaded = AtlasHelper.isResourceLoaded(atlasPath);
+
+			// If we've loaded the atlas, callback straight away
+			if (loaded) {
+				// console.log('loadAtlasSubtexture - Atlas is already loaded: ' + atlasPath);
+				// If we have it already, use it
+				onSheetCall();
+			} else if (loading) {
+				// console.log('loadAtlasSubtexture - Atlas is loading, adding callback. ' + atlasPath);
+				AtlasHelper.getLoader().onComplete.add(() => {
+					// console.log('loadAtlasSubtexture - loading atlas is finished.');
+					onSheetCall();
+				});
+			} else {
+				// Otherwise let us know and try to load it
+				// console.log('Cannot extract texture! Provided Atlas is not loading or loaded!');
+				console.log('loadAtlasSubtexture - Atlas not ready for use, attemting load of pixi resource: ' + atlasPath);
+				AtlasHelper.attemptLoadPixiResource(atlasPath, -1 ,() => {
+					// console.log('loadAtlasSubtexture - attempted atlas load is complete.');
+					onSheetCall();
+				});
+			}
+		} else {
+			throw new RangeError(argMessage);
 		}
 	}
 
-	static promiseResourceLoading (callback) {
-		// We can use .use here if needed to callback to some middleware parser
-		// Allowing us to do s	etup ready for our loaded asset.
-		if (resourceQueue.length > 0) {
-			let resource = resourceQueue.pop();
-			// Lock the loader before performing any action
-			loaderBusy = true;
+	static attemptLoadPixiResource (resourcePath, resourceQueueIndex, callback) {
+		let loading = AtlasHelper.isResourceLoading(resourcePath);
+		let loaded = AtlasHelper.isResourceLoaded(resourcePath);
+		
+		if (loaded) {
+			console.log('Resource already loaded..' + resourcePath);
+			callback();
+		}
 
-			// Use a promise to wrap the load callback
-			return new Promise((resolve) => {
-				// Add the fully qualified path to the files to the loader
-				// Queue up the atlas
-				// console.log('Adding resource to loader.');
-				// console.log(resource);
+		if (loading) {
+			console.log('Resource already loading..' + resourcePath);
+			AtlasHelper.getLoader().onComplete.add(callback);
+		}
+
+		if (!loading && !loaded && !loaderBusy) {
+			if (resourceQueueIndex !== -1) {
+				resourcePath = resourceQueue[resourceQueueIndex];
+				console.log('Loading queued resource: ' + resourcePath);
+				// We've already queued up  a resource
+				AtlasHelper._loadPixiResource(resourceQueue[resourceQueueIndex], callback);
+			} else {
+				console.log('Loading resource: ' + resourcePath);
+				AtlasHelper._loadPixiResource(resourcePath, callback);
+			}
+		}
+
+		if (!loading && !loaded && loaderBusy) {
+			
+			let resourceQueueIndex = -1;
+			// Add to the queue for use on re-try
+			try {
+				resourceQueueIndex = AtlasHelper.addToLoaderQueue(resourcePath);
+			} catch (err) {
+				// Already queued up this resource..
+				// Try again on freeing the loader 
+				// to give time for this reasource to load / loading
+				console.log('Resource already queued, will try again once loader is free: ' + resourcePath);
+			}
+			
+			var tryAgain = function () {
+				console.log('Trying to load resource again: ' + resourcePath);
+				AtlasHelper.attemptLoadPixiResource(resourcePath, resourceQueueIndex, callback);
+			};
+
+			console.log('Waiting for loader free to load resource: ' + resourcePath);
+			AtlasHelper.mapResourceCallbackForLoaderFree(resourcePath, tryAgain);
+		}
+	}
+
+	// Actually add resources to the pixi loader
+	// These NEED to be enqued on the resourceQueue to be used here
+	// Also sets up callbacks
+	static _loadPixiResource (resourcePath, callback) {
+		if (!loaderBusy) {
+			let resourceIndex = loaderQueue.indexOf(resourcePath);
+
+			if (resourceIndex === -1) {
+				// Lock the loader before performing any action
+				loaderBusy = true;
+				// Reset the loader queue
 				PIXI.loader.reset();
-				PIXI.loader.add(resource);
+				PIXI.loader.add(resourcePath);
 
-				// Load a PIXI.Spritesheet
-				PIXI.loader.load((loader, resources) => {
-					console.log('Resource loaded: ' + resource);
-
-									// Free up the loader
-					loaderBusy = false;
-					// Fire off an event signalling the loader is free
-					document.dispatchEvent(new Event('loaderFree'));
-
-					// Clear a listener mapping if present
-					if (loaderListenerMappings[resource] !== undefined) {
-						let mapping = loaderListenerMappings[resource];
-						// Clear the event listener so we don't trigger a pop
-						document.removeEventListener('loaderFree', mapping);
-					}
-
-					// resolve the promise
-					resolve(callback(loader, resources, resource));
+				PIXI.loader.load(() => {
+					// console.log('Internally complete from load.');
+					// console.log('Load complete:' + resourcePath);
+					AtlasHelper._resourceLoaded(resourcePath);
+					callback();
 				});
-			});
+
+				// PIXI.loader.onProgress.add(() => {
+				// 	console.log('Loader progressed!');
+				// });
+
+				PIXI.loader.onError.add((err, loader, resource) => {
+					throw new Error('Resource Loader -- failed with err: ' + err + ' during loading of resource: ' + resource);
+				});
+			}
+		} else {
+			throw new Error('Loader is busy at the moment!');
 		}
 	}
 }

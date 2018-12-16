@@ -3,7 +3,7 @@ import * as PIXI from 'libs/pixi.min.js';
 import Map from 'src/model/Map.js';
 import { PixiMapView, DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
 
-import { PixiController } from 'src/controller/pixi/PixiController.js';
+import { PixiController, ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
 
 let renderer = PixiController.pixiView.getRenderer();
 let TEST_TAG = '|PIXI-MAP-VIEW|';
@@ -33,7 +33,7 @@ function beforeAll (assert) {
 function beforeEachTest (assert) {
 	// Re-initialise our classes
 	mapModel = new Map();
-	pixiMapView = new PixiMapView(mapModel, renderer, atlasPath, TEST_WINDOW_SIZE);
+	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, ASSET_PATHS);
 }
 
 // Hookup before each test setup / assertion
@@ -42,7 +42,8 @@ QUnit.module('PixiMapViewTests', { before: beforeAll, beforeEach: beforeEachTest
 // Ensure the pixi map view data builds as we expect it to
 QUnit.test(
 TEST_TAG + 'new PixiMapView', function (assert) {
-	let testPixiMapView = new PixiMapView(new Map(TEST_TILECOUNT), PixiController.pixiView.getRenderer(), null, DEFAULT_TILE_SIZE * 20);
+	
+	let testPixiMapView = new PixiMapView(new Map(TEST_TILECOUNT), PixiController.pixiView.getRenderer(), DEFAULT_TILE_SIZE * 20, ASSET_PATHS);
 
 	assert.ok(pixiMapView.mapModel instanceof Map, 'Check the constructor sets it\'s Map model the one provided.');
 
@@ -82,6 +83,11 @@ TEST_TAG + 'new PixiMapView', function (assert) {
 	// Check the sub-arrays for 2D size validation
 	for (var i = 0; (i < TEST_TILECOUNT); i++) {
 		assert.equal(tileSpriteArray[i].length, TEST_TILECOUNT);
+		for (var j = 0; (j < TEST_TILECOUNT); j++) {
+			let sprite = tileSpriteArray[i][j];
+			assert.ok(sprite !== null && sprite !== undefined, 'Check array of Sprite tiles are not blank.');
+			assert.equal(typeof sprite, typeof PIXI.Sprite, 'Check array of Sprite tiles are Sprites.');
+		}
 	}
 
 	// 2D Array of TEST_TILECOUNT size
@@ -106,8 +112,8 @@ TEST_TAG + 'setupPixiContainers / setupMapUI', function (assert) {
 	assert.ok(parentContainer instanceof PIXI.Container, 'Ensure the pixiMapView parent container is initialised.')
 
 	// Check our child containers are added and of the correct type
-	assert.ok(parentContainer.getChildByName('mapContainer') instanceof PIXI.ParticleContainer);
-	assert.ok(parentContainer.getChildByName('characterContainer') instanceof PIXI.ParticleContainer);
+	assert.ok(parentContainer.getChildByName('mapContainer') instanceof PIXI.particles.ParticleContainer);
+	assert.ok(parentContainer.getChildByName('characterContainer') instanceof PIXI.particles.ParticleContainer);
 
 	// Sprites for the map viewPixiMapView
 	// tileSpriteArray = [ 2D array of tilecount, ]

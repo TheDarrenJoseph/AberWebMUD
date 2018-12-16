@@ -10,14 +10,14 @@ export var DEFAULT_TILE_SIZE = 40;
 var DEFAULT_TILE_MAPPINGS = ['grass-plain', 'barn-front'];
 
 export default class PixiMapView {
-	constructor (mapModel, renderer, ASSET_PATH_OVERWORLD, windowSize) {
+	constructor (mapModel, renderer, windowSize, assetPaths) {
 		// For map model position validations
 		this.mapModel = mapModel;
 
 		//	Maps tile codes to resource keys
 		this.tileMappings = DEFAULT_TILE_MAPPINGS;
 		this.renderer = renderer;
-		this.ASSET_PATH_OVERWORLD = ASSET_PATH_OVERWORLD;
+		this.assetPaths = assetPaths;
 
 		this.tileSize = DEFAULT_TILE_SIZE;
 
@@ -53,6 +53,14 @@ export default class PixiMapView {
 		this.mapViewMinPosition = [this.lowestViewPosition, this.lowestViewPosition];
 		this.mapViewMaxPosition = [this.highestViewPosition, this.highestViewPosition];
 
+		// Top level container for all children
+		this.parentContainer = new PIXI.Container();
+
+		// Using ParticleContainer for large amounts of sprites
+		this.mapContainer = new PIXI.particles.ParticleContainer();
+		this.characterContainer = new PIXI.particles.ParticleContainer();
+		this.parentContainer.addChild(this.mapContainer, this.characterContainer);
+
 		//	Sprites for the map viewPixiMapView
 		this.tileSpriteArray = this.setupMapUI();
 		//	Sprites for the players in the current map view
@@ -64,16 +72,6 @@ export default class PixiMapView {
 		// console.log(this);
 	}
 
-	setupPixiContainers () {
-		// Top level container for all children
-		this.parentContainer = new PIXI.Container();
-
-		// Using ParticleContainer for large amounts of sprites
-		this.mapContainer = new PIXI.particles.ParticleContainer();
-		this.characterContainer = new PIXI.particles.ParticleContainer();
-		this.parentContainer.addChild(this.mapContainer, this.characterContainer);
-	}
-
 	getParentContainer () {
 		return this.parentContainer;
 	}
@@ -83,11 +81,11 @@ export default class PixiMapView {
 	}
 
 	renderMapContainer () {
-		this.renderer.render(this.this.mapContainer);
+		this.renderer.render(this.mapContainer);
 	}
 
 	renderCharacterContainer () {
-		this.renderer.render(this.this.mapContainer);
+		this.renderer.render(this.mapContainer);
 	}
 
 	getTileMappings () {
@@ -117,12 +115,9 @@ export default class PixiMapView {
 		for (var x = 0; x < this.tileCount; x++) {
 			tileSpriteArray[x] = Array(this.tileCount); // 2nd array dimension per row
 			for (var y = 0; y < this.tileCount; y++) {
-				let spritePromise = SpriteHelper.makeSpriteFromAtlas(this.ASSET_PATH_OVERWORLD, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
-
-				spritePromise.then(tileSprite => {
+				SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE).then( tilesSprite => {
 					// Create a new Pixi Sprite
-					console.log('Tile sprite made');
-					console.log(tileSprite);
+					console.log('Tile sprite made'+tileSprite);
 
 					let pixelX = x * this.tileSize;
 					let pixelY = y * this.tileSize;
@@ -145,7 +140,7 @@ export default class PixiMapView {
 
 	//	Creates a character sprite on-the-fly to represent another character
 	//	gridX, gridY are character positions on the map
-	newCharacterOnMap (characterAtlasPath, charactername, gridX, gridY) {
+	async newCharacterOnMap (characterAtlasPath, charactername, gridX, gridY) {
 		console.log('new char.. ' + charactername + gridX + gridY);
 
 		if (!this.mapModel.isPositionInMap(gridX, gridY)) {
@@ -155,9 +150,12 @@ export default class PixiMapView {
 			var localPos = this.mapPositionHelper.globalTilePosToLocal(gridX, gridY);
 			var localX = localPos[0];
 			var localY = localPos[1];
-
 			if (this.isPositionRelativeToView(localX, localY)) {
-				var characterSprite = SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player');
+				
+				// We need to await so we can return this Sprite
+				var characterSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+				
+				console.log('Async Awaited New sprite for mapview: ' + characterSprite);
 				var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
 
 				console.log('PIXI POS for new char: ' + pixiPos[0] + ' ' + pixiPos[1]);
@@ -194,33 +192,33 @@ export default class PixiMapView {
 					//	Accessing one of the window tiles
 					let tileSprite = PixiMapView.tileSpriteArray[x][y];
 
-					try {
-						var globalXY = this.mapPositionHelper.localTilePosToGlobal(x, y);
-						var globalX = globalXY[0];
-						var globalY = globalXY[1];
+					var globalXY = this.mapPositionHelper.localTilePosToGlobal(x, y);
+					var globalX = globalXY[0];
+					var globalY = globalXY[1];
 
-						if (this.this.mapModel.isPositionInMap(globalX, globalY)) {
-							var tileFromServer = this.mapModel.mapTiles[globalX][globalY];
+					if (this.this.mapModel.isPositionInMap(globalX, globalY)) {
+						var tileFromServer = this.mapModel.mapTiles[globalX][globalY];
 
-							if (tileSprite != null && tileFromServer != null) { //	Check the data for this tile exists
-								//	var thisSprite = PixiMapView.mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
-								var subTexture = this.getAtlasSubtexture(this.ASSET_PATH_OVERWORLD, this.tileMappings[tileFromServer.tileType]);
+						if (tileSprite != null && tileFromServer != null) { //	Check the data for this tile exists
+							//	var thisSprite = PixiMapView.mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
+							var subTexturePromise = this.promiseAtlasSubtextureLoading(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileFromServer.tileType])
 
+							subTexturePromise.then(subTexture => {
 								//	If the texture exists, set this sprite's texture,
 								// and add it back to the container
 								if (subTexture != null) {
 									tileSprite.texture = subTexture;
 									PixiMapView.mapContainer.addChild(tileSprite);
 								}
-							}
+							}).catch(err => {
+								console.log('Subtexture promise failed when loading a texture to draw the map to view: ' + err);
+							});
+						} else {
+							console.log('MAP DRAWING| overworld map data from remote is missing.');
 						}
-					} catch (err) {
-						continue;
 					}
 				}
 			}
-		} else {
-			console.log('MAP DRAWING| overworld map data from remote is missing.');
 		}
 	}
 

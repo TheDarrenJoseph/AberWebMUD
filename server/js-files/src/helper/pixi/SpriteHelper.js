@@ -4,40 +4,54 @@ import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 import { DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
 
 export default class SpriteHelper {
+	static _promisePixiTexture (tileAtlasPath, subtileName, tileHeight, tileWidth) {
+		return new Promise((resolve, reject) => {
+			AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName, spriteTexture => {
+				// console.log('SpriteHelper - Awaited sprite texture: ');
+				// console.log(spriteTexture);
+
+				//	Check the texture
+				if (spriteTexture != null) {
+					// Resolve with (return) the texture
+					resolve(spriteTexture);
+				} else {
+					reject(new Error('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' +
+					tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']'));
+				}
+			});
+		});
+	}
+
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
-	static async makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight = DEFAULT_TILE_SIZE, tileWidth = DEFAULT_TILE_SIZE) {
-		// Load the named subtile from the given atlas
-		var spriteTexture = await AtlasHelper.getAtlasSubtexture(tileAtlasPath, subtileName);
-		console.log('Loaded sprite texture: ');
-		console.log(spriteTexture);
+	// This will return a Promsie
+	static makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight = DEFAULT_TILE_SIZE, tileWidth = DEFAULT_TILE_SIZE) {
+		// Wrap the subtexture promise to make a Sprite and return that
+		// Otherwise bubble up the error
+		return new Promise((resolve, reject) => {
+			let subtexturePromise = SpriteHelper._promisePixiTexture(tileAtlasPath, subtileName, tileHeight, tileWidth);
 
-		//	Check the texture
-		if (spriteTexture != null) {
-			let thisSprite = new PIXI.Sprite(spriteTexture);
-			thisSprite.height = tileHeight;
-			thisSprite.width = tileWidth;
-			return thisSprite;
-		} else {
-			throw String('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' + tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']');
-		}
+			// Load the named subtile from the given atlas
+			subtexturePromise.then(spriteTexture => {
+				var thisSprite = new PIXI.Sprite(spriteTexture);
+				// console.log('New Sprite');
+				// console.log(thisSprite);
+				
+				thisSprite.height = tileHeight;
+				thisSprite.width = tileWidth;
+
+				// Not sure if we'll be setting this just here
+				// thisSprite.interactive = interactive;
+
+				resolve(thisSprite);
+			}).catch(err => {
+				reject(err);
+			});
+		});
 	}
 
-	static createSprite (atlasPath, subtileName, tileHeight, tileWidth, x, y, interactive) {
-		let thisSprite = SpriteHelper.makeSpriteFromAtlas(atlasPath, subtileName, tileHeight, tileWidth);
-
-		thisSprite.height = tileHeight;
-		thisSprite.width = tileWidth;
-
-		thisSprite.x = x;
-		thisSprite.y = y;
-
-		thisSprite.interactive = interactive;
-		return thisSprite;
-	}
-
-	static PlayerSprite (characterAtlasPath) {
-		return SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
-	}
+	// static PlayerSprite (characterAtlasPath) {
+	//	return SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+	// }
 
 	// function deleteMapCharacter(global_x, global_y) {
 	//  //Converting global pos to local relative to view
