@@ -23,9 +23,9 @@ function beforeAll (assert) {
 	assert.ok(renderer instanceof PIXI.WebGLRenderer ||
 					renderer instanceof PIXI.CanvasRenderer, 'Check test Pixi renderer is instanciated.');
 
-		// Assert things that really should be true
-		assert.equal(DEFAULT_TILE_SIZE, 40, 'Check default tile size (pixels) is as expected.')
-		assert.equal(TEST_WINDOW_SIZE, 800, 'Check test window size (pixels) is as expected.')
+	// Assert things that really should be true
+	assert.equal(DEFAULT_TILE_SIZE, 40, 'Check default tile size (pixels) is as expected.')
+	assert.equal(TEST_WINDOW_SIZE, 800, 'Check test window size (pixels) is as expected.')
 	// DO SOME STUFF
 }
 
@@ -41,10 +41,16 @@ QUnit.module('PixiMapViewTests', { before: beforeAll, beforeEach: beforeEachTest
 
 // Ensure the pixi map view data builds as we expect it to
 QUnit.test(
-TEST_TAG + 'new PixiMapView', function (assert) {
+TEST_TAG + 'new PixiMapView', async function (assert) {
+	// PixiMapView construction can be a little slow
+	// Give us 5s to sort our shit out
+	assert.timeout(10000);
 	
 	let testPixiMapView = new PixiMapView(new Map(TEST_TILECOUNT), PixiController.pixiView.getRenderer(), DEFAULT_TILE_SIZE * 20, ASSET_PATHS);
-
+	
+	// Let it block us while it sets up
+	await testPixiMapView.initialise();
+	
 	assert.ok(pixiMapView.mapModel instanceof Map, 'Check the constructor sets it\'s Map model the one provided.');
 
 	assert.ok(pixiMapView.renderer instanceof PIXI.WebGLRenderer ||
@@ -75,53 +81,61 @@ TEST_TAG + 'new PixiMapView', function (assert) {
 	assert.equal(testPixiMapView.highestViewPosition, 9, 'Check highest mapview position is calculated correctly.');
 	assert.deepEqual(testPixiMapView.mapViewMinPosition, [-9, -9], 'Check mapview min position is calculated correctly.');
 	assert.deepEqual(testPixiMapView.mapViewMaxPosition, [9, 9], 'Check mapview max position is calculated correctly.');
-
+	
+	// Iter
 	// 2D Array of TEST_TILECOUNT size
 	let tileSpriteArray = testPixiMapView.tileSpriteArray;
 	assert.ok(tileSpriteArray instanceof Array, 'Check tileSpriteArray is actually an array');
 	assert.equal(tileSpriteArray.length, TEST_TILECOUNT, 'Check tileSpriteArray 1d size.');
+	
+
 	// Check the sub-arrays for 2D size validation
+	let depthCount = 0
+	let spritesValid = 0;
+	let expectedValid = TEST_TILECOUNT * TEST_TILECOUNT;
 	for (var i = 0; (i < TEST_TILECOUNT); i++) {
-		assert.equal(tileSpriteArray[i].length, TEST_TILECOUNT);
+		if (tileSpriteArray[i].length === TEST_TILECOUNT) {
+			depthCount++;
+		}
 		for (var j = 0; (j < TEST_TILECOUNT); j++) {
 			let sprite = tileSpriteArray[i][j];
-			assert.ok(sprite !== null && sprite !== undefined, 'Check array of Sprite tiles are not blank.');
-			assert.equal(typeof sprite, typeof PIXI.Sprite, 'Check array of Sprite tiles are Sprites.');
+			// Increment a count 
+			// instead of printing tons of assertion messages
+			if (sprite !== null && sprite !== undefined && sprite instanceof PIXI.Sprite) {
+				spritesValid++;
+			}
 		}
 	}
-
+	assert.equal(depthCount, TEST_TILECOUNT, 'Check tileSpriteArray 1d depth is valid.');
+	assert.equal(spritesValid, expectedValid, 'Check tileSpriteArray is initialised fully');
+		
 	// 2D Array of TEST_TILECOUNT size
+	
 	let mapCharacterArray = testPixiMapView.mapCharacterArray;
 	assert.ok(mapCharacterArray instanceof Array, 'Check mapCharacterArray is actually an array');
 	assert.equal(mapCharacterArray.length, TEST_TILECOUNT, 'Check tileSpriteArray 1d size.');
 	// Check the sub-arrays for 2D size validation
+	depthCount = 0;
 	for (i = 0; (i < TEST_TILECOUNT); i++) {
-		assert.equal(mapCharacterArray[i].length, TEST_TILECOUNT);
+		if (mapCharacterArray[i].length === TEST_TILECOUNT) {
+			depthCount++;
+		}
 	}
-}
-);
-
-// Ensure our MapView sets up it's containers as expected.
-QUnit.test(
-TEST_TAG + 'setupPixiContainers / setupMapUI', function (assert) {
-	pixiMapView.setupPixiContainers();
-
+	assert.equal(depthCount, TEST_TILECOUNT, 'Check mapCharacterArray 1d depth is valid.');
+	
+	// Check Pixi JS Container objects
 	let parentContainer = pixiMapView.parentContainer;
-
+	console.log('Parent Container..');
+	console.log(parentContainer);
 	// Top level container for all children
-	assert.ok(parentContainer instanceof PIXI.Container, 'Ensure the pixiMapView parent container is initialised.')
+	assert.ok(parentContainer instanceof PIXI.Container, 'Ensure the pixiMapView parent container is initialised.');
 
 	// Check our child containers are added and of the correct type
-	assert.ok(parentContainer.getChildByName('mapContainer') instanceof PIXI.particles.ParticleContainer);
-	assert.ok(parentContainer.getChildByName('characterContainer') instanceof PIXI.particles.ParticleContainer);
-
-	// Sprites for the map viewPixiMapView
-	// tileSpriteArray = [ 2D array of tilecount, ]
-	// content should match sprites by SpriteHelper
-
-	assert.ok(false, 'TODO');
+	assert.ok(parentContainer.getChildByName('mapContainer') instanceof PIXI.particles.ParticleContainer, 'Check ParticleContainer mapContainer exists under parentContainer.');
+	assert.ok(parentContainer.getChildByName('characterContainer') instanceof PIXI.particles.ParticleContainer, 'Check ParticleContainer characterContainer exists under parentContainer.');
 }
 );
+
 
 QUnit.test(
 TEST_TAG + 'createMapCharacterArray', function assertMapCharacterArray (assert, mapCharacterArray = pixiMapView.createMapCharacterArray(TEST_TILECOUNT)) {
