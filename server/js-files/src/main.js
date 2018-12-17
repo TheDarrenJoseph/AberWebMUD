@@ -6,6 +6,5 @@ console.log('Awaiting page load..');
 
 var clientController = new GameController();
 clientController.checkCharacterDetails();
-
 //	Initialises the client setup once the HTML page loads
-$(document).ready(clientController.performSetup);
+$(document).ready(function () { clientController.performSetup(); });
