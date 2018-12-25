@@ -82,14 +82,15 @@ class PixiControllerClass {
 		this.pixiView.setHealthBarValue(Session.clientSession.character.health);
 		// Show the stat bar
 		this.pixiView.showStatBars();
-
 		this.setupConsoleButton();
 		var contextButtons = this.setupContextButtons();
-
 		contextButtons[0].on('click', PageView.toggleIventoryWinVisibility);
 		contextButtons[1].on('click', PageView.toggleStatWinVisibility);
-
 		PageView.appendToConsoleButtonClass(contextButtons);
+		
+		PageChatView.clearMessageLog();
+		PageChatView.hidePasswordInput();
+		this.initialiseAssets();
 	}
 
 	assetsLoaded () {
@@ -98,17 +99,18 @@ class PixiControllerClass {
 		PageView.appendToMainWindow(this.renderer.view);
 		this.showLoginControls();
 	}
-
-	setupPixiUI () {
-		console.log('Setting up' + this);
-		PageChatView.clearMessageLog();
-		PageChatView.hidePasswordInput();
-
+	
+	initialiseAssets () {
 		// Ensure our atlasses are loaded
-		AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_OVERWORLD);
-		AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS);
-		AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_CHARACTERS);
-		this.assetsLoaded.apply(this);
+		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_OVERWORLD);
+		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS);
+		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_CHARACTERS);
+		
+		console.log('PixiController multi-asset loading unimplemented!');
+		// TODO 
+		// 1. Pass the 3 atlasses into AtlasHelper
+		// 2. pass assetsLoaded in as a callback
+		// 		this.assetsLoaded.apply(this);
 	}
 
 	// Sets the timeout trigger for a double-click

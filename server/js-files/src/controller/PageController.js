@@ -15,7 +15,7 @@ import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 //	Very loose controller for the Page
 //	Binding to click / key events using jQuery and controlling the overall UI elements
 export default class PageController {
-	static setupPageUI () {
+	static setupUI () {
 		PageController.bindEvents(); //	Hookup message sending and other controls
 	}
 

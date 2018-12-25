@@ -35,8 +35,8 @@ export default class GameController {
 		console.log('Starting client..');
 
 		//	Get the general UI ready
-		PageController.setupPageUI();
-		PixiController.setupPixiUI();
+		PageController.setupUI();
+		PixiController.setupUI();
 		this.checkCharacterDetails();
 		this.characterDetailsConfirmed();
 
