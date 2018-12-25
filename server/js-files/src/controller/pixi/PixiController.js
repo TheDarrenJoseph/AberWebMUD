@@ -106,7 +106,7 @@ class PixiControllerClass {
 		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS);
 		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_CHARACTERS);
 		
-		console.log('PixiController multi-asset loading unimplemented!');
+		console.log('WARNING - PixiController multi-asset loading unimplemented!');
 		// TODO 
 		// 1. Pass the 3 atlasses into AtlasHelper
 		// 2. pass assetsLoaded in as a callback

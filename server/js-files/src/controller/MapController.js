@@ -18,7 +18,7 @@ export default class MapController {
 	constructor (renderer, map = new Map(), pixiMapView = null, assetPaths) {
 		// Setup the pixi map view so we have our window dimensions
 		this.windowSize = PageView.getWindowDimensions();
-		
+			
 		this.mapModel = map;
 
 		if (pixiMapView === null) {
@@ -26,10 +26,6 @@ export default class MapController {
 		} else {
 			this.pixiMapView = pixiMapView;
 		}
-		console.log('Setup Map Window Size: ' + this.windowSize);
-		console.log('Map View Tilecount: ' + this.pixiMapView.tileCount);
-		//this.pixiMapView.setupPixiContainers(this.pixiMapView.tileCount);
-
 		this.mapPositionHelper = new MapPositionHelper(this.pixiMapView);
 	}
 
@@ -67,20 +63,15 @@ export default class MapController {
 	}
 
 	//	Moves the UI to a new position and draws the map there
-	showMapPosition (gridX, gridY) {
-		this.mapModel.getViewPosition(gridX, gridY);
-
-		//	This will throw a RangeError if our position is invalid (doubles as a sanity-check)
-		this.setMapViewPosition(gridX - this.mapModel.halfZeroIndexedTileCountFloored, gridY - this.mapModel.halfZeroIndexedTileCountFloored);
-		console.log('Drawing map from this position: ' + gridX + ' ' + gridY);
-		//	Draw the view at this position
-		PixiMapView.drawMapToGrid(gridX, gridY);
+	showMapPosition (startX, startY) {
+		this.setMapViewPosition(startX, startY);
+		// Rebuild / re-draw the map view
+		this.pixiMapView.drawMapToGrid();
 	}
 
 	// Wrappers calls to the data model to include validation
 	// throws a RangeError if args are invalid
 	setMapViewPosition (startX, startY) {
-		//	Checks that we have half the view out of the map maximum
 		if (this.pixiMapView.isValidMapViewPosition(startX, startY)) {
 			//	Adjusting the start values for drawing the map
 			this.pixiMapView.setMapViewPosition(startX, startY);

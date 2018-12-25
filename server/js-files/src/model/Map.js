@@ -1,4 +1,5 @@
 import MapTile from 'src/model/MapTile.js';
+import ArrayHelper from 'src/helper/ArrayHelper.js'
 
 // Raw data model for the current Map
 // No errors thrown or validation here
@@ -12,22 +13,13 @@ export default class Map {
 		//	Sizes of the map
 		this.mapSizeX = tileCount;
 		this.mapSizeY = tileCount;
-
-		console.log(this);
 	}
 
 	// Initialise the map tile array
 	setupTiles () {
 		// Create enough dummy tiles for the map model
-		// Create a pretty crappy 2d array of tileCount size
-		this.mapTiles = Array(this.mapSizeX);
-		for (var x = 0; x < this.mapSizeX; x++) {
-			this.mapTiles[x] = Array(this.mapSizeY); // 2nd array dimension per row
-
-			for (var y = 0; y < this.mapSizeY; y++) {
-				this.mapTiles[x][y] = new MapTile();
-			}
-		}
+		let mapTiles = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, MapTile)
+		return mapTiles;
 	}
 
 	// Checks whether the position is valid in the range of 0 - < mapSizeXorY

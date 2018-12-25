@@ -1,5 +1,5 @@
 // Constructor for a standardised character JSON
-export default function GridCharacter (charname, x, y, sprite) {
+export default function MapCharacter (charname, x, y, sprite) {
 	return {
 		charname: charname,
 		pos_x: x,
@@ -8,4 +8,4 @@ export default function GridCharacter (charname, x, y, sprite) {
 	};
 }
 
-export { GridCharacter };
+export { MapCharacter };

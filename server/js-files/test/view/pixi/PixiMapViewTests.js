@@ -87,7 +87,6 @@ TEST_TAG + 'new PixiMapView', async function (assert) {
 	let tileSpriteArray = testPixiMapView.tileSpriteArray;
 	assert.ok(tileSpriteArray instanceof Array, 'Check tileSpriteArray is actually an array');
 	assert.equal(tileSpriteArray.length, TEST_TILECOUNT, 'Check tileSpriteArray 1d size.');
-	
 
 	// Check the sub-arrays for 2D size validation
 	let depthCount = 0
@@ -137,6 +136,8 @@ TEST_TAG + 'new PixiMapView', async function (assert) {
 );
 
 
+// Test that we correctly create a blank 2D array
+// To store character sprites
 QUnit.test(
 TEST_TAG + 'createMapCharacterArray', function assertMapCharacterArray (assert, mapCharacterArray = pixiMapView.createMapCharacterArray(TEST_TILECOUNT)) {
 	assert.ok(mapCharacterArray instanceof Array, 'Check mapCharacterArray is actually an array');
@@ -156,7 +157,10 @@ TEST_TAG + 'newCharacterOnMap', function (assert) {
 	let characterName = 'TIMMY TEST';
 	let gridX = 2;
 	let gridY = 2;
-	pixiMapView.newCharacterOnMap(characterAtlasPath, characterName, gridX, gridY);
+	let gridChar = pixiMapView.newCharacterOnMap(characterAtlasPath, characterName, gridX, gridY);
+	
+	
+	
 	assert.ok(false, 'TODO');
 }
 );
