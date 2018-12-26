@@ -30,7 +30,7 @@ const assetPathObjects = assetPathZelda + 'zelda-objects-texture-atlas.json';
 export const ASSET_PATHS = {
 	ASSET_PATH_OVERWORLD : assetPathOverworld,
 	ASSET_PATH_CHARACTERS: assetPathCharacters,
-	ASSET_PATH_OBJECTS: assetPathCharacters
+	ASSET_PATH_OBJECTS: assetPathObjects
 }
 
 //	Handles the PixiJS renderer
@@ -49,43 +49,56 @@ class PixiControllerClass {
 		//	};
 	}
 
-	setupConsoleButton () {
-		var mapTileSize = this.mapController.getPixiMapView().tileSize;
-
-		var consoleButtonSprite = SpriteHelper.createSprite(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS,
-																						'chat-bubble-blank',
-																						mapTileSize,
-																						mapTileSize,
-																						0,
-																						this.windowSize - mapTileSize,
-																						true);
-
-		PixiMapView.controlsContainer.addChild(consoleButtonSprite);
-		consoleButtonSprite.on('click', PageView.toggleConsoleVisibility);
+	async setupConsoleButton () {
+		if (this.pixiView.controlsContainer.getChildByName('consoleButtonSprite') == undefined) {
+			console.log('Creating a console button..');
+			var mapTileSize = this.mapController.getPixiMapView().tileSize;
+			var consoleButtonSpritePromise = SpriteHelper.makeSpriteFromAtlas(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chat-bubble-blank');
+			
+			var consoleButtonSprite = await consoleButtonSpritePromise;
+			consoleButtonSprite.name = 'consoleButtonSprite';
+			this.pixiView.controlsContainer.addChild(consoleButtonSprite);
+			consoleButtonSprite.on('click', PageView.toggleConsoleVisibility);
+		}
 	}
 
 	setupContextButtons () {
 		var mapTileSize = this.mapController.getPixiMapView().windowSize;
-
-		//	var inventoryButtonSprite = makeSpriteFromTileset(zeldaObjectsTilesetPath, 0, 0, 16, 16);
-		var inventoryButtonSprite = this.pixiView.createInventoryButton(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
-		PixiMapView.controlsContainer.addChild(inventoryButtonSprite);
-
-		var statsButtonSprite = this.pixiView.createStatsButton(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
-		PixiMapView.controlsContainer.addChild(statsButtonSprite);
-
-		return [inventoryButtonSprite, statsButtonSprite];
+		var inventoryButtonSpritePromise = new Promise ( (resolve) => { resolve (this.pixiView.controlsContainer.getChildByName('inventoryButtonSprite')); } );
+		if (this.pixiView.controlsContainer.getChildByName('inventoryButtonSprite') == undefined) {
+			console.log('Creating a context button..');
+			inventoryButtonSpritePromise =  PixiView.createInventoryButton(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chest-single', this.windowSize, mapTileSize).then( (inventoryButtonSprite) => {
+				inventoryButtonSprite.name = 'inventoryButtonSprite';
+				this.pixiView.controlsContainer.addChild(inventoryButtonSprite);
+			});
+		}
+		
+		var statsButtonSpritePromise = new Promise ( (resolve) => { resolve (this.pixiView.controlsContainer.getChildByName('statsButtonSprite')); } );
+		if (this.pixiView.controlsContainer.getChildByName('inventoryButtonSprite') == undefined) {
+			console.log('Creating a inventory button..');
+			statsButtonSpritePromise = PixiView.createStatsButton(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chest-single', this.windowSize, mapTileSize).then( (statsButtonSprite) => {
+				inventoryButtonSprite.name = 'statsButtonSprite';
+				this.pixiView.controlsContainer.addChild(statsButtonSprite);
+			});
+			
+		}
+		
+		return Promise.all([inventoryButtonSpritePromise, statsButtonSpritePromise]);
 	}
 
-	setupUI () {
+	async setupUI () {
 		// Set the health bar value
 		this.pixiView.setHealthBarValue(Session.clientSession.character.health);
 		// Show the stat bar
 		this.pixiView.showStatBars();
 		this.setupConsoleButton();
-		var contextButtons = this.setupContextButtons();
+		
+		// Await all setup
+		var contextButtons = await this.setupContextButtons();
+		
 		contextButtons[0].on('click', PageView.toggleIventoryWinVisibility);
 		contextButtons[1].on('click', PageView.toggleStatWinVisibility);
+		
 		PageView.appendToConsoleButtonClass(contextButtons);
 		
 		PageChatView.clearMessageLog();
@@ -151,16 +164,18 @@ class PixiControllerClass {
 
 	//	Show the main chat view
 	showDialog () {
-		this.pixiView.setDialogBackgroundVisibility(true);
-		this.renderStage(); //	update the view to show this
+		this.pixiView.showDialogContainer(true);
 	}
 
 	showControls (show) {
-		PixiMapView.controlsContainer.visisble = show;
-		this.renderControlsContainer();
+		this.pixiView.showControlsContainer(true);
+	}
+	
+	renderAll () {
+		this.pixiView.renderAll();
 	}
 }
 
 // Create an instance we can refer to nicely (hide instanciation)
 let PixiController = new PixiControllerClass();
-export { PixiController };
+export { PixiController, PixiControllerClass };

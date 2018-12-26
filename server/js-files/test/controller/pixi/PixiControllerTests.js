@@ -1,23 +1,46 @@
-import { PixiController } from 'src/controller/pixi/PixiController.js';
+import { PixiController, PixiControllerClass } from 'src/controller/pixi/PixiController.js';
 
 var TEST_TAG = '|PIXI CONTROLLER|';
 
-QUnit.skip(TEST_TAG + 'setupConsoleButton', function (assert) {
-	assert.ok(true, 'TODO');
+var pixiController;
+
+// Setup / assertions before any test runs
+function beforeAll (assert) {
+	// DO SOME STUFF
+}
+
+// Setup / assertions before each test
+function beforeEachTest (assert) {
+	// Make sure we have a fresh controller every time
+	// To prevent knock-on state changes
+	pixiController = new PixiControllerClass();
+	assert.ok(pixiController instanceof PixiControllerClass, 'Check controller instance is instanciated.');
+}
+
+// Hookup before each test setup / assertion
+QUnit.module('PixiControllerTests', { before: beforeAll, beforeEach: beforeEachTest })
+
+QUnit.test(TEST_TAG + 'setupConsoleButton', async function (assert) {
+	await pixiController.setupConsoleButton();
+	assert.ok(false, 'TODO');
 });
 
 QUnit.skip(TEST_TAG + 'setupContextButtons', function (assert) {
-	assert.ok(true, 'TODO');
+	pixiController.setupContextButtons();
+	assert.ok(false, 'TODO');
 });
 
 QUnit.skip(TEST_TAG + 'setupUI', function (assert) {
-	assert.ok(true, 'TODO');
+	pixiController.setupUI();
+	assert.ok(false, 'TODO');
 });
 
 QUnit.skip(TEST_TAG + 'setupContextButtons', function (assert) {
-	assert.ok(true, 'TODO');
+	pixiController.setupContextButtons();
+	assert.ok(false, 'TODO');
 });
 
 QUnit.skip(TEST_TAG + 'setupPixiUI', function (assert) {
-	assert.ok(true, 'TODO');
+	pixiController.setupPixiUI();
+	assert.ok(false, 'TODO');
 });
