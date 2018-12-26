@@ -13,8 +13,8 @@ import { POS_LOCAL_TO_GLOBAL_LOCAL_INVALID_START, POS_TILE_TO_PIXI_INVALID_PIXI_
 var POSITION_TEST_TAG = '|MAP-POSITION-HELPER|';
 
 // Enough pixels for 20 tiles
-let testTileCount = 20;
-let testWindowSize = DEFAULT_TILE_SIZE * testTileCount;
+let TEST_TILECOUNT = 20;
+let TEST_WINDOW_SIZE = DEFAULT_TILE_SIZE * TEST_TILECOUNT;
 
 // We'll initialise each of these before each test to have fresh objects
 let pixiView = null;
@@ -36,8 +36,8 @@ function beforeEachTest (assert) {
 	// Re-initialise our classes
 	pixiView = new PixiView();
 	renderer = pixiView.getRenderer();
-	mapModel = new Map(20);
-	pixiMapView = new PixiMapView(mapModel, renderer, testWindowSize, ASSET_PATHS);
+	mapModel = new Map(DEFAULT_MAP_SIZE_XY);
+	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, ASSET_PATHS);
 	// (renderer, map = new Map(), pixiMapView = null, ASSET_PATH_OVERWORLD)
 	mapController = new MapController(renderer, mapModel, pixiMapView, ASSET_PATHS);
 
@@ -51,10 +51,10 @@ function beforeEachTest (assert) {
 	assert.equal(mapViewStartPos[1], 0);
 
 	let mapSizes = mapController.getMap().getMapSizes();
-	assert.equal(mapSizes[0], DEFAULT_MAP_SIZE_XY);
-	assert.equal(mapSizes[1], DEFAULT_MAP_SIZE_XY);
+	assert.equal(mapSizes[0], TEST_TILECOUNT);
+	assert.equal(mapSizes[1], TEST_TILECOUNT);
 
-	assert.equal(mapViewTilecount, DEFAULT_MAP_SIZE_XY);
+	assert.equal(mapViewTilecount, TEST_TILECOUNT);
 }
 
 // Hookup before each test setup / assertion
@@ -98,20 +98,19 @@ QUnit.test(POSITION_TEST_TAG + 'in-map-invalid', function (assert) {
 //  e.g the top-left corner 0, 0 could be on tile 20 of the map
 QUnit.test(POSITION_TEST_TAG + 'local-to-global-valid', function (assert) {
 	let mapViewStartPos = mapController.getPixiMapView().getMapViewStartPosition();
-	let mapViewStartX = mapViewStartPos[0];
-	let mapViewStartY = mapViewStartPos[1];
 	assert.deepEqual(mapViewStartPos, [0, 0], 'Check map view starting positions are zero.');
 
-  //	Local position (relative to view) is 0-tilecount-1, global = X or Y+XYoffset
-  //	1. Lowest possible local position
+	//	Local position (relative to view) is 0-tilecount-1, global = X or Y+XYoffset
+	//	1. Lowest possible local position
 	let result = mapPositionHelper.localTilePosToGlobal(0, 0);
 	// console.log('local to global 0,0 conversion result: ' + result);
-	assert.deepEqual(result, [mapViewStartX, mapViewStartY], 'Check local mapview position 0, 0 resolves to mapview start pos');
+	assert.deepEqual(result, [0, 0], 'Check local mapview position 0, 0 resolves to mapview start pos');
 
 	//	2. Highest possible local position with an offset (-1 for zero indexing)
-
+	let expectedGlobalPos = [19, 19];
 	let highestViewPos = pixiMapView.getHighestInMapPosition();
-	let expectedGlobalPos = highestViewPos; // Map view starts at 0
+	assert.deepEqual(highestViewPos, expectedGlobalPos, 'Check highest mapview pos ' + highestViewPos + ' resolves to the correct global postion: ' + expectedGlobalPos);
+
 	result = mapPositionHelper.localTilePosToGlobal(highestViewPos[0], highestViewPos[1]);
 	assert.deepEqual(result, expectedGlobalPos, 'Check highest mapview pos ' + highestViewPos + ' resolves to the correct global postion: ' + expectedGlobalPos);
 }
@@ -132,7 +131,7 @@ QUnit.test(POSITION_TEST_TAG + 'local-to-global-valid-moving-view', function (as
 	assert.deepEqual(pixiMapView.getMapViewStartPosition(), [0, 0], 'Check mapview start position.');
 
 	let furthestBackwardViewPos = pixiMapView.mapViewMinPosition;
-	let furthestForwardViewPos = pixiMapView.mapViewMaxPosition
+	let furthestForwardViewPos = pixiMapView.mapViewMaxPosition;
 
 	// minus 9 or plus 9
 	assert.deepEqual(furthestBackwardViewPos, [-9, -9], 'Check furthest backwards position is as expected.');

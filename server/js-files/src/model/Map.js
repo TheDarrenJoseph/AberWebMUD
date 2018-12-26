@@ -8,20 +8,11 @@ export var DEFAULT_MAP_SIZE_XY = 20;
 
 export default class Map {
 	constructor (tileCount = DEFAULT_MAP_SIZE_XY) {
-		this.mapTiles = this.setupTiles();
-
-		//	Sizes of the map
 		this.mapSizeX = tileCount;
 		this.mapSizeY = tileCount;
+		this.mapTiles = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, MapTile);
 	}
 
-	// Initialise the map tile array
-	setupTiles () {
-		// Create enough dummy tiles for the map model
-		let mapTiles = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, MapTile)
-		return mapTiles;
-	}
-	
 	// Checks if a global pos is in the local map pos range
 	// Checks whether the position is valid in the range of 0 - < mapSizeXorY
 	isPositionInMap (globalX, globalY) {

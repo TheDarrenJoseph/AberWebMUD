@@ -33,7 +33,7 @@ function beforeAll (assert) {
 // Setup / assertions before each test
 function beforeEachTest (assert) {
 	// Re-initialise our classes
-	mapModel = new Map();
+	mapModel = new Map(TEST_TILECOUNT);
 	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, ASSET_PATHS);
 }
 
@@ -159,9 +159,22 @@ TEST_TAG + 'newCharacterOnMap', async function (assert) {
 
 // drawMapToGrid
 QUnit.test(
-TEST_TAG + 'drawMapToGrid', function (assert) {
-	pixiMapView.drawMapToGrid(0, 0);
-	assert.ok(false, 'TODO');
+TEST_TAG + 'drawMapToGrid', async function (assert) {
+	// Wait a max of 2 seconds for any async
+	assert.timeout(5000);
+	// Wait to intialise the full capabilities
+	await pixiMapView.initialise();
+	
+	// Returns a promise for when all the sprites are updated
+	let mapDrawPromise = pixiMapView.drawMapToGrid();
+	
+	mapDrawPromise.then( () => {
+		let totalTileArea = TEST_TILECOUNT * TEST_TILECOUNT;
+		
+		assert.ok(pixiMapView.mapContainer instanceof PIXI.Container, 'Check the map Container is a PIXI.Container');
+		assert.ok(pixiMapView.mapContainer.children instanceof Array, 'Check the map Container has a children array');
+		assert.equal(pixiMapView.mapContainer.children.length, totalTileArea, 'Check the map Container has enough children for each tile');
+	});
 }
 );
 

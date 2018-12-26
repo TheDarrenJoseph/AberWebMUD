@@ -18,15 +18,19 @@ export default class MapController {
 	constructor (renderer, map = new Map(), pixiMapView = null, assetPaths) {
 		// Setup the pixi map view so we have our window dimensions
 		this.windowSize = PageView.getWindowDimensions();
-			
 		this.mapModel = map;
-
+		
 		if (pixiMapView === null) {
 			this.pixiMapView = new PixiMapView(this.mapModel, renderer, this.windowSize, assetPaths);
 		} else {
 			this.pixiMapView = pixiMapView;
 		}
 		this.mapPositionHelper = new MapPositionHelper(this.pixiMapView);
+	}
+
+	// Async setup
+	async initialise() {
+		await this.pixiMapView.initialise();
 	}
 
 	getPositionHelper () {
@@ -36,6 +40,10 @@ export default class MapController {
 	redrawCharacters () {
 		this.pixiMapView.drawMapCharacterArray();
 		this.pixiMapView.renderCharacterContainer();
+	}
+	
+	redrawMap () {
+		return this.pixiMapView.drawMapToGrid();
 	}
 
 	//	Handles a movement
@@ -63,10 +71,9 @@ export default class MapController {
 	}
 
 	//	Moves the UI to a new position and draws the map there
-	showMapPosition (startX, startY) {
+	async showMapPosition (startX, startY) {
 		this.setMapViewPosition(startX, startY);
-		// Rebuild / re-draw the map view
-		this.pixiMapView.drawMapToGrid();
+		return this.redrawMap();
 	}
 
 	// Wrappers calls to the data model to include validation

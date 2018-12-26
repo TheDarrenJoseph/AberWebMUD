@@ -5,24 +5,30 @@ import * as PIXI from 'libs/pixi.min.js';
 // We keep our own queue of what's been sent to the loader
 // So we can queue up stuff for the next .load() batch
 var loaderQueue = [];
+// Also keep our own log of loaded resource paths
+var loaded = [];
+// Keeping our event mappings in scope
+var eventMappings = [];
 var loaderBusy = false;
 
-// Event Mapping for a resource
-class ResourceMapping {
-	constructor (resourcePath, event, callback) {
+var LOADER_FREE_EVENT = 'loaderFree';
+
+// Event Mapping for loader free
+class EventMapping {
+	constructor (event, callback) {
 		this.event = event;
-		document.addEventListener('loaderFree', this.mapping);
+		document.addEventListener(event, this.mapping);
 		// Setup the mapping
 		this.mapping = function () {
-			console.log('ResourceMapping called: ' + this.event);
+			console.log('Event mapping called: ' + this.event);
 			this.clearLoaderListener();
 			callback();
 		};
 	}
 
 	clearLoaderListener () {
-		console.log('ResourceMapping complete: ' + this.event);
-		document.removeEventListener('loaderFree', this.mapping);
+		console.log('Event mapping complete: ' + this.event);
+		document.removeEventListener(event, this.mapping);
 	}
 }
 
@@ -49,7 +55,17 @@ export default class AtlasHelper {
 	}
 
 	static isResourceLoaded (resourcePath) {
-		return PIXI.loader.resources[resourcePath] !== undefined && PIXI.loader.resources[resourcePath].isComplete;
+		// console.log('TEST');
+		// console.log(PIXI.loader);
+		
+		let helperLoaded = loaded.indexOf(resourcePath) !== -1;
+		let pixiLoaded = PIXI.loader.resources[resourcePath] !== undefined && PIXI.loader.resources[resourcePath].isComplete;
+	
+		if (helperLoaded && !pixiLoaded) {
+			console.log('PIXI Loader and AtlasHelper are not in agreement on resource load status! ' + resourcePath);
+		}
+		
+		return (helperLoaded && pixiLoaded);
 	}
 
 	static isLoaderBusy () {
@@ -94,7 +110,7 @@ export default class AtlasHelper {
 		var queueIndex = loaderQueue.indexOf(resourcePath);
 		if (queueIndex == -1) {
 			loaderQueue.push(resourcePath);
-			return loaderQueue.indexOf(resourcePath);
+			return queueIndex;
 		} else {
 			throw Error('Duplicate! Resource path already queued for the Loader: ' + resourcePath);
 		}
@@ -111,6 +127,14 @@ export default class AtlasHelper {
 	// For once a resource is loaded, log it and reset stuff
 	static _resourceLoaded (...resourcePaths) {
 		resourcePaths.forEach(resourcePath => {
+			loaded.push(resourcePath);
+
+			// Remove from the queue if present
+			AtlasHelper.removeFromLoaderQueue(resourcePath);
+			
+			let resourceLoadedEventName = AtlasHelper.getResourceLoadedEventName(resourcePath);
+			document.dispatchEvent(new Event(resourceLoadedEventName));
+
 			console.log('Resource completely loaded: ' + resourcePath);
 		});
 		AtlasHelper._freeLoader();
@@ -120,16 +144,24 @@ export default class AtlasHelper {
 		// Free up the loader
 		loaderBusy = false;
 		// Fire off an event signalling the loader is free
-		document.dispatchEvent(new Event('loaderFree'));
+		document.dispatchEvent(new Event(LOADER_FREE_EVENT));
 	}
 
 	// Setup a callback for when the loader is free
 	// Also maps it so we can handle listeners for it
-	static mapResourceCallbackForLoaderFree (resourcePath, callback) {
-		return new ResourceMapping('loaderFree', resourcePath, callback);
-		// resourceMappings.push(mapping);
+	static mapEvent (event, callback) {
+		eventMappings.push(new EventMapping(event, callback));
 	}
-
+	
+	static getResourceLoadedEventName(resourcePath) {
+		return 'resource loaded: '+resourcePath;
+	}
+	
+	
+	// Politely loads / accesses an atlas resource
+	// Handling loading / queued / loaded / loader busy statuses. (waiting if needed)
+	// Then extracts the subtile mentioned
+	// Finally calling back the passed callback
 	static loadAtlasSubtexture (atlasPath, subtileName, callback) {
 		let argMessage = 'Attempting load of atlas: ' + atlasPath + ', ' + subtileName + ', ' + callback;
 
@@ -160,11 +192,15 @@ export default class AtlasHelper {
 					console.log(atlas);
 					onSheetCall();
 				});
-			} else {
+			} else if (queued) {
+				console.log('Resource is queued, waiting for it: ' + atlasPath);
+				let resourceLoadedEventName = AtlasHelper.getResourceLoadedEventName(atlasPath);
+				AtlasHelper.mapEvent(resourceLoadedEventName, onSheetCall);
+			} else if (!loaded && !loading && !queued) {
 				// Otherwise let us know and try to load it
 				// console.log('Cannot extract texture! Provided Atlas is not loading or loaded!');
 				console.log('loadAtlasSubtexture - Atlas not ready for use, attemting load of pixi resource: ' + atlasPath);
-				AtlasHelper.attemptLoadPixiResource(atlasPath, -1 ,() => {
+				AtlasHelper.attemptLoadPixiResource(atlasPath, () => {
 					// console.log('loadAtlasSubtexture - attempted atlas load is complete.');
 					onSheetCall();
 				});
@@ -173,14 +209,17 @@ export default class AtlasHelper {
 			throw new RangeError(argMessage);
 		}
 	}
-
-	static attemptLoadPixiResource (resourcePath, resourceQueueIndex, callback) {
+	
+	// A function for politely asking for a resource
+	// Handling loading / queued / loaded / loader busy statuses. (waiting if needed)
+	// Finally calling back when the resource it truly available
+	static attemptLoadPixiResource (resourcePath, callback) {
 		let resourcePathToLoad = resourcePath;
 		
 		let loading = AtlasHelper.isResourceLoading(resourcePath);
 		let loaded = AtlasHelper.isResourceLoaded(resourcePath);
 		let queued = AtlasHelper.isResourceQueued(resourcePath);
-
+				
 		if (loaded) {
 			console.log('Resource already loaded..' + resourcePath);
 			callback();
@@ -190,27 +229,30 @@ export default class AtlasHelper {
 			console.log('Resource already loading..' + resourcePath);
 			AtlasHelper.getLoader().onComplete.add(callback);
 		}
+		
+		if (queued) {
+			console.log('Resource is queued, waiting for it: ' + resourcePath);
+			let resourceLoadedEventName = AtlasHelper.getResourceLoadedEventName(resourcePath);
+			AtlasHelper.mapEvent(resourceLoadedEventName, callback);
+		}
 	
 		// Try to use the loader
 		if (!loading && !loaded && !loaderBusy) {
 			// We've already queued up  a resource
 			if (queued) {
-				resourcePathToLoad = resourceQueue[resourceQueueIndex];
-				console.log('Loading queued resource: ' + resourcePath);
-				AtlasHelper._loadPixiResource(resourceQueue[resourceQueueIndex], callback);
+				console.log('Attempting to load queued resource: ' + resourcePathToLoad);
+				AtlasHelper._loadPixiResource(resourcePathToLoad, callback);
 			} else {
-				console.log('Loading resource: ' + resourcePath);
+				//console.log('Attempting to load resource: ' + resourcePath);
 				AtlasHelper._loadPixiResource(resourcePath, callback);
 			}
 		}
 		
 		// Queue up resources if the loader is busy and try again
-		if (!loading && !loaded && loaderBusy) {
-			
-			let resourceQueueIndex = -1;
+		if (!loading && !loaded && !queued && loaderBusy) {
 			// Add to the queue for use on re-try
 			try {
-				resourceQueueIndex = AtlasHelper.addToLoaderQueue(resourcePath);
+				AtlasHelper.addToLoaderQueue(resourcePath);
 			} catch (err) {
 				// Already queued up this resource..
 				// Try again on freeing the loader 
@@ -220,11 +262,11 @@ export default class AtlasHelper {
 			
 			var tryAgain = function () {
 				console.log('Trying to load resource again: ' + resourcePath);
-				AtlasHelper.attemptLoadPixiResource(resourcePath, resourceQueueIndex, callback);
+				AtlasHelper.attemptLoadPixiResource(resourcePath, callback);
 			};
 
-			console.log('Waiting for loader free to load resource: ' + resourcePath);
-			AtlasHelper.mapResourceCallbackForLoaderFree(resourcePathToLoad, tryAgain);
+			// console.log('Waiting for loader free to load resource: ' + resourcePath);
+			AtlasHelper.mapEvent(LOADER_FREE_EVENT, tryAgain);
 		}
 	}
 
@@ -241,6 +283,7 @@ export default class AtlasHelper {
 				// Reset the loader queue
 				PIXI.loader.reset();
 				// Queue up the single path
+				// console.log('PIXI loader is loading resource: ' + resourcePath);
 				PIXI.loader.add(resourcePath);
 
 				PIXI.loader.load(() => {

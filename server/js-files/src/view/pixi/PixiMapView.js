@@ -74,9 +74,11 @@ export default class PixiMapView {
 	}
 
 	async initialise () {
-		//	Sprites for the map viewPixiMapView
-		var tsa = await this.buildTileSpriteArray();
-		this.tileSpriteArray = tsa;
+		if (this.tileSpriteArray === undefined) {
+			//	Sprites for the map viewPixiMapView
+			var tsa = await this.buildTileSpriteArray();
+			this.tileSpriteArray = tsa;
+		}
 	}
 
 	getParentContainer () {
@@ -161,49 +163,61 @@ export default class PixiMapView {
 	
 	// Clears and rebuilds the mapContainer contents
 	drawMapToGrid () {
-		 //	Clear the map display container first
-		this.mapContainer.removeChildren();
-
-		//	Check there's at least enough tiles to fill our grid (square map)
-		if (this.mapModel.mapTiles.length >= this.tileCount) {
-			// var endX = startX + this.tileCount;
-			// var endY = startY + this.tileCount;
-
-			//	Local looping to iterate over the view tiles
-			//	Oh gosh condense this please!
-			for (var x = 0; x < this.tileCount; x++) {
-				for (var y = 0; y < this.tileCount; y++) {
-					// Grab the Sprite for this pos
-					let tileSprite = this.tileSpriteArray[x][y];
-					
-					var globalXY = this.mapPositionHelper.localTilePosToGlobal(x, y);
-					var globalX = globalXY[0];
-					var globalY = globalXY[1];
-					if (this.this.mapModel.isPositionInMap(globalX, globalY)) {
-						var tileFromServer = this.mapModel.mapTiles[globalX][globalY];
-
-						if (tileSprite != null && tileFromServer != null) {
-							
-							// Promise the loading of the subtexture
-							var subTexturePromise = this.promiseAtlasSubtextureLoading(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileFromServer.tileType]);
-							// Then perform the mapContainer update asynchronously
-							subTexturePromise.then(subTexture => {
-								//	If the texture exists, set this sprite's texture,
-								// and add it to the pixi container
-								if (subTexture != null) {
-									tileSprite.texture = subTexture;
-									this.mapContainer.addChild(tileSprite);
-								}
-							}).catch(err => {
-								console.log('Subtexture promise failed when loading a texture to draw the map to view: ' + err);
-							});
-						} else {
-							console.log('MAP DRAWING| tile sprite or overworld map data from remote is missing.');
+		let subTexturePromises = new Array();
+		
+		// Clear the map display container first
+		// Might not need this
+		// this.mapContainer.removeChildren();
+		
+		//	Local looping to iterate over the view tiles
+		//	Oh gosh condense this please!
+		for (var x = 0; x < this.tileCount; x++) {
+			for (var y = 0; y < this.tileCount; y++) {
+				// Grab the Sprite for this pos
+				let tileSprite = this.tileSpriteArray[x][y];
+				
+				if (tileSprite != undefined && tileSprite != null) {
+					try {
+						var globalXY = this.mapPositionHelper.localTilePosToGlobal(x, y);
+						var globalX = globalXY[0];
+						var globalY = globalXY[1];
+						if (this.mapModel.isPositionInMap(globalX, globalY)) {
+							var tileFromServer = this.mapModel.mapTiles[globalX][globalY];
+							if (tileFromServer != undefined && tileFromServer != null) {
+								
+								// Promise the loading of the subtexture
+								var subTexturePromise = SpriteHelper.promisePixiTexture(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileFromServer.tileType], DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+								subTexturePromises.push(subTexturePromise);
+								
+								// Then perform the mapContainer update asynchronously
+								subTexturePromise.then(subTexture => {
+									//	If the texture exists, set this sprite's texture,
+									// and add it to the pixi container
+									if (subTexture != null) {
+										tileSprite.texture = subTexture;
+										// Might not need this
+										// this.mapContainer.addChild(tileSprite);
+									}
+								}).catch(err => {
+									console.log('Subtexture promise failed when loading a texture to draw the map to view: ' + err);
+								});
+															
+							} else {
+								throw new RangeError('Map model data from remote is missing.');
+							}
 						}
+					} catch (err) {
+						// Local / Global conversion failure isn't an issue here.
+						continue;
 					}
+				} else {
+					throw new RangeError('No tile Sprite for map position: ' + x + ', ' + y);
 				}
 			}
 		}
+		// Return a promise of all subtexture updates
+		// then Re-drawing the container when they are complete
+		return Promise.all(subTexturePromises).then(() => { this.renderMapContainer });
 	} 
 
 	// Draws the map characters
@@ -235,7 +249,8 @@ export default class PixiMapView {
 						startY <= this.highestViewPosition);
 	}
 
-	//	Checks to see if a local (view-based) tile pos is in the map
+	//	Checks to see if a local (view-based) tile pos 
+	//	Is actually on a map tile
 	isLocalPositionInMap (localX, localY) {
 		let positionInStartingRange = localX >= this.mapViewStartX && localX >= this.mapViewStartY;
 
@@ -249,14 +264,10 @@ export default class PixiMapView {
 
 	//	Check whether or not a GLOBAL POSITION is within our map view window
 	isGlobalPositionInMapView (globalX, globalY) {
-		if (globalX < (this.mapViewStartX + this.tileCount) &&
+		return (globalX < (this.mapViewStartX + this.tileCount) &&
 				globalX >= this.mapViewStartX &&
 				globalY < (this.mapViewStartY + this.tileCount) &&
-				globalY >= this.mapViewStartY) {
-			return true;
-		} else {
-			return false;
-		}
+				globalY >= this.mapViewStartY);
 	}
 
 	// Returns the smallest valid local view position that's on a map tile
