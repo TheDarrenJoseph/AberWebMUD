@@ -2,6 +2,8 @@
 //	Holds and generic Pixi View code / or code that's yet to be refactored
 import * as PIXI from 'libs/pixi.min.js';
 
+import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
+
 import { PageView } from 'src/view/page/PageView.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
 import { Session } from 'src/model/SessionModel.js';
@@ -41,6 +43,21 @@ export default class PixiView {
 				console.log('Attempt to add non-Container to the Pixi Stage! (Expected PIXI.Container).');
 			}
 		}
+	}
+	
+	showParentContainer(show) {
+		this.parentContainer.visible = show;
+		this.renderAll();
+	}
+	
+	showDialogContainer(show) {
+		this.dialogContainer.visible = show;
+		this.renderDialogContainer();
+	}
+	
+	showControlsContainer(show) {
+		this.controlsContainer.visible = show;
+		this.renderControlsContainer();
 	}
 
 	// Because PixiJS has 2 types of renderer, WebGL and Canvas, check for both
@@ -136,26 +153,26 @@ export default class PixiView {
 		this.statBars[0].drawInnerBar();
 	}
 
-	static createInventoryButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
-		return this.createSprite(tileAtlasPath,
+	static async createInventoryButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
+		let pixiPos = new PIXI.Point(mapWindowSize - (tileSize * 2), mapWindowSize - tileSize);
+		
+		return SpriteHelper.makeSpriteFromAtlas(tileAtlasPath,
 		subtileName,
 		tileSize,
 		tileSize * 2,
-		mapWindowSize - (tileSize * 2),
-		mapWindowSize - tileSize,
-		true
-		);
+		pixiPos,
+		true);
 	}
 
-	static createStatsButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
-		return this.createSprite(tileAtlasPath,
+	static async createStatsButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
+		let pixiPos = new PIXI.Point(mapWindowSize - (tileSize * 4), mapWindowSize - tileSize);
+		
+		return SpriteHelper.makeSpriteFromAtlas(tileAtlasPath,
 		subtileName,
 		tileSize,
 		tileSize * 2,
-		mapWindowSize - tileSize * 4,
-		mapWindowSize - tileSize,
-		true
-	);
+		pixiPos,
+		true);
 	}
 }
 

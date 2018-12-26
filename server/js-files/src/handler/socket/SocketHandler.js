@@ -17,7 +17,7 @@ import io from 'socket.io-client';
 
 //import io from 'socket.io-client';
 
-const socket = io();
+var socket = io();
 
 //	Static Helper class
 //	A collection of SocketIO management functions
@@ -65,14 +65,13 @@ class SocketHandler {
 		console.log('MAP DATA RECEIVED');
 	}
 
-	static connectSocket () {
+	static connectSocket (url, callback) {
 		console.log('[SocketHandler] Connecting to the game server...');
 
 		//	Try to connect
-		socket = io.connect();
-
-		//	return an indication of success/failure.
-		return SocketHandler.isSocketConnected();
+		socket = io.connect(url);
+		// Call us back when we really connect
+		socket.on('connect', callback);
 	}
 
 	static unpackMessageData (data) {
@@ -120,6 +119,10 @@ class SocketHandler {
 		socket.on('login-success', this.handlePlayerLogin);
 		socket.on('login-failure', this.handlePlayerLoginError);
 		socket.on('session-error', this.handleSessionError);
+	}
+	
+	static emit(eventName) {
+		socket.emit(eventName);
 	}
 }
 

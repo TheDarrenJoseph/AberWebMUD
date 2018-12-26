@@ -80,7 +80,7 @@ export default class PageController {
 		// Hide everything if we lose connection
 		if (!SocketHandler.isSocketConnected()) {
 			PageView.hideWindows();
-			PageView.showControls(false);
+			PixiController.showControls(false);
 			PageView.showDialog();
 			PageChatView.updateMessageLog('Connection lost to server!', 'client');
 		}
@@ -153,13 +153,13 @@ export default class PageController {
 
 	static disableUI () {
 		PageController.bindStageClick(false); //	Turns off stage-click input
-		PageView.showControls(false); //	Hides major controls
-		PixiController.renderStage(); // Re-renders the stage to show blank
+		PixiController.showControls(false); //	Hides major controls
+		PixiController.renderAll(); // Re-renders the stage to show blank
 	}
 
 	static enableUI () {
 		PageController.bindStageClick(true); //	Activate movement click input
-		PageView.showControls(true); //	Shows major controls
-		PixiController.renderStage();
+		PixiController.showControls(true); //	Shows major controls
+		PixiController.renderAll();
 	}
 }

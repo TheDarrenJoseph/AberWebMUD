@@ -24,7 +24,7 @@ export default class SpriteHelper {
 
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
 	// This will return a Promsie
-	static makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight = DEFAULT_TILE_SIZE, tileWidth = DEFAULT_TILE_SIZE) {
+	static makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight = DEFAULT_TILE_SIZE, tileWidth = DEFAULT_TILE_SIZE, pixiPoint, interactive) {
 		// Wrap the subtexture promise to make a Sprite and return that
 		// Otherwise bubble up the error
 		return new Promise((resolve, reject) => {
@@ -38,7 +38,15 @@ export default class SpriteHelper {
 				
 				thisSprite.height = tileHeight;
 				thisSprite.width = tileWidth;
-
+				
+				if (pixiPoint !==  undefined) {
+					thisSprite.position = pixiPoint;
+				}
+				
+				if (interactive !== undefined) {
+					thisSprite.interactive = interactive;
+				}
+				
 				// Not sure if we'll be setting this just here
 				// thisSprite.interactive = interactive;
 

@@ -5,6 +5,11 @@ console.log('=== AberWebMUD Web Client ===');
 console.log('Awaiting page load..');
 
 var clientController = new GameController();
-clientController.checkCharacterDetails();
+
+function main() {
+	clientController.performSetup(); 
+	clientController.checkCharacterDetails();
+}
+
 //	Initialises the client setup once the HTML page loads
-$(document).ready(function () { clientController.performSetup(); });
+$(document).ready(main);

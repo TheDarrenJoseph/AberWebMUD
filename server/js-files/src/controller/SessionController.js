@@ -78,8 +78,8 @@ export default class SessionController {
 	//	Save our given session id for later, and display the welcome message
 	static linkConnectionToSession (data) {
 		if (SessionController.getSessionIdCookie() == null) {
-			Session.setClientSessionSessionId(data);
-			console.log('Handshaked with server, session ID given:' + Session.getClientSession().sessionId);
+			SessionController.setClientSessionSessionId(data);
+			console.log('Handshaked with server, session ID given:' + SessionController.getClientSessionId());
 		} else {
 			console.log('Reconnected, using old SID');
 		}

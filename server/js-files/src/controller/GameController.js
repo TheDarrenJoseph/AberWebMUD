@@ -37,16 +37,16 @@ export default class GameController {
 		//	Get the general UI ready
 		PageController.setupUI();
 		PixiController.setupUI();
-		this.checkCharacterDetails();
-		this.characterDetailsConfirmed();
 
-		var connected = SocketHandler.connectSocket();
-		console.log('Socket: ' + connected);
-		if (connected) {
-			// setupChat();
-			// setStatusUpdateCallbacks();
-			// socket.emit('map-data-request');
-		}
+		this.pixiView = PixiController.pixiView;
+		this.mapController = PixiController.mapController;
+
+		SocketHandler.connectSocket('http://localhost:5000', () => {
+			console.log('SocketIO connected to game server!');
+			SocketHandler.setupChat();
+			SocketHandler.setStatusUpdateCallbacks();
+			SocketHandler.emit('map-data-request');
+		});
 	}
 
 	//	Continues the login process after a user inputs their character details
