@@ -183,8 +183,10 @@ export default class PixiMapView {
 						var tileFromServer = this.mapModel.mapTiles[globalX][globalY];
 
 						if (tileSprite != null && tileFromServer != null) {
+							
+							// Promise the loading of the subtexture
 							var subTexturePromise = this.promiseAtlasSubtextureLoading(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileFromServer.tileType]);
-
+							// Then perform the mapContainer update asynchronously
 							subTexturePromise.then(subTexture => {
 								//	If the texture exists, set this sprite's texture,
 								// and add it to the pixi container
@@ -196,7 +198,7 @@ export default class PixiMapView {
 								console.log('Subtexture promise failed when loading a texture to draw the map to view: ' + err);
 							});
 						} else {
-							console.log('MAP DRAWING| overworld map data from remote is missing.');
+							console.log('MAP DRAWING| tile sprite or overworld map data from remote is missing.');
 						}
 					}
 				}
