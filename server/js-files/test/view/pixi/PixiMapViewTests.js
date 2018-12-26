@@ -1,6 +1,7 @@
 import * as PIXI from 'libs/pixi.min.js';
 
 import Map from 'src/model/Map.js';
+import MapCharacter from 'src/model/pixi/MapCharacter.js';
 import { PixiMapView, DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
 
 import { PixiController, ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
@@ -97,10 +98,22 @@ TEST_TAG + 'new PixiMapView', async function (assert) {
 			depthCount++;
 		}
 		for (var j = 0; (j < TEST_TILECOUNT); j++) {
-			let sprite = tileSpriteArray[i][j];
+			// We store an array of sprites at the lowest level
+			// In case of shared positions
+			let spriteArray = tileSpriteArray[i][j];
+			let arrayCheck = (spriteArray !== null &&
+			spriteArray !== undefined &&
+			spriteArray instanceof Array &&
+			spriteArray.length == 1);
+			
+			let sprite = spriteArray[0];
+			let spriteCheck = (sprite !== null && 
+			sprite !== undefined &&
+			sprite instanceof PIXI.Sprite);
+						
 			// Increment a count 
 			// instead of printing tons of assertion messages
-			if (sprite !== null && sprite !== undefined && sprite instanceof PIXI.Sprite) {
+			if (arrayCheck && spriteCheck) {
 				spritesValid++;
 			}
 		}
@@ -123,45 +136,24 @@ TEST_TAG + 'new PixiMapView', async function (assert) {
 	assert.equal(depthCount, TEST_TILECOUNT, 'Check mapCharacterArray 1d depth is valid.');
 	
 	// Check Pixi JS Container objects
-	let parentContainer = pixiMapView.parentContainer;
-	console.log('Parent Container..');
-	console.log(parentContainer);
 	// Top level container for all children
+	let parentContainer = pixiMapView.parentContainer;
 	assert.ok(parentContainer instanceof PIXI.Container, 'Ensure the pixiMapView parent container is initialised.');
-
 	// Check our child containers are added and of the correct type
 	assert.ok(parentContainer.getChildByName('mapContainer') instanceof PIXI.particles.ParticleContainer, 'Check ParticleContainer mapContainer exists under parentContainer.');
 	assert.ok(parentContainer.getChildByName('characterContainer') instanceof PIXI.particles.ParticleContainer, 'Check ParticleContainer characterContainer exists under parentContainer.');
 }
 );
 
-
-// Test that we correctly create a blank 2D array
-// To store character sprites
 QUnit.test(
-TEST_TAG + 'createMapCharacterArray', function assertMapCharacterArray (assert, mapCharacterArray = pixiMapView.createMapCharacterArray(TEST_TILECOUNT)) {
-	assert.ok(mapCharacterArray instanceof Array, 'Check mapCharacterArray is actually an array');
-	assert.equal(mapCharacterArray.length, TEST_TILECOUNT, 'Check tileSpriteArray 1d size.');
-
-	// Check the sub-arrays for 2D size validation
-	for (let i = 0; (i < TEST_TILECOUNT); i++) {
-		assert.equal(mapCharacterArray[i].length, TEST_TILECOUNT);
-	}
-}
-);
-
-
-QUnit.test(
-TEST_TAG + 'newCharacterOnMap', function (assert) {
+TEST_TAG + 'newCharacterOnMap', async function (assert) {
 	let characterAtlasPath = null;
 	let characterName = 'TIMMY TEST';
 	let gridX = 2;
 	let gridY = 2;
-	let gridChar = pixiMapView.newCharacterOnMap(characterAtlasPath, characterName, gridX, gridY);
-	
-	
-	
-	assert.ok(false, 'TODO');
+	// Wait for the map character to build and return
+	let mapChar = await pixiMapView.newCharacterOnMap(characterName, gridX, gridY);
+	assert.ok(mapChar instanceof MapCharacter, 'Check we created a MapCharacter for this position.');	
 }
 );
 

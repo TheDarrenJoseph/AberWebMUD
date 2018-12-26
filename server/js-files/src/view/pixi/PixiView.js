@@ -63,8 +63,6 @@ export default class PixiView {
 	_buildRenderer () {
 		let renderer = PIXI.autoDetectRenderer(this.windowSize, this.windowSize);
 		renderer.autoresize = true;
-		console.log('Created renderer: ' + renderer);
-
 		return renderer;
 	}
 

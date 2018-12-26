@@ -20,7 +20,7 @@ QUnit.test(MAPCONTROLLER_TEST_TAG + 'showMapPosition-valid', function (assert) {
 
 	// 2.	Smallest relative position negative 1/2 window tilecount
 	let lowestRange = -mapController.pixiMapView.halfZeroIndexedTileCountFloored;
-	console.log('Lowest map view overhang co-ords: ' + lowestRange + ',' + lowestRange);
+	// console.log('Lowest map view overhang co-ords: ' + lowestRange + ',' + lowestRange);
 	mapController.showMapPosition(lowestRange, lowestRange);
 	startPositions = mapController.getPixiMapView().getMapViewStartPosition();
 	assert.equal(startPositions[0], lowestRange, 'Should be able to set Map View start to x pos to negative half tilecount: ' + lowestRange);
@@ -30,7 +30,7 @@ QUnit.test(MAPCONTROLLER_TEST_TAG + 'showMapPosition-valid', function (assert) {
 	// to be 1/2 window tilecount away from the end of map
 	let halfOverhangingX = mapController.getMap().mapSizeX - mapController.getPixiMapView().halfZeroIndexedTileCountFloored;
 	let halfOverhangingY = mapController.getMap().mapSizeY - mapController.getPixiMapView().halfZeroIndexedTileCountFloored;
-	console.log('End of map view overhang co-ords: ' + halfOverhangingX + ',' + halfOverhangingY);
+	// console.log('End of map view overhang co-ords: ' + halfOverhangingX + ',' + halfOverhangingY);
 
 	mapController.showMapPosition(halfOverhangingX, halfOverhangingY);
 	startPositions = mapController.getPixiMapView().getMapViewStartPosition();

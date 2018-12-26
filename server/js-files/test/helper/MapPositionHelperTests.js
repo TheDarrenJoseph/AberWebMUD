@@ -105,7 +105,7 @@ QUnit.test(POSITION_TEST_TAG + 'local-to-global-valid', function (assert) {
   //	Local position (relative to view) is 0-tilecount-1, global = X or Y+XYoffset
   //	1. Lowest possible local position
 	let result = mapPositionHelper.localTilePosToGlobal(0, 0);
-	console.log('local to global 0,0 conversion result: ' + result);
+	// console.log('local to global 0,0 conversion result: ' + result);
 	assert.deepEqual(result, [mapViewStartX, mapViewStartY], 'Check local mapview position 0, 0 resolves to mapview start pos');
 
 	//	2. Highest possible local position with an offset (-1 for zero indexing)
@@ -139,7 +139,7 @@ QUnit.test(POSITION_TEST_TAG + 'local-to-global-valid-moving-view', function (as
 	assert.deepEqual(furthestForwardViewPos, [9, 9], 'Check furthest forward pos is as expected.');
 
 	// 1. Try moving the map view back as far as possible;
-	console.log('Checking furthest back map view position: ' + furthestBackwardViewPos);
+	// console.log('Checking furthest back map view position: ' + furthestBackwardViewPos);
 	mapController.setMapViewPosition(furthestBackwardViewPos[0], furthestBackwardViewPos[1]);
 	let highestViewPos = mapController.getPixiMapView().getHighestInMapPosition();
 	assert.deepEqual(highestViewPos, [19, 19], 'Check theres 10 tiles at the end of the map view. Ending at pos 19,19');
@@ -260,7 +260,7 @@ QUnit.test(POSITION_TEST_TAG + 'tile-to-pixi-valid', function (assert) {
 	//	Furthest co-ord possible
 	let furthestTilePos = mapController.getPixiMapView().zeroIndexedTileCount;
 	let furthestPixiPos = (furthestTilePos * tileSize);
-	console.log('furthestPixiPos: ' + furthestPixiPos);
+	// console.log('furthestPixiPos: ' + furthestPixiPos);
 
 	// Check furthest x,y positions
 	// Furthest tile x pos to pixi pos

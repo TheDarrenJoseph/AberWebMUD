@@ -21,7 +21,8 @@ export default class Map {
 		let mapTiles = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, MapTile)
 		return mapTiles;
 	}
-
+	
+	// Checks if a global pos is in the local map pos range
 	// Checks whether the position is valid in the range of 0 - < mapSizeXorY
 	isPositionInMap (globalX, globalY) {
 		// < for max range as map tiles are 0-indexed
