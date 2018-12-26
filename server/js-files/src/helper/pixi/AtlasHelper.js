@@ -1,9 +1,7 @@
 // Helper class for working with texture PixiJS atlasses / atlass
-import * as PIXI from 'libs/pixi.min.js';
-
 // Use PixiJS's premade resource loader
 //	PIXI.loaders.Loader
-
+import * as PIXI from 'libs/pixi.min.js';
 // We keep our own queue of what's been sent to the loader
 // So we can queue up stuff for the next .load() batch
 var loaderQueue = [];
@@ -231,7 +229,7 @@ export default class AtlasHelper {
 	}
 
 	// Actually add resources to the pixi loader
-	// These NEED to be enqued on the resourceQueue to be used here
+	// These NEED to be enqued on the loaderQueue to be used here
 	// Also sets up callbacks
 	static _loadPixiResource (resourcePath, callback) {
 		if (!loaderBusy) {
@@ -242,18 +240,13 @@ export default class AtlasHelper {
 				loaderBusy = true;
 				// Reset the loader queue
 				PIXI.loader.reset();
+				// Queue up the single path
 				PIXI.loader.add(resourcePath);
 
 				PIXI.loader.load(() => {
-					// console.log('Internally complete from load.');
-					// console.log('Load complete:' + resourcePath);
 					AtlasHelper._resourceLoaded(resourcePath);
 					callback();
 				});
-
-				// PIXI.loader.onProgress.add(() => {
-				// 	console.log('Loader progressed!');
-				// });
 
 				PIXI.loader.onError.add((err, loader, resource) => {
 					throw new Error('Resource Loader -- failed with err: ' + err + ' during loading of resource: ' + resource);
