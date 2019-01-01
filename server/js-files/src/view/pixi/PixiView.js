@@ -6,7 +6,7 @@ import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
 
 import { PageView } from 'src/view/page/PageView.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
-import { Session } from 'src/model/SessionModel.js';
+import { Session } from 'src/model/Session.js';
 
 // HTML 5 Canvas
 const RENDERER_CANVAS = 'Canvas';

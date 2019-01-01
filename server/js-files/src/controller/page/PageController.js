@@ -6,7 +6,7 @@ import { PixiController } from 'src/controller/pixi/PixiController.js';
 import SessionController from 'src/controller/SessionController.js';
 
 //	Hooking up to a bunch of other controllers for now
-import { Session } from 'src/model/SessionModel.js';
+import { Session } from 'src/model/Session.js';
 
 //	We're going to call out to the SocketHandler from here for now
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
@@ -76,16 +76,6 @@ export default class PageController {
 
 	static sendCharDetails () {
 		SocketHandler.sendCharacterDetails(PageStatsDialogView.getStats());
-	}
-
-	static checkConnection () {
-		// Hide everything if we lose connection
-		if (!SocketHandler.isSocketConnected()) {
-			PageView.hideWindows();
-			PixiController.showControls(false);
-			PageView.showDialog();
-			PageChatView.updateMessageLog('Connection lost to server!', 'client');
-		}
 	}
 
 	//	Handles a movement response (success/fail) for this client's move action

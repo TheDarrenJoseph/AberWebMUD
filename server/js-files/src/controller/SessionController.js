@@ -1,4 +1,4 @@
-import { SESSION_ID_COOKIE_NAME, Session } from 'src/model/SessionModel.js';
+import { SESSION_ID_COOKIE_NAME, Session } from 'src/model/Session.js';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 
 export default class SessionController {

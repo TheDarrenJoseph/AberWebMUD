@@ -10,7 +10,7 @@ import PageController from 'src/controller/PageController.js';
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PageView } from 'src/view/page/PageView.js';
-import { Session } from 'src/model/SessionModel.js';
+import { Session } from 'src/model/Session.js';
 
 export default class GameController {
 	//	Checks that the player's character details are set
@@ -67,6 +67,7 @@ export default class GameController {
 			PageView.UI_ENABLED = true;
 		}
 	}
+
 }
 
 // Create an instance we can refer to nicely (hide instanciation)

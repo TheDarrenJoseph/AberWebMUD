@@ -12,7 +12,7 @@ import PixiMapView from 'src/view/pixi/PixiMapView.js';
 
 // Named imports
 import { MapController } from 'src/controller/MapController.js';
-import { Session } from 'src/model/SessionModel.js';
+import { Session } from 'src/model/Session.js';
 import { PageView } from 'src/view/page/PageView.js';
 
 // import { ValidationHandler } from 'src/handler/ValidationHandler.js';
@@ -159,7 +159,7 @@ class PixiControllerClass {
 		//	Make the console only visisble
 		PageView.toggleConsoleVisibility();
 		//	Check connection every 5 seconds
-		setTimeout(function () { return PageController.checkConnection(); }, 5000);
+		setTimeout(function () { return this.checkConnection(); }, 5000);
 	}
 
 	//	Show the main chat view
@@ -173,6 +173,16 @@ class PixiControllerClass {
 	
 	renderAll () {
 		this.pixiView.renderAll();
+	}
+	
+	// Hide everything if we lose connection
+	checkConnection () {
+		if (!SocketHandler.isSocketConnected()) {
+			PageView.hideWindows();
+			PixiController.showControls(false);
+			PageView.showDialog();
+			PageChatView.updateMessageLog('Connection lost to server!', 'client');
+		}
 	}
 }
 
