@@ -4,7 +4,7 @@ import { PixiController } from 'src/controller/pixi/PixiController.js';
 
 //	There's going to be a look of controller hookups here for now..
 import SessionController from 'src/controller/SessionController.js';
-import PageController from 'src/controller/PageController.js';
+import PageController from 'src/controller/page/PageController.js';
 
 //	Views
 import PageChatView from 'src/view/page/PageChatView.js';

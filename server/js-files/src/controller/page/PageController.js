@@ -11,6 +11,8 @@ import { Session } from 'src/model/SessionModel.js';
 //	We're going to call out to the SocketHandler from here for now
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 
+const ENTER_KEY_EVENT_CODE = 13;
+
 // Static helper class
 //	Very loose controller for the Page
 //	Binding to click / key events using jQuery and controlling the overall UI elements
@@ -134,15 +136,15 @@ export default class PageController {
 	}
 
 	static messageFieldKeyupTrigger (evnt) {
-		if (evnt.keyCode === 13) { //	Enter key check
-			console.log('ENTER on messagefield');
+		if (evnt.keyCode === ENTER_KEY_EVENT_CODE) { //	Enter key check
+			// console.log('ENTER on messagefield');
 			PageController.submitChatMessage();
 		}
 	}
 
 	static passwordFieldKeyupTrigger (evnt) {
-		if (evnt.keyCode === 13) { //	Enter key check
-			console.log('ENTER on passwordfield');
+		if (evnt.keyCode === ENTER_KEY_EVENT_CODE) { //	Enter key check
+			// console.log('ENTER on passwordfield');
 			PageView.submitPassword();
 		}
 	}
