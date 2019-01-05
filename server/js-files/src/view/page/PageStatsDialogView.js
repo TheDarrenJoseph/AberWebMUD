@@ -2,21 +2,65 @@ import $ from 'libs/jquery.js';
 import { PageView } from 'src/view/page/PageView.js';
 
 //	2 arrays of the same length to allow looping for creating each line of the table
-var attributeNames = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
-var numberInputIds = ['strNumber', 'dexNumber', 'conNumber', 'intNumber', 'wisNumber', 'chaNumber'];
-var minAttributeVal = 1;
-var maxAttributeVal = 100;
+const attributeNames = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+const numberInputIds = ['strNumber', 'dexNumber', 'conNumber', 'intNumber', 'wisNumber', 'chaNumber'];
+const minAttributeVal = 1;
+const maxAttributeVal = 100;
 
-var _SAVE_STATS_BUTTON_CLASS_SELECTOR = '#save-stats-button';
-var _STATS_INFO_FIELD_CLASS_SELECTOR = '#stats-info';
+export var _STATS_WINDOW_ID = 'stat-window';
+const _STATS_FORM_ID = 'stat-form';
+const _STATS_TABLE_ID = 'stat-table';
+const _STATS_INFO_FIELD_ID = 'stats-info';
+const _SAVE_STATS_BUTTON_ID = 'save-stats-button';
+
+const _CHAR_NAME_INPUT_ID = 'char-name-input';
+const _CHAR_CLASS_SELECTION_ID = 'class-selection';
 
 // DOM View for the stats dialog window
 export default class PageStatsDialogView {
+	static buildView () {
+		var statsWindowJquery = $('#'+_STATS_WINDOW_ID);
+		var statsFormJquery = $('#'+_STATS_FORM_ID);
+		
+		var statsWindowExists = statsWindowJquery.length > 0;
+		var statsFormBuilt    = statsFormJquery.length > 0;
+		
+		// Check we haven't built the form before
+		if (!statsFormBuilt) {
+			var statWindowForm = PageStatsDialogView.generateStatWindow();
+			
+			// There should be a stat-window div in our HTML to append to
+			// Otherwise create it
+			if (statsWindowExists) {
+				statsWindowJquery.append(statWindowForm);
+			} else {
+				console.log('No preset stat window div found, building it..');
+				var statWindow = document.createElement('div');
+				statWindow.setAttribute('class', 'dialog');
+				statWindow.setAttribute('id', _STATS_WINDOW_ID);
+				statWindow.appendChild(statWindowForm);
+
+				PageView.getMainWindowJquery().append(statWindow);
+			}
+			
+			//console.log('Built stats window DOM element:');
+			//console.log($('#'+_STATS_WINDOW_ID)[0]);
+		}
+	}
+	
 	// And in the darkness bind them
 	static bindSaveCharacterDetails (callback) {
-		$(_SAVE_STATS_BUTTON_CLASS_SELECTOR).click(callback);
+		$('#'+_SAVE_STATS_BUTTON_ID).click(callback);
 	}
-
+	
+	static getSaveStatsButton() {
+		return $('#'+_SAVE_STATS_BUTTON_ID).get(0);
+	}
+	
+	static getStatsInfoField() {
+		return $('#'+_STATS_INFO_FIELD_ID).get(0);
+	}
+	
 	static createSelectorOption (tagValue, text) {
 		var classSelector = document.createElement('option');
 		classSelector.setAttribute('value', tagValue);
@@ -52,10 +96,10 @@ export default class PageStatsDialogView {
 
 	static createStatsTable () {
 		var statsTable = document.createElement('table');
-		statsTable.setAttribute('id', 'stat-table');
+		statsTable.setAttribute('id', _STATS_TABLE_ID);
 
 		var statsTableHeaderRow = document.createElement('tr');
-		var statsTableLeftHeader = document.createElementStatsDialog('th');
+		var statsTableLeftHeader = document.createElement('th');
 		statsTableLeftHeader.append(document.createTextNode('Attributes'));
 		var statsTableRightHeader = document.createElement('th');
 		statsTableHeaderRow.append(statsTableLeftHeader);
@@ -69,22 +113,24 @@ export default class PageStatsDialogView {
 	}
 
 	static clearStatInfo () {
-		$(_STATS_INFO_FIELD_CLASS_SELECTOR).val(''); //	JQuery find the field and set it to blank
+		PageStatsDialogView.getStatsInfoField().value = '';
 	}
 
 	static updateStatsInfoLog (message, username) {
-		var statsField = $(_STATS_INFO_FIELD_CLASS_SELECTOR);
+		var statsField = PageStatsDialogView.getStatsInfoField();
 		var msg = message;
 
 		//	Add a user (server/client) tag to the message
 		if (username != null && username !== undefined) msg = '[' + username + '] ' + message;
-		statsField.val(statsField.val() + msg + '\n');
+		statsField.value = statsField.value + msg + '\n';
 	}
-
+	
+	// Generate the inner content for the stat window
 	static generateStatWindow () {
 		//	Form div to append our elements to
 		var form = document.createElement('form');
-
+		form.setAttribute('id', 'char-name-input');
+		
 		//	'Character Name' section
 		var nameLabel = document.createElement('p');
 		nameLabel.setAttribute('class', 'classLabel');
@@ -110,14 +156,14 @@ export default class PageStatsDialogView {
 
 		//	'Attributes' section
 		var statsTable = PageStatsDialogView.createStatsTable();
-
+		
 		//	This allows displaying any needed info
 		var statsInfo = document.createElement('textarea');
-		statsInfo.setAttribute('id', 'stats-info');
+		statsInfo.setAttribute('id', _STATS_INFO_FIELD_ID);
 
 		var saveButton = document.createElement('input');
 		saveButton.setAttribute('type', 'submit');
-		saveButton.setAttribute('id', 'save-stats-button');
+		saveButton.setAttribute('id', _SAVE_STATS_BUTTON_ID);
 		saveButton.setAttribute('value', 'Save');
 
 		form.setAttribute('onsubmit', 'return false');
@@ -132,11 +178,6 @@ export default class PageStatsDialogView {
 		return form;
 	}
 
-	static createStatsWindow () {
-		var statWindowDiv = PageStatsDialogView.generateStatWindow();
-		$('#stat-window').append(statWindowDiv);
-	}
-
 	//	Brings up the stats window
 	static showStatWindow () {
 		PageView.showWindow('statWindowId');
@@ -148,24 +189,24 @@ export default class PageStatsDialogView {
 	}
 
 	static getStatsCharacterName () {
-		return $('#char-name-input').val();
+		return $('#'+_CHAR_NAME_INPUT_ID).val();
 	}
 
 	static setStatsCharacterName (name) {
-		$('#char-name-input').val(name);
+		$('#'+_CHAR_NAME_INPUT_ID).val(name);
 	}
 
 	static getStatsCharacterClass () {
-		return $('#class-selection').val();
+		return $('#'+_CHAR_CLASS_SELECTION_ID).val();
 	}
 
 	static setStatsCharacterClass (selectionNo) {
-		var options = $('#class-selection').find('option');
+		var options = $('#'+_CHAR_CLASS_SELECTION_ID).find('option');
 		var optionsLen = options.length;
 
 		if (selectionNo > 0 && selectionNo < optionsLen) {
 			var optionChoice = options[selectionNo].value; //	Choice id e.g 'spellcaster'
-			$('#class-selection').val(optionChoice); //	Set the value
+			$('#'+_CHAR_CLASS_SELECTION_ID).val(optionChoice); //	Set the value
 		}
 	}
 
@@ -174,7 +215,9 @@ export default class PageStatsDialogView {
 
 		for (var i = 0; i < numberInputIds.length; i++) {
 			var statId = '#' + numberInputIds[i];
+			// Extract the value of the first match to statId
 			var statValue = $(statId).val();
+			
 			output[attributeNames[i]] = statValue;
 		}
 
@@ -196,15 +239,13 @@ export default class PageStatsDialogView {
 			var statId = '#' + numberInputIds[i];
 			var inputVal = attrValuesJSON[attributeNames[i]];
 
-			// Set the value of the field
+			// Set the value of the first match for our field
 			$(statId).val(inputVal);
 		}
 	}
 
-	//	Doesn't seem to hook up to anything yet?
-	static setStatsFromJsonResponse (statsValuesJson) {
-		console.log('Setting from: ' + statsValuesJson);
-
+	static setStatsFromJsonResponse (statsValuesJson) {		
+		// TODO Need to set these also
 		// var charname = statsValuesJson['charname'];
 		// var charclass = statsValuesJson['charclass'];
 		// var posX = statsValuesJson['pos_x'];

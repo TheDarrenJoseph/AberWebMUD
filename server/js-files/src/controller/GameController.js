@@ -4,7 +4,7 @@
 // Default imports
 import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
 import SessionController from 'src/controller/SessionController.js';
-import PageController from 'src/controller/PageController.js';
+import PageController from 'src/controller/page/PageController.js';
 
 // Named imports
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';

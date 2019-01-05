@@ -1,12 +1,35 @@
 import $ from 'libs/jquery.js';
 
+import { _STATS_WINDOW_ID } from 'src/view/page/PageStatsDialogView.js';
+
+
 // Class ID mappings
-var htmlWindows = { messageWindowId: '#message-window', statWindowId: '#stat-window', inventoryWindowId: '#inventory-window' };
+var htmlWindows = { messageWindowId: '#message-window', statWindowId: '#'+_STATS_WINDOW_ID, inventoryWindowId: '#inventory-window' };
 
 export var UI_ENABLED = false;
+const _MAIN_WINDOW_ID = 'main-window';
 
 //	General UI Page View
+// This is the main page view and builds the parent div for all others
 export class PageView {
+	
+	// Creates the HTML for this view if needed
+	static buildView () {
+		var mainWindowJquery = $('#'+_MAIN_WINDOW_ID);
+		var mainWindowExists = mainWindowJquery.length > 0;
+		
+		if (!mainWindowExists) {
+			var mainWindow = document.createElement('div');
+			mainWindow.setAttribute('id',_MAIN_WINDOW_ID);
+			
+			document.body.appendChild(mainWindow);
+		}
+	}
+	
+	static getMainWindowJquery() {
+		return $('#'+_MAIN_WINDOW_ID);
+	}
+	
 	static showWindow (dialog) {
 		$(htmlWindows[dialog]).show();
 	}

@@ -10,7 +10,6 @@
 
 	<link rel='stylesheet' type='text/css' href='/static/css/main.css' />
 
-
 <head>
   <title>AberWebMUD Web Client</title>
 </head>
@@ -18,13 +17,16 @@
 <body>
 
 	<div id='main-window'>
+		<!--
 		<div id='message-window'>
 			<textarea id='message-log' disabled='true'></textarea>
 			<input type='text' id='message-input'>
 			<input type='password' id='password-input'>
 			<input type='submit' id='send-message-button' value='Send'>
 		</div>
-
+		-->
+		
+		<!-- TODO Build in JS / Jinja -->
 		<div class='dialog' id='inventory-window'>
 			<table>
 				<thead class='tHeader'><tr>	<th>Name</th> 						<th>Value</th> 	<th></th> 		<th></th>		<th></th>  									</tr></thead>
@@ -52,9 +54,8 @@
 				<tr class="inventoryItem">	<td> Broken Sword </td>		<td> 0 </td> 		<td><button>Info</button></td> <td><button>Use/Equip</button></td> <td> <button>Drop</button> </td></tr>
 			</table>
 		</div>
-
-
-		<div class='dialog' id='stat-window'> </div>
+	
+		<!--<div class='dialog' id='stat-window'> </div>-->
 		<!--
 			<p class='classLabel'>Character Name</p>
 				<input type='text' id='char-name-input'>
@@ -82,9 +83,7 @@
 
 		<!-- Run our Pixi.JS UI creation and handling script-->
 		<script src='/static/main.js' type="module"></script>
-
-		</div>
-
+	</div>
 </body>
 
 </html>

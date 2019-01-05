@@ -4,7 +4,7 @@ import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 // Default imports
 import PageChatView from 'src/view/page/PageChatView.js';
 import SocketHandler from 'src/handler/socket/SocketHandler.js';
-import PageController from 'src/controller/PageController.js';
+import PageController from 'src/controller/page/PageController.js';
 import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
 import MapPositionHelper from 'src/helper/MapPositionHelper.js';
 import PixiView from 'src/view/pixi/PixiView.js';

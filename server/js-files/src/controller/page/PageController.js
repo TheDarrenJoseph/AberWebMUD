@@ -13,12 +13,24 @@ import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 
 const ENTER_KEY_EVENT_CODE = 13;
 
+export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
+export var LOGIN_FAILURE_MESSAGE_PLAYER = 'Login failure (player does not exist)';
+
 // Static helper class
 //	Very loose controller for the Page
 //	Binding to click / key events using jQuery and controlling the overall UI elements
 export default class PageController {
 	static setupUI () {
-		PageController.bindEvents(); //	Hookup message sending and other controls
+		// Ensure our HTML DOM content is built
+		PageView.buildView();
+		PageStatsDialogView.buildView();
+		PageChatView.buildView();
+		//	Hookup message sending and other controls
+		PageController.bindEvents(); 
+		
+		// DEBUG
+		// console.log('View built');
+		// console.log(PageView.getMainWindowJquery()[0]);
 	}
 
 	// boolean switch for message / password sending
@@ -35,9 +47,9 @@ export default class PageController {
 	static handlePlayerLoginError (data) {
 		console.log(data);
 		if (data['playerExists']) {
-			PageChatView.updateMessageLog('Login failure (bad password)', 'server');
+			PageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PWD, 'server');
 		} else {
-			PageChatView.updateMessageLog('Login failure (player does not exist)', 'server');
+			PageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PLAYER, 'server');
 		}
 	}
 
