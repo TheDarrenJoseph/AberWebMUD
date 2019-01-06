@@ -97,8 +97,7 @@ class SocketHandler {
 
 		socket.on('character-details-update', PageController.handleCharacterUpdateResponse);
 		socket.on('request-password', PageView.requestUserPassword); //  Request for existing password
-		socket.on('request-password', PageView.requestUserPassword); //  Request for existing password
-		socket.on('request-new-password', PageView.userDoesNotExist); //  Request for new password
+		socket.on('request-new-password', PageView.newUserPassword); //  Request for new password
 	}
 
 	//	Handlers for socket events

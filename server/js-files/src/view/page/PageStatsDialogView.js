@@ -3,6 +3,7 @@ import { PageView } from 'src/view/page/PageView.js';
 
 //	2 arrays of the same length to allow looping for creating each line of the table
 const attributeNames = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+const defaultStats = {'STR':1,'DEX':1,'CON':1,'INT':1,'WIS':1,'CHA':1};
 const numberInputIds = ['strNumber', 'dexNumber', 'conNumber', 'intNumber', 'wisNumber', 'chaNumber'];
 const minAttributeVal = 1;
 const maxAttributeVal = 100;
@@ -137,7 +138,7 @@ export default class PageStatsDialogView {
 	static generateStatWindow () {
 		//	Form div to append our elements to
 		var form = document.createElement('form');
-		form.setAttribute('id', 'char-name-input');
+		form.setAttribute('id', _STATS_FORM_ID);
 		
 		//	'Character Name' section
 		var nameLabel = document.createElement('p');
@@ -217,6 +218,12 @@ export default class PageStatsDialogView {
 			$('#'+_CHAR_CLASS_SELECTION_ID).val(optionChoice); //	Set the value
 		}
 	}
+	
+	static clearAll() {
+		PageStatsDialogView.setStatsCharacterName('');
+		PageStatsDialogView.setStatsCharacterClass('');
+		PageStatsDialogView.setStatsAttributeValues(defaultStats);
+	}
 
 	static getStatsAttributeValues () {
 		var output = {};
@@ -224,14 +231,12 @@ export default class PageStatsDialogView {
 		for (var i = 0; i < numberInputIds.length; i++) {
 			var statId = '#' + numberInputIds[i];
 			// Extract the value of the first match to statId
-			var statValue = $(statId).val();
-			
+			var statValue = parseInt($(statId).val());
 			output[attributeNames[i]] = statValue;
 		}
 
 		return output;
 	}
-
 
 	//	Grabs Character Name, Class, and Attribute values
 	static getStats () {
@@ -247,27 +252,19 @@ export default class PageStatsDialogView {
 		for (var i = 0; i < numberInputIds.length; i++) {
 			var statId = '#' + numberInputIds[i];
 			var inputVal = attrValuesJSON[attributeNames[i]];
-
 			// Set the value of the first match for our field
 			$(statId).val(inputVal);
 		}
 	}
 
 	static setStatsFromJsonResponse (statsValuesJson) {		
-		// TODO Need to set these also
-		// var charname = statsValuesJson['charname'];
-		// var charclass = statsValuesJson['charclass'];
-		// var posX = statsValuesJson['pos_x'];
-		// var posY = statsValuesJson['pos_x'];
+		PageStatsDialogView.setStatsCharacterName(statsValuesJson['charname']);
+		PageStatsDialogView.setStatsCharacterClass(statsValuesJson['charclass']);
+		
+		// TODO Assign free points to something
 		// var freePoints = statsValuesJson['free_points'];
-
-		var attrValuesJSON = {'STR': statsValuesJson['STR'],
-			'DEX': statsValuesJson['DEX'],
-			'CON': statsValuesJson['CON'],
-			'INT': statsValuesJson['INT'],
-			'WIS': statsValuesJson['WIS'],
-			'CHA': statsValuesJson['CHA']};
-
-		PageStatsDialogView.setStatsAttributeValues(attrValuesJSON);
+		
+		// Extract just the attribute fields
+		PageStatsDialogView.setStatsAttributeValues(statsValuesJson['scores']);
 	}
 }

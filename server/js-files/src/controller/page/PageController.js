@@ -17,9 +17,12 @@ const ENTER_KEY_EVENT_CODE = 13;
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
 export var LOGIN_FAILURE_MESSAGE_PLAYER = 'Login failure (player does not exist)';
 
-export var INVALID_JSON_CHARACTER = 'Invalid character response JSON';
+export var INVALID_JSON_CHARACTER_UPDATE = 'Invalid character update response JSON';
+export var INVALID_JSON_CHARACTER_DATA = 'Invalid character data response JSON';
 export var CHARACTER_UPDATE_SUCCESS_MESSAGE = 'Character details saved.';
 export var CHARACTER_UPDATE_FAILURE_MESSAGE = 'Invalid character details/update failure';
+export var MOVEMENT_FAILURE_MESSAGE = 'You cannot move there!';
+export var INVALID_LOGIN_MESSAGE = 'Invalid username/password.';
 
 // Static helper class
 //	Very loose controller for the Page
@@ -59,32 +62,34 @@ export default class PageController {
 	}
 
 	static handleCharacterUpdateResponse (data) {
-		
 		if (ValidationHandler.isValidCharacterUpdateData(data)) {
 			if (data['success'] === true) {
 				//	Save the data ready for the UI
-				PageController.saveCharacterUpdate(data['char-data']);
+				PageController.saveCharacterData(data['char-data']);
 				
 				//	If this is our first update, trigger the UI startup
 				if (!SessionController.characterDetailsExist()) {
 					//	Trigger confirmation (uses these stats)
 					PageController.characterDetailsConfirmed();
 				}
-				
-			} else {
+			} else { 
 				PageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_FAILURE_MESSAGE, 'server');
 			}
 			
 		} else {
-			throw new RangeError(INVALID_JSON_CHARACTER);
+			throw new RangeError(INVALID_JSON_CHARACTER_UPDATE);
 		}
 	}
 
-	static saveCharacterUpdate (characterData) {
-		//	Update local stats window from the message
-		PageStatsDialogView.setStatsFromJsonResponse(characterData);
-		SessionController.updateClientSessionData(characterData);
-		PageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
+	static saveCharacterData (characterData) {
+		if (ValidationHandler.isValidCharacterData(characterData)) {
+			//	Update local stats window from the message
+			PageStatsDialogView.setStatsFromJsonResponse(characterData);
+			SessionController.updateClientSessionData(characterData);
+			PageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
+		} else {
+			throw new RangeError(INVALID_JSON_CHARACTER_DATA);
+		}
 	}
 
 	static bindEvents () {
@@ -102,7 +107,7 @@ export default class PageController {
 
 		//	Let the player know if their move is invalid/unsuccessful
 		if (!success) {
-			PageChatView.updateMessageLog('You cannot move there!', 'server');
+			PageChatView.updateMessageLog(MOVEMENT_FAILURE_MESSAGE, 'server');
 		}
 	}
 
@@ -119,7 +124,7 @@ export default class PageController {
 			SocketHandler.sendAuthentication(username, passwordInput);
 			PageChatView.endPasswordSubmission();
 		} else {
-			PageChatView.updateMessageLog('Invalid password.', 'client');
+			PageChatView.updateMessageLog(INVALID_LOGIN_MESSAGE, 'client');
 		}
 	}
 
@@ -130,17 +135,17 @@ export default class PageController {
 
 		if (username !== undefined) {
 			Session.username = username; //	Set the current session username
-			PageChatView.setMessageLog('Please enter the password for user ' + username);
+			PageChatView.setMessageLog('Please enter the password for user: ' + username);
 		} else {
-			PageChatView.setMessageLog('Account created, please enter your password');
+			PageChatView.setMessageLog('Account created, please enter your password.');
 		}
 
 		PageController.bindMessageInputPurpose(false); //	Set the send message behaviour to password sending
 	}
 
-	static userDoesNotExist (username) {
-		var newUser = window.confirm('User does not exist, do you want to create it?');
-		if (newUser) PageController.requestUserPassword(username);
+	static newUserPassword (username) {
+		PageChatView.setMessageLog('Creating a new user, please enter a password for it: ');
+		PageController.requestUserPassword(username);
 	}
 
 	static messageFieldKeyupTrigger (evnt) {

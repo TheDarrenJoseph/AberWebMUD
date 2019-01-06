@@ -26,6 +26,15 @@ export class PageView {
 		}
 	}
 	
+	static destroyView() {
+		var mainWindowJquery = $('#'+_MAIN_WINDOW_ID);
+		var mainWindowExists = mainWindowJquery.length > 0;
+		if (mainWindowExists) {
+			// Remove all that match from the DOM
+			$(mainWindowJquery).remove();
+		}
+	}
+	
 	static getMainWindowJquery() {
 		return $('#'+_MAIN_WINDOW_ID);
 	}
