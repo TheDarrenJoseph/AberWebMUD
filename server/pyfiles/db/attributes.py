@@ -63,12 +63,14 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
     def get_json(self) -> dict:
         attributes = {
             'free_points': self.free_points,
-            'STR':self.str_val,
-            'DEX':self.dex_val,
-            'CON':self.con_val,
-            'INT':self.int_val,
-            'WIS':self.wis_val,
-            'CHA':self.cha_val
+            'scores': {
+				'STR':self.str_val,
+				'DEX':self.dex_val,
+				'CON':self.con_val,
+				'INT':self.int_val,
+				'WIS':self.wis_val,
+				'CHA':self.cha_val
+            }
         }
 
         logging.debug(attributes)

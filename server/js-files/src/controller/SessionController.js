@@ -1,5 +1,9 @@
+import ValidationHandler from 'src/handler/ValidationHandler.js';
+
 import { SESSION_ID_COOKIE_NAME, Session } from 'src/model/Session.js';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
+
+const invalid_char_update_data = 'Character update data is invalid: ';
 
 export default class SessionController {
 	static saveSessionIdCookie (sessionId) {
@@ -48,30 +52,37 @@ export default class SessionController {
 		return {sessionId: sessionId, username: username};
 	};
 
-	//	Example JSON
-	//	{"charname":"roo","pos_x":10,"pos_y":10,"health":100,"charclass":"fighter","free_points":5,"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}
 	static updateCharacterDetails (data) {
-		console.log(data);
 		let character = SessionController.getClientSessionCharacter();
-
-		character.charname = data['charname'];
-		character.class = data['charclass'];
-		character.pos_x = data['pos_x'];
-		character.pos_y = data['pos_y'];
-		character.class = data['charclass'];
-		character.health = data['health'];
-		character.free_points = data['free_points'];
-
-		character.attributes.str = data['STR'];
-		character.attributes.dex = data['DEX'];
-		character.attributes.con = data['CON'];
-		character.attributes.int = data['INT'];
-		character.attributes.wis = data['WIS'];
-		character.attributes.cha = data['CHA'];
+		
+		if (ValidationHandler.isValidCharacterData(data)) {
+			character.charname = data['charname'];
+			character.class = data['charclass'];
+			character.pos_x = data['pos_x'];
+			character.pos_y = data['pos_y'];
+			character.class = data['charclass'];
+			character.health = data['health'];
+			character.free_points = data['free_points'];
+		
+			// Create the attributes JSON if needed
+			if (character.attributes == undefined) {
+				character.attributes = {};
+			}
+			
+			let scores = data['scores'];
+			character.attributes.STR = scores['STR'];
+			character.attributes.DEX = scores['DEX'];
+			character.attributes.CON = scores['CON'];
+			character.attributes.INT = scores['INT'];
+			character.attributes.WIS = scores['WIS'];
+			character.attributes.CHA = scores['CHA'];
+		} else {
+			throw new RangeError(invalid_char_update_data + JSON.stringify(data));
+		}
 
 		// For debugging
-		console.log(character.attributes);
-		console.log('clientSession char details updated.');
+		console.log('clientSession char details updated:');
+		console.log(character);
 		console.log('SID: ' + SessionController.getClientSessionId());
 	};
 

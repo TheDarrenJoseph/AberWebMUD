@@ -1,5 +1,9 @@
 import PageController from 'src/controller/page/PageController.js';
-import { LOGIN_FAILURE_MESSAGE_PWD, LOGIN_FAILURE_MESSAGE_PLAYER } from 'src/controller/page/PageController.js';
+import { LOGIN_FAILURE_MESSAGE_PWD, 
+	LOGIN_FAILURE_MESSAGE_PLAYER,
+	INVALID_JSON_CHARACTER,
+	CHARACTER_UPDATE_SUCCESS_MESSAGE,
+	CHARACTER_UPDATE_FAILURE_MESSAGE } from 'src/controller/page/PageController.js';
 
 import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
 import PageChatView from 'src/view/page/PageChatView.js';
@@ -8,6 +12,7 @@ import $ from 'libs/jquery.js';
 import { PageView }  from 'src/view/page/PageView.js';
 
 var TEST_TAG = '|PAGE CONTROLLER|';
+const serverContextTag = PageChatView.getContextTagString('server');
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
@@ -59,8 +64,8 @@ QUnit.test(TEST_TAG + 'bindMessageInputPurpose', function (assert) {
 });
 
 QUnit.test(TEST_TAG + 'handlePlayerLoginError', function (assert) {
-	// Messages will be context tagged as from the server
-	let serverContextTag = PageChatView.getContextTagString('server');
+	// Make sure the message log is blank to begin with
+	PageChatView.clearMessageLog();
 	
 	// Blank data will assume the player does not exist
 	let serverData = {};
@@ -75,11 +80,53 @@ QUnit.test(TEST_TAG + 'handlePlayerLoginError', function (assert) {
 	assert.equal(PageChatView.getMessageLogValue(), expectedMessage);
 });
 
-QUnit.skip(TEST_TAG + 'handleCharacterUpdateResponse', function (assert) {
-	assert.ok(false, 'TODO');
+QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse', function (assert) {
+	// Check even our try/catch assertions run
+	assert.expect(4);
+	
+	let messageData = {};
+	let charData = {"charname":"roo","pos_x":10,"pos_y":10,"health":100, "charclass":"fighter","free_points":5, "scores": {"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}};
+	let expectedMessage = '';
+
+	// 1. No data
+	let badDataError = new RangeError(INVALID_JSON_CHARACTER);
+	try {
+		PageController.handleCharacterUpdateResponse(messageData);
+	} catch (err) {
+		assert.deepEqual(err, badDataError, 'Ensure the correct RangeError is thrown if no character update data is returned.');
+	}
+	
+	// 2. Invalid data
+	PageStatsDialogView.clearStatsInfoField();
+	// no char-data attrib
+	messageData = { success: false };
+	try {
+		PageController.handleCharacterUpdateResponse(messageData);
+	} catch (err) {
+		assert.deepEqual(err, badDataError, 'Ensure the correct RangeError is thrown if bad character update data is returned.');
+	}
+	
+	// 3. Valid data but Update failed
+	PageStatsDialogView.clearStatsInfoField();
+	messageData = { 'success': false, 'char-data': charData };
+	expectedMessage = serverContextTag + CHARACTER_UPDATE_FAILURE_MESSAGE + '\n';
+	PageController.handleCharacterUpdateResponse(messageData);
+	assert.equal(PageStatsDialogView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update failed if the response says so.');
+	
+	// 4. Success
+	PageStatsDialogView.clearStatsInfoField();
+	messageData = { 'success': true, 'char-data': charData };
+	expectedMessage = serverContextTag + CHARACTER_UPDATE_SUCCESS_MESSAGE + '\n';
+	PageController.handleCharacterUpdateResponse(messageData);
+	assert.equal(PageStatsDialogView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update success if the response says so.');
+
 });
 
 QUnit.skip(TEST_TAG + 'saveCharacterUpdate', function (assert) {
+	//PageStatsDialogView.setStatsFromJsonResponse(characterData);
+	//SessionController.updateClientSessionData(characterData);
+	//PageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
+	
 	assert.ok(false, 'TODO');
 });
 

@@ -1,5 +1,6 @@
 import PageChatView from 'src/view/page/PageChatView.js';
 import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
+import ValidationHandler from 'src/handler/ValidationHandler.js';
 
 import { PageView } from 'src/view/page/PageView.js';
 import { PixiController } from 'src/controller/pixi/PixiController.js';
@@ -15,6 +16,10 @@ const ENTER_KEY_EVENT_CODE = 13;
 
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
 export var LOGIN_FAILURE_MESSAGE_PLAYER = 'Login failure (player does not exist)';
+
+export var INVALID_JSON_CHARACTER = 'Invalid character response JSON';
+export var CHARACTER_UPDATE_SUCCESS_MESSAGE = 'Character details saved.';
+export var CHARACTER_UPDATE_FAILURE_MESSAGE = 'Invalid character details/update failure';
 
 // Static helper class
 //	Very loose controller for the Page
@@ -53,24 +58,25 @@ export default class PageController {
 		}
 	}
 
-	static handleCharacterUpdateResponse (messageJson) {
-		if (messageJson['success'] != null) {
-			console.log('DETAILS EXIST?: ' + SessionController.characterDetailsExist());
-			console.log('UPDATING LOCAL CHARDETAILS using: ' + messageJson);
-
-			if (messageJson['success'] === true) {
+	static handleCharacterUpdateResponse (data) {
+		
+		if (ValidationHandler.isValidCharacterUpdateData(data)) {
+			if (data['success'] === true) {
+				//	Save the data ready for the UI
+				PageController.saveCharacterUpdate(data['char-data']);
+				
 				//	If this is our first update, trigger the UI startup
 				if (!SessionController.characterDetailsExist()) {
-					//	Save the data ready for the UI
-					PageView.saveCharacterUpdate(messageJson['char-data']);
 					//	Trigger confirmation (uses these stats)
 					PageController.characterDetailsConfirmed();
-				} else {
-					PageController.saveCharacterUpdate(messageJson['char-data']);
 				}
+				
 			} else {
-				PageStatsDialogView.updateStatsInfoLog('Invalid character details/update failure', 'server');
+				PageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_FAILURE_MESSAGE, 'server');
 			}
+			
+		} else {
+			throw new RangeError(INVALID_JSON_CHARACTER);
 		}
 	}
 
@@ -78,7 +84,7 @@ export default class PageController {
 		//	Update local stats window from the message
 		PageStatsDialogView.setStatsFromJsonResponse(characterData);
 		SessionController.updateClientSessionData(characterData);
-		PageStatsDialogView.updateStatsInfoLog('Character details saved.', 'server');
+		PageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
 	}
 
 	static bindEvents () {

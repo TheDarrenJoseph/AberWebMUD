@@ -57,9 +57,17 @@ export default class PageStatsDialogView {
 		return $('#'+_SAVE_STATS_BUTTON_ID).get(0);
 	}
 	
+	static clearStatsInfoField () {
+		$('#'+_STATS_INFO_FIELD_ID).val('');
+	};
+	
 	static getStatsInfoField() {
 		return $('#'+_STATS_INFO_FIELD_ID).get(0);
 	}
+	
+	static getStatsInfoFieldValue () {
+		return $('#'+_STATS_INFO_FIELD_ID).val();
+	};
 	
 	static createSelectorOption (tagValue, text) {
 		var classSelector = document.createElement('option');
@@ -223,6 +231,7 @@ export default class PageStatsDialogView {
 
 		return output;
 	}
+
 
 	//	Grabs Character Name, Class, and Attribute values
 	static getStats () {
