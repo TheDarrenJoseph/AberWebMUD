@@ -17,6 +17,8 @@ const _SAVE_STATS_BUTTON_ID = 'save-stats-button';
 const _CHAR_NAME_INPUT_ID = 'char-name-input';
 const _CHAR_CLASS_SELECTION_ID = 'class-selection';
 
+export var SET_CHARDETAILS_PROMPT_MESSAGE = 'You need to set your character details.';
+
 // DOM View for the stats dialog window
 export default class PageStatsDialogView {
 	static buildView () {
@@ -194,7 +196,7 @@ export default class PageStatsDialogView {
 
 	static requestCharacterDetails () {
 		PageStatsDialogView.showStatWindow();
-		PageStatsDialogView.updateStatsInfoLog('You need to set your character details.', 'client');
+		PageStatsDialogView.updateStatsInfoLog(SET_CHARDETAILS_PROMPT_MESSAGE, 'client');
 	}
 
 	static getStatsCharacterName () {
@@ -268,3 +270,5 @@ export default class PageStatsDialogView {
 		PageStatsDialogView.setStatsAttributeValues(statsValuesJson['scores']);
 	}
 }
+
+export { PageStatsDialogView };

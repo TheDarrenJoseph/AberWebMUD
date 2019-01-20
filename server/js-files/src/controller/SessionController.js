@@ -4,6 +4,7 @@ import { SESSION_ID_COOKIE_NAME, Session } from 'src/model/Session.js';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 
 const invalid_char_update_data = 'Character update data is invalid: ';
+const invalid_session_data = 'Session data is invalid: ';
 
 export default class SessionController {
 	static saveSessionIdCookie (sessionId) {
@@ -24,14 +25,18 @@ export default class SessionController {
 		if (Session.clientSession.character == null ||
 				Session.clientSession.character.charname == null ||
 				Session.clientSession.character.attributes == null ||
-				Session.clientSession.character.class == null ||
+				Session.clientSession.character.charClass == null ||
 				Session.clientSession.character.health == null) {
 			return false;
 		}
 
 		return true;
 	};
-
+	
+	static setClientSessionUsername(username) {
+		Session.clientSession.username = username;
+	}
+	
 	static getClientSessionUsername () {
 		return Session.clientSession.username;
 	}
@@ -43,6 +48,11 @@ export default class SessionController {
 	static getClientSessionCharacter () {
 		return Session.clientSession.character;
 	}
+	
+	static setClientSessionCharacter (character) {
+		Session.clientSession.character = character;
+	}
+
 
 	//	Extracts the session data  (username and session ID) into a JSON object
 	static getSessionInfoJSON () {
@@ -57,10 +67,9 @@ export default class SessionController {
 		
 		if (ValidationHandler.isValidCharacterData(data)) {
 			character.charname = data['charname'];
-			character.class = data['charclass'];
+			character.charClass = data['charclass'];
 			character.pos_x = data['pos_x'];
 			character.pos_y = data['pos_y'];
-			character.class = data['charclass'];
 			character.health = data['health'];
 			character.free_points = data['free_points'];
 		
@@ -85,9 +94,10 @@ export default class SessionController {
 		console.log(character);
 		console.log('SID: ' + SessionController.getClientSessionId());
 	};
-
+	
 	//	Save our given session id for later, and display the welcome message
 	static linkConnectionToSession (data) {
+		// If we've not stored a cookie this is a new session
 		if (SessionController.getSessionIdCookie() == null) {
 			SessionController.setClientSessionSessionId(data);
 			console.log('Handshaked with server, session ID given:' + SessionController.getClientSessionId());
@@ -96,14 +106,14 @@ export default class SessionController {
 		}
 	};
 
-	static setClientSessionSessionId (data) {
+	static setClientSessionSessionId (sessionId) {
 		//	Update the client session to contain our new data
-		if (data['sessionId'] != null) {
-			var sessId = data['sessionId'];
-
-			Session.clientSession.sessionId = sessId;
+		if (sessionId != undefined && sessionId != null) {
+			Session.clientSession.sessionId = sessionId;
 			//	Also save it in a cookie
-			SessionController.saveSessionIdCookie(sessId);
+			SessionController.saveSessionIdCookie(sessionId);
+		} else {
+			throw new RangeError(invalid_session_data + '(SessionId): ' + sessionId);
 		}
 	};
 
@@ -111,9 +121,10 @@ export default class SessionController {
 		//	var playerStatus = data['player-status'];
 		console.log('Login data received: ');
 		console.log(data);
-
-		SessionController.setClientSessionSessionId(data);
-		SessionController.updateCharacterDetails(data);
+		
+		SessionController.setClientSessionUsername(data['username']);
+		SessionController.setClientSessionSessionId(data['sessionId']);
+		SessionController.updateCharacterDetails(data['char-data']);
 
 		console.log('Saved session object: ');
 		console.log(Session.clientSession);

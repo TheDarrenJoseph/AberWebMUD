@@ -34,6 +34,12 @@ class PixiStatBar {
 
 		this.innerBar.endFill();
 	}
+	
+	// Sets visisbility for all components
+	setVisible(visisble){
+		this.backgroundBar.visisble = visisble;
+		this.innerBar.visisble = visisble;
+	}
 
 	//	Sets a statbar's indicated value using a 1-100 value
 	//	Returns true if changes made, false otherwise

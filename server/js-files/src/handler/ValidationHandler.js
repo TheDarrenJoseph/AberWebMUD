@@ -24,7 +24,9 @@ export default class ValidationHandler {
 	static isValidCharacterUpdateData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
 			let bodyValid = ValidationHandler.notUndefOrNull(updateJSON['success']) &&
-			ValidationHandler.notUndefOrNull(updateJSON['char-data']);
+			ValidationHandler.notUndefOrNull(updateJSON['username']) &&
+			ValidationHandler.notUndefOrNull(updateJSON['char-data']) &&
+			ValidationHandler.notUndefOrNull(updateJSON['sessionId']);
 			
 			if (bodyValid) {
 				let contentValid = ValidationHandler.isValidCharacterData(updateJSON['char-data']);

@@ -4,9 +4,7 @@ import { _STATS_WINDOW_ID } from 'src/view/page/PageStatsDialogView.js';
 
 
 // Class ID mappings
-var htmlWindows = { messageWindowId: '#message-window', statWindowId: '#'+_STATS_WINDOW_ID, inventoryWindowId: '#inventory-window' };
-
-export var UI_ENABLED = false;
+var htmlWindows = { mainWindowId: '#main-window', messageWindowId: '#message-window', statWindowId: '#'+_STATS_WINDOW_ID, inventoryWindowId: '#inventory-window' };
 const _MAIN_WINDOW_ID = 'main-window';
 
 //	General UI Page View
@@ -68,7 +66,7 @@ export class PageView {
 	}
 
 	static bindStageClick (enabled, clickedFunction) {
-		var mainWindow = $('#main-window');
+		var mainWindow = $(htmlWindows['mainWindowId']);
 		if (enabled) {
 			mainWindow.on('click', clickedFunction);
 		} else {

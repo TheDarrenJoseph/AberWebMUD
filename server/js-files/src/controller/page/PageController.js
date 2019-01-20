@@ -28,13 +28,19 @@ export var INVALID_LOGIN_MESSAGE = 'Invalid username/password.';
 //	Very loose controller for the Page
 //	Binding to click / key events using jQuery and controlling the overall UI elements
 export default class PageController {
-	static setupUI () {
+	
+	constructor(characterConfirmedCallback) {
+		this.uiEnabled = false;
+		this.characterConfirmedCallback = characterConfirmedCallback;
+	}
+	
+	setupUI () {
 		// Ensure our HTML DOM content is built
 		PageView.buildView();
 		PageStatsDialogView.buildView();
 		PageChatView.buildView();
 		//	Hookup message sending and other controls
-		PageController.bindEvents(); 
+		this.bindEvents(); 
 		
 		// DEBUG
 		// console.log('View built');
@@ -42,17 +48,35 @@ export default class PageController {
 	}
 
 	// boolean switch for message / password sending
-	static bindMessageInputPurpose (messageInput) {
+	bindMessageInputPurpose (messageInput) {
 		if (messageInput === true) {
-			PageChatView.bindMessageButton(PageController.messageFieldKeyupTrigger);
+			PageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
 		}
 
 		if (messageInput === false) {
-			PageChatView.bindMessageButton(PageController.passwordFieldKeyupTrigger);
+			PageChatView.bindMessageButton(this.passwordFieldKeyupTrigger);
 		}
 	}
 
-	static handlePlayerLoginError (data) {
+	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
+	handlePlayerLogin (data) {
+		// Save this data for our session
+		SessionController.updateClientSessionData(data);
+		//	Check/Prompt for character details
+		this.checkCharacterDetails(); 
+	}
+	
+	//	Checks that the player's character details are set
+	//	and asks them to set them if false
+	checkCharacterDetails () {
+		if (!SessionController.characterDetailsExist()) {
+			PageStatsDialogView.requestCharacterDetails();
+		} else {
+			this.characterConfirmedCallback();
+		}
+	}
+	
+	handlePlayerLoginError (data) {
 		console.log(data);
 		if (data['playerExists']) {
 			PageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PWD, 'server');
@@ -61,16 +85,15 @@ export default class PageController {
 		}
 	}
 
-	static handleCharacterUpdateResponse (data) {
+	handleCharacterUpdateResponse (data) {
 		if (ValidationHandler.isValidCharacterUpdateData(data)) {
 			if (data['success'] === true) {
 				//	Save the data ready for the UI
-				PageController.saveCharacterData(data['char-data']);
+				this.saveCharacterData(data['char-data']);
 				
 				//	If this is our first update, trigger the UI startup
 				if (!SessionController.characterDetailsExist()) {
-					//	Trigger confirmation (uses these stats)
-					PageController.characterDetailsConfirmed();
+					this.characterConfirmedCallback();
 				}
 			} else { 
 				PageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_FAILURE_MESSAGE, 'server');
@@ -81,7 +104,9 @@ export default class PageController {
 		}
 	}
 
-	static saveCharacterData (characterData) {
+	saveCharacterData (characterData) {
+		console.log('attempting to save:'+JSON.stringify(characterData))
+		
 		if (ValidationHandler.isValidCharacterData(characterData)) {
 			//	Update local stats window from the message
 			PageStatsDialogView.setStatsFromJsonResponse(characterData);
@@ -92,17 +117,17 @@ export default class PageController {
 		}
 	}
 
-	static bindEvents () {
-		PageController.bindMessageInputPurpose(true);
-		PageStatsDialogView.bindSaveCharacterDetails(PageController.sendCharDetails);
+	bindEvents () {
+		this.bindMessageInputPurpose(true);
+		PageStatsDialogView.bindSaveCharacterDetails(this.sendCharDetails);
 	}
 
-	static sendCharDetails () {
+	sendCharDetails () {
 		SocketHandler.sendCharacterDetails(PageStatsDialogView.getStats());
 	}
 
 	//	Handles a movement response (success/fail) for this client's move action
-	static handleMovementResponse (responseJSON) {
+	handleMovementResponse (responseJSON) {
 		var success = responseJSON['success'];
 
 		//	Let the player know if their move is invalid/unsuccessful
@@ -111,12 +136,12 @@ export default class PageController {
 		}
 	}
 
-	static submitChatMessage () {
+	submitChatMessage () {
 		SocketHandler.sendNewChatMessage(PageChatView.getMessageInput());
 		PageChatView.clearMessageInputField();
 	}
 
-	static submitPassword () {
+	submitPassword () {
 		var username = SessionController.getSessionInfoJSON().username;
 		var passwordInput = PageChatView.getPasswordInput();
 
@@ -128,53 +153,54 @@ export default class PageController {
 		}
 	}
 
-	//	Triggered once a user sends a login message, asks for user password
-	//	username is a username string
-	static requestUserPassword (username) {
+	//Triggered once a user sends a login message
+	// Prompts for a user password
+	// Username - String username
+	// If newUser is true, we give a new account message.
+	// Otherwise rovides a login style text-prompt.
+	requestUserPassword (newUser) {
 		PageChatView.showPasswordInput();
 
-		if (username !== undefined) {
-			Session.username = username; //	Set the current session username
-			PageChatView.setMessageLog('Please enter the password for user: ' + username);
+		if (newUser === true) {
+			PageChatView.setMessageLog('Creating a new user, please enter a password for it: ');
 		} else {
-			PageChatView.setMessageLog('Account created, please enter your password.');
+			PageChatView.setMessageLog('Please enter your password: ');
 		}
 
-		PageController.bindMessageInputPurpose(false); //	Set the send message behaviour to password sending
+		this.bindMessageInputPurpose(false); //	Set the send message behaviour to password sending
 	}
 
-	static newUserPassword (username) {
-		PageChatView.setMessageLog('Creating a new user, please enter a password for it: ');
-		PageController.requestUserPassword(username);
-	}
-
-	static messageFieldKeyupTrigger (evnt) {
+	messageFieldKeyupTrigger (evnt) {
 		if (evnt.keyCode === ENTER_KEY_EVENT_CODE) { //	Enter key check
 			// console.log('ENTER on messagefield');
-			PageController.submitChatMessage();
+			this.submitChatMessage();
 		}
 	}
 
-	static passwordFieldKeyupTrigger (evnt) {
+	passwordFieldKeyupTrigger (evnt) {
 		if (evnt.keyCode === ENTER_KEY_EVENT_CODE) { //	Enter key check
 			// console.log('ENTER on passwordfield');
 			PageView.submitPassword();
 		}
 	}
 
-	static bindStageClick (enabled) {
+	bindStageClick (enabled) {
 		PageView.bindStageClick(enabled, PixiController.stageClicked);
 	}
 
-	static disableUI () {
-		PageController.bindStageClick(false); //	Turns off stage-click input
-		PixiController.showControls(false); //	Hides major controls
-		PixiController.renderAll(); // Re-renders the stage to show blank
+	disableUI () {
+		if (this.uiEnabled) {
+			this.bindStageClick(false); //	Turns off stage-click input
+			this.uiEnabled = false;
+		}
 	}
 
-	static enableUI () {
-		PageController.bindStageClick(true); //	Activate movement click input
-		PixiController.showControls(true); //	Shows major controls
-		PixiController.renderAll();
+	enableUI () {
+		if (!this.uiEnabled) {
+			this.bindStageClick(true); //	Activate movement click input
+			this.uiEnabled = true;
+		}
 	}
 }
+
+export { PageController };

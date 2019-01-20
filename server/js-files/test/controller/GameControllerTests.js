@@ -1,4 +1,4 @@
-import GameController from 'src/controller/GameController.js';
+import { GameController } from 'src/controller/GameController.js';
 
 var TEST_TAG = '|GAME CONTROLLER|';
 
@@ -13,20 +13,12 @@ function beforeEachTest (assert) {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('SessionContollerTests', { before: beforeAll, beforeEach: beforeEachTest })
-
-QUnit.skip(TEST_TAG + 'checkCharacterDetails', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'handlePlayerLogin', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'performSetup', function (assert) {
-	assert.ok(false, 'TODO');
-});
+QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTest })
 
 QUnit.skip(TEST_TAG + 'characterDetailsConfirmed', function (assert) {
+	assert.ok(false, 'TODO');
+});
+
+QUnit.skip(TEST_TAG + 'newUser', function (assert) {
 	assert.ok(false, 'TODO');
 });

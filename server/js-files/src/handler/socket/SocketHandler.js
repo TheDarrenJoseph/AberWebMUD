@@ -96,8 +96,8 @@ class SocketHandler {
 		socket.on('movement-update', PixiController.handleMovementUpdate);
 
 		socket.on('character-details-update', PageController.handleCharacterUpdateResponse);
-		socket.on('request-password', PageView.requestUserPassword); //  Request for existing password
-		socket.on('request-new-password', PageView.newUserPassword); //  Request for new password
+		socket.on('request-password', PageController.requestUserPassword); //  Request for existing password
+		socket.on('request-new-password', PageController.newUser); //  Request for new password
 	}
 
 	//	Handlers for socket events
@@ -115,8 +115,8 @@ class SocketHandler {
 	static setupChat () {
 		// Socket custom event trigger for message response, passing in our function for a callback
 		socket.on('chat-message-response', this.handleMessageData);
-		socket.on('login-success', this.handlePlayerLogin);
-		socket.on('login-failure', this.handlePlayerLoginError);
+		socket.on('login-success', GameController.handlePlayerLogin);
+		socket.on('login-failure', PageController.handlePlayerLoginError);
 		socket.on('session-error', this.handleSessionError);
 	}
 	

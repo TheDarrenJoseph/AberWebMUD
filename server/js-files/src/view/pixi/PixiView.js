@@ -129,7 +129,7 @@ export default class PixiView {
 		let healthBarPosX = mapWindowSize - thirdMapWindowSize - 2;
 		let healthBarPosY = 0;
 		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, thirdMapWindowSize, Map.mapTileSize);
-
+	
 		this.controlsContainer.addChild(healthBar.backgroundBar);
 		this.controlsContainer.addChild(healthBar.innerBar);
 
@@ -151,6 +151,11 @@ export default class PixiView {
 		this.statBars[0].setValue(0);
 		this.statBars[0].drawBackgroundBar(Map.thirdMapWindowSize, this.mapTileSize);
 		this.statBars[0].drawInnerBar();
+		this.statBars[0].setVisible(true);
+	}
+	
+	hideStatBars() {
+		this.statBars[0].setVisible(false);
 	}
 
 	static async createInventoryButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
