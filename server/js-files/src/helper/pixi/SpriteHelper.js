@@ -7,9 +7,7 @@ export default class SpriteHelper {
 	static async promisePixiTexture (tileAtlasPath, subtileName, tileHeight, tileWidth) {
 		return new Promise((resolve, reject) => {
 				AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName, spriteTexture => {
-				// console.log('SpriteHelper - Awaited sprite texture: ');
-				// console.log(spriteTexture);
-
+				 // console.log('SpriteHelper - Awaited sprite texture: ' + subtileName);
 				//	Check the texture
 				if (spriteTexture != null) {
 					// Resolve with (return) the texture

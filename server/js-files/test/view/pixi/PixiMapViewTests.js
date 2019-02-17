@@ -19,7 +19,7 @@ let tileMappings = null;
 let atlasPath = null;
 let pixiMapView = null;
 
-let MAX_TIMEOUT = 2000;
+let MAX_TIMEOUT = 5000;
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
@@ -43,140 +43,124 @@ function beforeEachTest (assert) {
 QUnit.module('PixiMapViewTests', { before: beforeAll, beforeEach: beforeEachTest })
 
 // Ensure the pixi map view data builds as we expect it to
-QUnit.test(TEST_TAG + 'new PixiMapView', async function (assert) {
+QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 	// PixiMapView construction can be a little slow
 	// Give us 15s to sort our shit out
 	assert.timeout(MAX_TIMEOUT);
 
 	assert.notEqual(undefined, PixiController.pixiView, 'Make sure the PixiController PixiView is not undefined.');
 	let testPixiMapView = new PixiMapView(new Map(TEST_TILECOUNT), PixiController.pixiView.getRenderer(), DEFAULT_TILE_SIZE * 20, ASSET_PATHS);
+	var initDone = assert.async(1);
 
 	// Let it block us while it sets up
-	await testPixiMapView.initialise();
+	testPixiMapView.initialise().then( () => {
 
-	assert.ok(pixiMapView.mapModel instanceof Map, 'Check the constructor sets it\'s Map model the one provided.');
+		console.log('View for testing inited.')
 
-	assert.ok(pixiMapView.renderer instanceof PIXI.WebGLRenderer ||
-					pixiMapView.renderer instanceof PIXI.CanvasRenderer, 'Check PixiMapView renderer is set.');
+		assert.ok(testPixiMapView.mapModel instanceof Map, 'Check the constructor sets it\'s Map model the one provided.');
 
-	// tileCount is the number of tiles we can fit into this square area
-	assert.equal(testPixiMapView.tileCount, TEST_TILECOUNT, 'Check mapview tilecount');
-	assert.equal(testPixiMapView.zeroIndexedTileCount, 19, 'Check mapview zero-indexed tilecount.');
+		assert.ok(testPixiMapView.renderer instanceof PIXI.WebGLRenderer ||
+		testPixiMapView.renderer instanceof PIXI.CanvasRenderer, 'Check PixiMapView renderer is set.');
 
-	// Global position where the map view begins
-	assert.deepEqual([testPixiMapView.mapViewStartX, testPixiMapView.mapViewStartY], MAPVIEW_START_POS, 'Check mapview start position.');
-	assert.deepEqual([testPixiMapView.mapViewEndX, testPixiMapView.mapViewEndX], MAPVIEW_END_POS, 'Check mapview end position.');
+		// tileCount is the number of tiles we can fit into this square area
+		assert.equal(testPixiMapView.tileCount, TEST_TILECOUNT, 'Check mapview tilecount');
+		assert.equal(testPixiMapView.zeroIndexedTileCount, 19, 'Check mapview zero-indexed tilecount.');
 
-	// Check the logic and values behave as expected
-	// -1 to zero-index, then divide and floor/ceil appropriately
-	assert.equal(Math.floor((TEST_TILECOUNT - 1) / 2), 9, 'Check calculation of halfZeroIndexedTileCountFloored');
-	assert.equal(Math.ceil((TEST_TILECOUNT - 1) / 2), 10, 'Check calculation of halfZeroIndexedTileCountCeiled');
-	assert.equal(testPixiMapView.halfZeroIndexedTileCountFloored, 9, 'Check mapview half-tilecount floored.');
-	assert.equal(testPixiMapView.halfZeroIndexedTileCountCeiled, 10, 'Check mapview half-tilecount ceiled.');
+		// Global position where the map view begins
+		assert.deepEqual([testPixiMapView.mapViewStartX, testPixiMapView.mapViewStartY], MAPVIEW_START_POS, 'Check mapview start position.');
+		assert.deepEqual([testPixiMapView.mapViewEndX, testPixiMapView.mapViewEndX], MAPVIEW_END_POS, 'Check mapview end position.');
 
-	// Map Window Size based on fittable tiles
-	assert.equal(testPixiMapView.mapWindowSize, TEST_WINDOW_SIZE, 'Check mapWindowSize is set.');
-	assert.equal(testPixiMapView.halfMapWindowSize, TEST_WINDOW_SIZE / 2, 'Check halfMapWindowSize is calculated correctly.');
+		// Check the logic and values behave as expected
+		// -1 to zero-index, then divide and floor/ceil appropriately
+		assert.equal(Math.floor((TEST_TILECOUNT - 1) / 2), 9, 'Check calculation of halfZeroIndexedTileCountFloored');
+		assert.equal(Math.ceil((TEST_TILECOUNT - 1) / 2), 10, 'Check calculation of halfZeroIndexedTileCountCeiled');
+		assert.equal(testPixiMapView.halfZeroIndexedTileCountFloored, 9, 'Check mapview half-tilecount floored.');
+		assert.equal(testPixiMapView.halfZeroIndexedTileCountCeiled, 10, 'Check mapview half-tilecount ceiled.');
 
-	// Lowest valid map start position is minus half of the map
-	// This allows an edge of the map to be in the middle of the screen
-	assert.equal(testPixiMapView.lowestViewPosition, -9, 'Check lowest mapview position is calculated correctly.');
-	assert.equal(testPixiMapView.highestViewPosition, 9, 'Check highest mapview position is calculated correctly.');
-	assert.deepEqual(testPixiMapView.mapViewMinPosition, [-9, -9], 'Check mapview min position is calculated correctly.');
-	assert.deepEqual(testPixiMapView.mapViewMaxPosition, [9, 9], 'Check mapview max position is calculated correctly.');
+		// Map Window Size based on fittable tiles
+		assert.equal(testPixiMapView.mapWindowSize, TEST_WINDOW_SIZE, 'Check mapWindowSize is set.');
+		assert.equal(testPixiMapView.halfMapWindowSize, TEST_WINDOW_SIZE / 2, 'Check halfMapWindowSize is calculated correctly.');
 
-	// Iter
-	// 2D Array of TEST_TILECOUNT size
-	let tileSpriteArray = testPixiMapView.tileSpriteArray;
-	assert.ok(tileSpriteArray instanceof Array, 'Check tileSpriteArray is actually an array');
-	assert.equal(tileSpriteArray.length, TEST_TILECOUNT, 'Check tileSpriteArray 1d size.');
+		// Lowest valid map start position is minus half of the map
+		// This allows an edge of the map to be in the middle of the screen
+		assert.equal(testPixiMapView.lowestViewPosition, -9, 'Check lowest mapview position is calculated correctly.');
+		assert.equal(testPixiMapView.highestViewPosition, 9, 'Check highest mapview position is calculated correctly.');
+		assert.deepEqual(testPixiMapView.mapViewMinPosition, [-9, -9], 'Check mapview min position is calculated correctly.');
+		assert.deepEqual(testPixiMapView.mapViewMaxPosition, [9, 9], 'Check mapview max position is calculated correctly.');
 
-	// Check the sub-arrays for 2D size validation
-	let depthCount = 0
-	let spritesValid = 0;
-	let expectedValid = TEST_TILECOUNT * TEST_TILECOUNT;
-	for (var i = 0; (i < TEST_TILECOUNT); i++) {
-		if (tileSpriteArray[i].length === TEST_TILECOUNT) {
-			depthCount++;
-		}
-		for (var j = 0; (j < TEST_TILECOUNT); j++) {
-			// We store an array of sprites at the lowest level
-			// In case of shared positions
-			let spriteArray = tileSpriteArray[i][j];
-			let arrayCheck = (spriteArray !== null &&
-			spriteArray !== undefined &&
-			spriteArray instanceof Array &&
-			spriteArray.length == 1);
+		// Iter
+		// 2D Array of TEST_TILECOUNT size
+		let tileSpriteArray = testPixiMapView.tileSpriteArray;
+		assert.ok(tileSpriteArray instanceof Array, 'Check tileSpriteArray is actually an array');
+		assert.equal(tileSpriteArray.length, TEST_TILECOUNT, 'Check tileSpriteArray 1d size.');
 
-			let sprite = spriteArray[0];
-			let spriteCheck = (sprite !== null &&
-			sprite !== undefined &&
-			sprite instanceof PIXI.Sprite);
+		//HERE
 
-			// Increment a count
-			// instead of printing tons of assertion messages
-			if (arrayCheck && spriteCheck) {
-				spritesValid++;
-			}
-		}
-	}
-	assert.equal(depthCount, TEST_TILECOUNT, 'Check tileSpriteArray 1d depth is valid.');
-	assert.equal(spritesValid, expectedValid, 'Check tileSpriteArray is initialised fully');
+		// Check Pixi JS Container objects
+		// Top level container for all children
+		let parentContainer = testPixiMapView.parentContainer;
+		assert.ok(parentContainer instanceof PIXI.Container, 'Ensure the pixiMapView parent container is initialised.');
+		// Check our child containers are added and of the correct type
+		assert.ok(parentContainer.getChildByName('mapContainer') instanceof PIXI.particles.ParticleContainer, 'Check ParticleContainer mapContainer exists under parentContainer.');
+		assert.ok(parentContainer.getChildByName('characterContainer') instanceof PIXI.particles.ParticleContainer, 'Check ParticleContainer characterContainer exists under parentContainer.');
 
-	// 2D Array of TEST_TILECOUNT size
+		initDone();
+	}).catch(rejection => {
+		assert.ok(false, 'Initialisation Promise rejected with: ' + rejection);
+	});
 
-	let mapCharacterArray = testPixiMapView.mapCharacterArray;
-	assert.ok(mapCharacterArray instanceof Array, 'Check mapCharacterArray is actually an array');
-	assert.equal(mapCharacterArray.length, TEST_TILECOUNT, 'Check tileSpriteArray 1d size.');
-	// Check the sub-arrays for 2D size validation
-	depthCount = 0;
-	for (i = 0; (i < TEST_TILECOUNT); i++) {
-		if (mapCharacterArray[i].length === TEST_TILECOUNT) {
-			depthCount++;
-		}
-	}
-	assert.equal(depthCount, TEST_TILECOUNT, 'Check mapCharacterArray 1d depth is valid.');
-
-	// Check Pixi JS Container objects
-	// Top level container for all children
-	let parentContainer = pixiMapView.parentContainer;
-	assert.ok(parentContainer instanceof PIXI.Container, 'Ensure the pixiMapView parent container is initialised.');
-	// Check our child containers are added and of the correct type
-	assert.ok(parentContainer.getChildByName('mapContainer') instanceof PIXI.particles.ParticleContainer, 'Check ParticleContainer mapContainer exists under parentContainer.');
-	assert.ok(parentContainer.getChildByName('characterContainer') instanceof PIXI.particles.ParticleContainer, 'Check ParticleContainer characterContainer exists under parentContainer.');
 }
 );
 
 QUnit.test(
-TEST_TAG + 'newCharacterOnMap', async function (assert) {
+TEST_TAG + 'newCharacterOnMap', function (assert) {
+	assert.timeout(MAX_TIMEOUT);
+
 	let characterAtlasPath = null;
 	let characterName = 'TIMMY TEST';
 	let gridX = 2;
 	let gridY = 2;
+	let asyncDone = assert.async(1);
 	// Wait for the map character to build and return
-	let mapChar = await pixiMapView.newCharacterOnMap(characterName, gridX, gridY);
-	assert.ok(mapChar instanceof MapCharacter, 'Check we created a MapCharacter for this position.');	
+
+	let mapCharPromise = pixiMapView.newCharacterOnMap(characterName, gridX, gridY)
+
+	mapCharPromise.then( () => {
+		assert.ok(mapChar instanceof MapCharacter, 'Check we created a MapCharacter for this position.');
+		asyncDone();
+	}, rejection => {
+		assert.ok(false, 'new Character on Map Promise rejected with: ' + rejection);
+	});
+
+	assert.expect(1);
 }
 );
 
 // drawMapToGrid
 QUnit.test(
-TEST_TAG + 'drawMapToGrid', async function (assert) {
+TEST_TAG + 'drawMapToGrid', function (assert) {
 	// Wait a max of 2 seconds for any async
 	assert.timeout(MAX_TIMEOUT);
+
+	let asyncDrawDone = assert.async(1);
 	// Wait to intialise the full capabilities
-	await pixiMapView.initialise();
-	
-	// Returns a promise for when all the sprites are updated
-	let mapDrawPromise = pixiMapView.drawMapToGrid();
-	
-	mapDrawPromise.then( () => {
-		let totalTileArea = TEST_TILECOUNT * TEST_TILECOUNT;
-		
-		assert.ok(pixiMapView.mapContainer instanceof PIXI.Container, 'Check the map Container is a PIXI.Container');
-		assert.ok(pixiMapView.mapContainer.children instanceof Array, 'Check the map Container has a children array');
-		assert.equal(pixiMapView.mapContainer.children.length, totalTileArea, 'Check the map Container has enough children for each tile');
+	pixiMapView.initialise().then( () => {
+		// Returns a promise for when all the sprites are updated
+		let mapDrawPromise = pixiMapView.drawMapToGrid();
+
+		mapDrawPromise.then(() => {
+			console.log('MAP DRAWN');
+			let totalTileArea = TEST_TILECOUNT * TEST_TILECOUNT;
+
+			assert.ok(pixiMapView.mapContainer instanceof PIXI.Container, 'Check the map Container is a PIXI.Container');
+			assert.ok(pixiMapView.mapContainer.children instanceof Array, 'Check the map Container has a children array');
+			assert.equal(pixiMapView.mapContainer.children.length, totalTileArea, 'Check the map Container has enough children for each tile');
+			asyncDrawDone();
+		}).catch(rejection => {
+			assert.ok(false, 'Map drawing Promise rejected with: ' + rejection);
+		});
 	});
+	//assert.expect(3);
 }
 );
 

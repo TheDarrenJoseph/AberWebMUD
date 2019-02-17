@@ -79,6 +79,8 @@ export default class PixiMapView {
 			let tsa = await this.buildTileSpriteArray();
 			this.tileSpriteArray = tsa;
 		}
+
+		return;
 	}
 
 	getParentContainer () {
@@ -86,14 +88,17 @@ export default class PixiMapView {
 	}
 
 	renderAll () {
+		console.log('PixiMapView - Rendering all containers.');
 		this.renderer.render(this.parentContainer);
 	}
 
 	renderMapContainer () {
+		console.log('PixiMapView - Rendering map container.');
 		this.renderer.render(this.mapContainer);
 	}
 
 	renderCharacterContainer () {
+		console.log('PixiMapView - Rendering character container.');
 		this.renderer.render(this.characterContainer);
 	}
 
@@ -220,6 +225,7 @@ export default class PixiMapView {
 		}
 		// Return a promise of all subtexture updates
 		// then Re-drawing the container when they are complete
+		console.log('Awaiting subtextures: ' + subTexturePromises);
 		return Promise.all(subTexturePromises).then(() => { this.renderMapContainer });
 	} 
 

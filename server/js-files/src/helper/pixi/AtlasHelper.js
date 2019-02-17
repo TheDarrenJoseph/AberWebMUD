@@ -129,7 +129,7 @@ export default class AtlasHelper {
 			let resourceLoadedEventName = AtlasHelper.getResourceLoadedEventName(resourcePath);
 			document.dispatchEvent(new Event(resourceLoadedEventName));
 
-			// console.log('Atlas Helper - Resource completely loaded: ' + resourcePath);
+			console.log('Atlas Helper - Resource completely loaded: ' + resourcePath);
 		});
 		// console.log('Pixi Loader freed.');
 		AtlasHelper._freeLoader();
@@ -199,12 +199,13 @@ export default class AtlasHelper {
 		// console.log('Attempting load of resource: '+resourcePath)
 
 		// Queue up the resource if needed
-		if (!queued) {
+		if (!loaded && !loading && !queued) {
+			console.log('Adding resource to queue: ' + resourcePath);
 			AtlasHelper.addToLoaderQueue(resourcePath);
 		}
 
 		if (loaded) {
-			// console.log('Resource already loaded..' + resourcePath);
+			console.log('Resource already loaded: ' + resourcePath);
 			callback();
 		}
 
@@ -253,7 +254,20 @@ export default class AtlasHelper {
 				console.log('PIXI Resource Loader is loading resource: ' + resourcePath);
 				PIXI.loader.add(resourcePath);
 
-				PIXI.loader.load(() => {
+				PIXI.loader.load((loader, resources) => {
+					console.log(resources)
+
+					Object.keys(resources).forEach( (key) => {
+						let resource = resources[key];
+						let trulyLoaded = AtlasHelper.isResourceLoaded(key);
+						console.log('Loaded Resource URL ('+trulyLoaded+'): ' + resource.url);
+
+						if (resource.error !== null) {
+							console.log('Resource error: ' + resource.error);
+						}
+						//resource.data
+					});
+
 					AtlasHelper._resourceLoaded(resourcePath);
 					callback();
 				});

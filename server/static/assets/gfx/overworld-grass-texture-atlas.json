@@ -3,14 +3,12 @@
 		"grass-plain":{
 			"frame":{"x":0,"y":0,"w":16,"h":16},
 			"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
-			"sourceSize": {"w":16,"h":16},
-			"tileDimensions":{"x":1,"y":1}
+			"sourceSize": {"w":16,"h":16}
 		},
 		"grass-bush":{
 			"frame":{"x":160,"y":32,"w":32,"h":32},
 			"spriteSourceSize": {"w":32,"h":32},
-			"sourceSize": {"w":32,"h":32},
-			"tileDimensions":{"x":2,"y":2}
+			"sourceSize": {"w":32,"h":32}
 		}
 	},
 	"meta": {
