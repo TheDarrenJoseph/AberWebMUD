@@ -12,6 +12,6 @@
 		}
 	},
 	"meta": {
-		"image": "overworld.png"
+		"image": "./overworld.png"
 	}
 }

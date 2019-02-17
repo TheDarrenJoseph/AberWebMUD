@@ -12,6 +12,6 @@
 		}
 	},
 	"meta": {
-		"image": "character.png"
+		"image": "./character.png"
 	}
 }
