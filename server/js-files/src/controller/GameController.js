@@ -18,7 +18,9 @@ class GameControllerClass {
 		console.log('Starting client..');
 		
 		this.pageController = new PageController(this.characterDetailsConfirmed);
-	
+		// Extract the view for now
+		this.pageView = this.pageController.pageView;
+
 		//	Get the general UI ready
 		this.pageController.setupUI();
 		PixiController.setupUI();
@@ -37,9 +39,9 @@ class GameControllerClass {
 	characterDetailsConfirmed () {
 		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.clientSession);
 		//	Hide the stats window
-		PageView.hideWindow('statWindowId');
+		this.pageView.hideWindow('statWindowId');
 
-		if (!PageView.UI_ENABLED) {
+		if (!this.pageView.UI_ENABLED) {
 			PixiController.setupUI();
 			// Turn on UI components
 			PageController.enableUI();

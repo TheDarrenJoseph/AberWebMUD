@@ -3,14 +3,33 @@ import PixiView from 'src/view/pixi/PixiView.js';
 import { MapController, POS_NOT_VALID_MAP_VIEW_ERROR } from 'src/controller/MapController.js';
 import { testPositionRangeError } from 'test/utils/PositionTestHelper.js';
 import { ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
+import { PageView }  from 'src/view/page/PageView.js';
 
 var MAPCONTROLLER_TEST_TAG = '|MAP CONTROLLER|';
 
 var pixiView = new PixiView();
-var mapController = new MapController(pixiView.getRenderer(), undefined, null, ASSET_PATHS);
+var mapController = new MapController(pixiView.getRenderer(), undefined, PageView.getWindowDimensions(), null, ASSET_PATHS);
+
+var MAX_TIMEOUT = 2000;
+
+// Setup / assertions before any test runs
+function beforeAll (assert) {
+
+}
+
+// Setup / assertions before each test
+function beforeEachTest (assert) {
+
+}
+
+// Hookup before each test setup / assertion
+QUnit.module('MapControllerTests', { before: beforeAll, beforeEach: beforeEachTest })
 
 // Valid map view range is ( -halfZeroIndexedTileCountFloored to halfZeroIndexedTileCountFloored )
 QUnit.test(MAPCONTROLLER_TEST_TAG + 'showMapPosition-valid', async function (assert) {
+
+	// PixiMapView construction can be a little slow
+	assert.timeout(MAX_TIMEOUT);
 	await mapController.initialise();
 
 	// 1.	Smallest global position valid
@@ -21,7 +40,7 @@ QUnit.test(MAPCONTROLLER_TEST_TAG + 'showMapPosition-valid', async function (ass
 	assert.equal(startPositions[1], 0, 'Map view start y should be 0');
 
 	// 2.	Smallest relative position negative 1/2 window tilecount
-	let lowestRange = -mapController.getPixiMapView().halfZeroIndexedTileCountFloored;
+	let lowestRange = - mapController.getPixiMapView().halfZeroIndexedTileCountFloored;
 	// console.log('Lowest map view overhang co-ords: ' + lowestRange + ',' + lowestRange);
 	await mapController.showMapPosition(lowestRange, lowestRange);
 	startPositions = mapController.getPixiMapView().getMapViewStartPosition();

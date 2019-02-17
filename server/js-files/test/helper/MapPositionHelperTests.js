@@ -10,6 +10,8 @@ import { ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
 
 import { POS_LOCAL_TO_GLOBAL_LOCAL_INVALID_START, POS_TILE_TO_PIXI_INVALID_PIXI_ERROR } from 'src/helper/MapPositionHelper.js';
 
+import { PageView } from 'src/view/page/PageView.js';
+
 var POSITION_TEST_TAG = '|MAP-POSITION-HELPER|';
 
 // Enough pixels for 20 tiles
@@ -39,7 +41,7 @@ function beforeEachTest (assert) {
 	mapModel = new Map(DEFAULT_MAP_SIZE_XY);
 	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, ASSET_PATHS);
 	// (renderer, map = new Map(), pixiMapView = null, ASSET_PATH_OVERWORLD)
-	mapController = new MapController(renderer, mapModel, pixiMapView, ASSET_PATHS);
+	mapController = new MapController(renderer, mapModel, PageView.getWindowDimensions(), pixiMapView, ASSET_PATHS);
 
 	mapViewTilecount = mapController.getPixiMapView().getTilecount();
 	mapPositionHelper = mapController.getPositionHelper();

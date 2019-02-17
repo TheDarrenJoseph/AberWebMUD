@@ -23,25 +23,28 @@ export const titleText = 'AberWebMUD';
 const rootUrl = window.location.origin;
 const assetPathZelda = rootUrl + '/static/assets/gfx/';
 const assetPathOverworld = assetPathZelda + 'overworld-texture-atlas.json';
+const assetPathOverworldGrass = assetPathZelda + 'overworld-grass-texture-atlas.json';
 const assetPathCharacters = assetPathZelda + 'character-texture-atlas.json';
 const assetPathObjects = assetPathZelda + 'zelda-objects-texture-atlas.json';
 
 export const ASSET_PATHS = {
 	ASSET_PATH_OVERWORLD: assetPathOverworld,
+	ASSET_PATH_OVERWORLD_GRASS: assetPathOverworldGrass,
 	ASSET_PATH_CHARACTERS: assetPathCharacters,
 	ASSET_PATH_OBJECTS: assetPathObjects
 };
 
 //	Handles the PixiJS renderer
 class PixiControllerClass {
-	constructor () {
+	constructor (windowSize) {
 		this.uiEnabled = false;
-		this.windowSize = PageView.getWindowDimensions();
+
+		this.windowSize = windowSize;
 		this.pixiView = new PixiView(this.windowSize);
 
 		this.renderer = this.pixiView.getRenderer();
 
-		this.mapController = new MapController(this.renderer, undefined, null, ASSET_PATHS);
+		this.mapController = new MapController(this.renderer, undefined, PageView.getWindowDimensions(), null, ASSET_PATHS);
 		
 		// resolution 1 for now as default (handles element scaling)
 		//	this.renderingOptions = {
@@ -62,7 +65,7 @@ class PixiControllerClass {
 			var consoleButtonSprite = await consoleButtonSpritePromise;
 			consoleButtonSprite.name = 'consoleButtonSprite';
 			this.pixiView.controlsContainer.addChild(consoleButtonSprite);
-			consoleButtonSprite.on('click', PageView.toggleConsoleVisibility);
+			consoleButtonSprite.on('click', this.pageView.toggleConsoleVisibility);
 		}
 	}
 
@@ -96,10 +99,10 @@ class PixiControllerClass {
 		// Await all setup
 		var contextButtons = await this.setupContextButtons();
 
-		contextButtons[0].on('click', PageView.toggleIventoryWinVisibility);
-		contextButtons[1].on('click', PageView.toggleStatWinVisibility);
+		contextButtons[0].on('click', this.pageView.toggleIventoryWinVisibility);
+		contextButtons[1].on('click', this.pageView.toggleStatWinVisibility);
 
-		PageView.appendToConsoleButtonClass(contextButtons);
+		this.pageView.appendToConsoleButtonClass(contextButtons);
 
 		this.initialiseAssets();
 	}
@@ -136,7 +139,7 @@ class PixiControllerClass {
 	assetsLoaded () {
 		console.log(this);
 		console.log('Using renderer option: ' + this.pixiView.getRendererType());
-		PageView.appendToMainWindow(this.renderer.view);
+		this.pageView.appendToMainWindow(this.renderer.view);
 		this.showLoginControls();
 	}
 
@@ -182,9 +185,9 @@ class PixiControllerClass {
 	// Shows just the controls needed for login
 	// Hiding all other controls
 	showLoginControls () {
-		PageView.hideWindows();
+		this.pageView.hideWindows();
 		//	Make the console only visisble
-		PageView.toggleConsoleVisibility();
+		this.pageView.toggleConsoleVisibility();
 		//	Check connection every 5 seconds
 		setTimeout(function () { return this.checkConnection(); }, 5000);
 	}
@@ -214,5 +217,5 @@ class PixiControllerClass {
 }
 
 // Create an instance we can refer to nicely (hide instanciation)
-let PixiController = new PixiControllerClass();
+let PixiController = new PixiControllerClass(PageView.getWindowDimensions());
 export { PixiController, PixiControllerClass };

@@ -1,40 +1,58 @@
 //	Static helper class
+
+var MOVEMENT_UPDATE_ATTRIBS = ['username', 'old_x', 'old_y', 'pos_x', 'pos_y'];
+var CHARACTER_UPDATE_ATTRIBS = ['success','username','char-data','sessionId'];
+var CHARACTER_DATA_ATTRIBS = ['charname', 'pos_x','pos_y', 'health', 'charclass', 'free_points', 'scores'];
+
 export default class ValidationHandler {
 	
-	static notUndefOrNull(data) {
-		return data !== null && data !== undefined;
+	static checkDataAttributes(data, attributeNamesArray) {
+		var dataDefined = ValidationHandler.notUndefOrNull(data);
+		var attribsDefined = ValidationHandler.notUndefOrNull(attributeNamesArray);
+
+		if (dataDefined && attribsDefined) {
+			var allValid = true;
+			for (var i = 0; i < attributeNamesArray.length; i++) {
+				let attributeName = attributeNamesArray[i];
+
+				let attribDefined = ValidationHandler.notUndefOrNull(data[attributeName]);
+				if (!attribDefined) {
+					// console.log('Expected data attribute not defined: (' + attributeName + ') Data: ' + JSON.stringify(data));
+					allValid = false;
+				}
+			}
+			// console.log('Validated: (' + attributeNamesArray + ') result : ' + allValid);
+			return allValid;
+		}
+		
+		throw new RangeError('Bad arguements for validation. Data / Attributes to validate undefined.');
+		return false;
 	}
 	
+	static notUndefOrNull(data) {
+		return (data !== null && data !== undefined);
+	}
+
 	//	Checks for the presence of data for each of the movement update fields
 	static isValidMovementUpdateData (updateJSON) {
-		let username = updateJSON['username'];
-		let oldX = updateJSON['old_x'];
-		let oldY = updateJSON['old_y'];
-		let posX = updateJSON['pos_x'];
-		let posY = updateJSON['pos_y'];
-
-		return (ValidationHandler.notUndefOrNull(username) &&
-			ValidationHandler.notUndefOrNull(oldX) &&
-			ValidationHandler.notUndefOrNull(oldY) &&
-			ValidationHandler.notUndefOrNull(posX) &&
-			ValidationHandler.notUndefOrNull(posY)
-			);
+		if (ValidationHandler.notUndefOrNull(updateJSON)) {
+			return (ValidationHandler.checkDataAttributes(updateJSON, MOVEMENT_UPDATE_ATTRIBS));
+		}
+		
+		return false;
 	}
 	
 	static isValidCharacterUpdateData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
-			let bodyValid = ValidationHandler.notUndefOrNull(updateJSON['success']) &&
-			ValidationHandler.notUndefOrNull(updateJSON['username']) &&
-			ValidationHandler.notUndefOrNull(updateJSON['char-data']) &&
-			ValidationHandler.notUndefOrNull(updateJSON['sessionId']);
-			
+			let bodyValid = ValidationHandler.checkDataAttributes(updateJSON,
+				CHARACTER_UPDATE_ATTRIBS);
 			if (bodyValid) {
 				let contentValid = ValidationHandler.isValidCharacterData(updateJSON['char-data']);
 				return bodyValid && contentValid;
 			} 
-		} else {
-			return false;
 		}
+		
+		return false;
 	}
 	
 	// Checks for the presence of data for character update
@@ -43,36 +61,16 @@ export default class ValidationHandler {
 	// "charclass":"fighter","free_points":5,
 	// "scores": {"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}};
 	static isValidCharacterData (updateJSON) {
-		let charname = updateJSON['charname'];
-		let pos_x = updateJSON['pos_x'];
-		let pos_y = updateJSON['pos_y'];
-		let health = updateJSON['health'];
-		let charclass = updateJSON['charclass'];
 		
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
-			let coreDataExists = (
-				ValidationHandler.notUndefOrNull(charname) &&
-				ValidationHandler.notUndefOrNull(pos_x) &&
-				ValidationHandler.notUndefOrNull(pos_y) &&
-				ValidationHandler.notUndefOrNull(health) &&
-				ValidationHandler.notUndefOrNull(charclass)
-			);
-			
-			let free_pounts = updateJSON['free_points'];
-			let scores = updateJSON['scores'];
-			
-			let attributesExist = (ValidationHandler.notUndefOrNull(free_pounts) &&
-			ValidationHandler.notUndefOrNull(scores) &&
-			ValidationHandler.notUndefOrNull(scores['STR']) &&
-			ValidationHandler.notUndefOrNull(scores['DEX']) &&
-			ValidationHandler.notUndefOrNull(scores['CON']) &&
-			ValidationHandler.notUndefOrNull(scores['INT']) &&
-			ValidationHandler.notUndefOrNull(scores['WIS']) &&
-			ValidationHandler.notUndefOrNull(scores['CHA'])
-			);
+			let coreDataExists = ValidationHandler.checkDataAttributes(updateJSON, updateJSON['free_points','scores']);
+			console.log('Validating scores:'); console.log(updateJSON['scores'])
+			let attributesExist = ValidationHandler.checkDataAttributes(updateJSON['scores'], ['STR','DEX','CON','INT','WIS','CHA']);
+
 			return coreDataExists && attributesExist;
 
 		} else {
+			console.log('Missing character update data.');
 			return false;
 		}
 	}

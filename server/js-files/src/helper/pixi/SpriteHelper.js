@@ -4,9 +4,9 @@ import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 import { DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
 
 export default class SpriteHelper {
-	static promisePixiTexture (tileAtlasPath, subtileName, tileHeight, tileWidth) {
+	static async promisePixiTexture (tileAtlasPath, subtileName, tileHeight, tileWidth) {
 		return new Promise((resolve, reject) => {
-			AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName, spriteTexture => {
+				AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName, spriteTexture => {
 				// console.log('SpriteHelper - Awaited sprite texture: ');
 				// console.log(spriteTexture);
 
@@ -23,8 +23,7 @@ export default class SpriteHelper {
 	}
 
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
-	// This will return a Promsie
-	static makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight = DEFAULT_TILE_SIZE, tileWidth = DEFAULT_TILE_SIZE, pixiPoint, interactive) {
+	static async makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight = DEFAULT_TILE_SIZE, tileWidth = DEFAULT_TILE_SIZE, pixiPoint, interactive) {
 		// Wrap the subtexture promise to make a Sprite and return that
 		// Otherwise bubble up the error
 		return new Promise((resolve, reject) => {

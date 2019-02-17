@@ -12,41 +12,62 @@ import { PixiController } from 'src/controller/pixi/PixiController.js';
 import ValidationHandler from 'src/handler/ValidationHandler.js';
 import SessionController from 'src/controller/SessionController.js';
 import { PageStatsDialogView,
-	SET_CHARDETAILS_PROMPT_MESSAGE } from 'src/view/page/PageStatsDialogView.js';
+	SET_CHARDETAILS_PROMPT_MESSAGE, CLASS_OPTIONS } from 'src/view/page/PageStatsDialogView.js';
 import PageChatView from 'src/view/page/PageChatView.js';
 import $ from 'libs/jquery.js';
 
 import { PageView } from 'src/view/page/PageView.js';
 
 var TEST_TAG = '|PAGE CONTROLLER|';
-const serverContextTag = PageChatView.getContextTagString('server');
 
 // Default human scores w/ 27 free points
 var testSessionId = 12345678;
 var testScores = {'STR': 8, 'DEX': 8, 'CON': 8, 'INT': 8, 'WIS': 8, 'CHA': 8};
 var testCharData = {
 	'charname': 'FooBar',
-	'charclass': 'Warrior',
+	'charclass': CLASS_OPTIONS[1].id, //Non-default charclass
 	'pos_x': 4,
 	'pos_y': 4,
 	'health': 100,
 	'free_points': 27,
 	'scores': testScores,
 };
-var testUpdateData = {'username': 'foo', 'char-data' : testCharData, 'sessionId' : testSessionId };
+var testUpdateData = {'success': true, 'username': 'foo', 'char-data' : testCharData, 'sessionId' : testSessionId };
 
+var pageView;
 var pageController;
+var pageStatsDialogView;
+var pageChatView;
+
+var serverContextTag;
+
+var TEST_DOCUMENT = document;
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
-	// DO SOME STUFF
+
+	// Create an independent document to work on
+	//TEST_DOCUMENT = document.implementation.createHTMLDocument('PageView');
+
+	// Build our view in the independent document
+	// to avoid clashing with the test window content
+	//pageView = PageView;
+
+	//pageView.buildView();
 }
 
 // Setup / assertions before each test
 function beforeEachTest (assert) {
 	// Make sure we have a fresh controller every time
 	// To prevent knock-on state changes
-	pageController = new PageController(() => {});
+	pageView = new PageView(TEST_DOCUMENT);
+
+	pageController = new PageController(() => {}, pageView, undefined, undefined);
+	pageStatsDialogView = pageController.pageStatsDialogView;
+	pageChatView = pageController.pageChatView;
+
+	serverContextTag = pageController.pageChatView.getContextTagString('server');
+
 	assert.ok(pageController instanceof PageController, 'Check controller instance is instanciated.');
 }
 
@@ -65,19 +86,27 @@ function extractFirstJqueryBinding (domElement, eventType) {
 QUnit.module('PageContollerTests', { before: beforeAll, beforeEach: beforeEachTest });
 
 QUnit.test(TEST_TAG + 'setupUI', function (assert) {
-	PageView.destroyView();
-	assert.equal(PageView.getMainWindowJquery().length, 0, 'Check main window does not exist');
+	pageView.destroyView();
+
+	assert.equal(pageView.getMainWindowJquery().length, 0, 'Check main window does not exist');
+
 	pageController.setupUI();
-	assert.equal(PageView.getMainWindowJquery().length, 1, 'Check main window exists');
+	pageView.buildView();
+	assert.equal(pageView.getMainWindowJquery().length, 1, 'Check main window exists');
 
 	// Check bindEvents behaviour
 	// Using undocumented jQuery _data for events
 	// to check first click handler
-	var saveStatsButton = PageStatsDialogView.getSaveStatsButton();
+	var saveStatsButton = pageStatsDialogView.getSaveStatsButton();
+
+	console.log('SaveStatsButton: ');
+	console.log($._data(saveStatsButton));
 	var events = $._data(saveStatsButton, 'events');
+	console.log(events);
+
 	assert.equal(events['click'][0].handler, pageController.sendCharDetails, 'Check our sendCharDetails func is bound to the button.');
 
-	var messageInputField = PageChatView.getMessageInputField();
+	var messageInputField = pageChatView.getMessageInputField();
 	var messageInputEvents = $._data(messageInputField, 'events');
 	assert.equal(messageInputEvents['keyup'][0].handler, pageController.messageFieldKeyupTrigger, 'Check message field sending on key-up is bound.');
 });
@@ -85,12 +114,12 @@ QUnit.test(TEST_TAG + 'setupUI', function (assert) {
 QUnit.test(TEST_TAG + 'bindMessageInputPurpose', function (assert) {
 	// True for message sending
 	pageController.bindMessageInputPurpose(true);
-	var messageInputEvents = $._data(PageChatView.getMessageInputField(), 'events');
+	var messageInputEvents = $._data(pageChatView.getMessageInputField(), 'events');
 	assert.equal(messageInputEvents['keyup'][0].handler, pageController.messageFieldKeyupTrigger, 'Check message field sending on key-up is bound.');
 
 	// False for password sending
 	pageController.bindMessageInputPurpose(false);
-	messageInputEvents = $._data(PageChatView.getMessageInputField(), 'events');
+	messageInputEvents = $._data(pageChatView.getMessageInputField(), 'events');
 	assert.equal(messageInputEvents['keyup'][0].handler, pageController.passwordFieldKeyupTrigger, 'Check password field sending on key-up is bound.');
 });
 
@@ -128,7 +157,7 @@ QUnit.test(TEST_TAG + 'checkCharacterDetails_noCharacter', function (assert) {
 	pageController = new PageController(characterDetailsConfirmedCallback);
 	pageController.checkCharacterDetails();
 
-	var statsInfoFieldVal = PageStatsDialogView.getStatsInfoFieldValue();
+	var statsInfoFieldVal = pageStatsDialogView.getStatsInfoFieldValue();
 	assert.ok(statsInfoFieldVal.indexOf(SET_CHARDETAILS_PROMPT_MESSAGE) !== -1, 'Check we prompt for character details if they are not set');
 	assert.notOk(callbacked, 'Ensure the character details confirmed callback is not called.');
 });
@@ -157,26 +186,24 @@ QUnit.test(TEST_TAG + 'checkCharacterDetails_characterSet', function (assert) {
 
 QUnit.test(TEST_TAG + 'handlePlayerLoginError', function (assert) {
 	// Make sure the message log is blank to begin with
-	PageChatView.clearMessageLog();
+	pageChatView.clearMessageLog();
 
 	// Blank data will assume the player does not exist
 	let serverData = {};
 	let expectedMessage = serverContextTag + LOGIN_FAILURE_MESSAGE_PLAYER + '\n';
 	pageController.handlePlayerLoginError(serverData);
-	assert.equal(PageChatView.getMessageLogValue(), expectedMessage);
+	assert.equal(pageChatView.getMessageLogValue(), expectedMessage);
 
 	// Otherwise you'll get a password error
-	PageChatView.clearMessageLog();
+	pageChatView.clearMessageLog();
 	serverData['playerExists'] = true;
 	expectedMessage = serverContextTag + LOGIN_FAILURE_MESSAGE_PWD + '\n';
 	pageController.handlePlayerLoginError(serverData);
-	assert.equal(PageChatView.getMessageLogValue(), expectedMessage);
+	assert.equal(pageChatView.getMessageLogValue(), expectedMessage);
 });
 
 QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse', function (assert) {
-	// Check even our try/catch assertions run
-	assert.expect(4);
-
+	{
 	let messageData = {};
 	let expectedMessage = '';
 
@@ -189,7 +216,7 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse', function (assert) {
 	}
 
 	// 2. Invalid data
-	PageStatsDialogView.clearStatsInfoField();
+	pageStatsDialogView.clearStatsInfoField();
 	// no char-data attrib
 	messageData = { success: false };
 	try {
@@ -199,43 +226,43 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse', function (assert) {
 	}
 
 	// 3. Valid data but Update failed
-	PageStatsDialogView.clearStatsInfoField();
-	messageData = { 'success': false, 'char-data': testCharData, 'sessionId': testSessionId };
+	pageStatsDialogView.clearStatsInfoField();
+	messageData =	JSON.parse(JSON.stringify(testUpdateData));
+	messageData.success = false;
 	expectedMessage = serverContextTag + CHARACTER_UPDATE_FAILURE_MESSAGE + '\n';
 	pageController.handleCharacterUpdateResponse(messageData);
-	assert.equal(PageStatsDialogView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update failed if the response says so.');
+	assert.equal(pageStatsDialogView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update failed if the response says so.');
 
 	// 4. Success
-	PageStatsDialogView.clearStatsInfoField();
-	messageData = { 'success': true, 'char-data': testCharData, 'sessionId': testSessionId  };
+	pageStatsDialogView.clearStatsInfoField();
 	expectedMessage = serverContextTag + CHARACTER_UPDATE_SUCCESS_MESSAGE + '\n';
-	pageController.handleCharacterUpdateResponse(messageData);
-	assert.equal(PageStatsDialogView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update success if the response says so.');
+	pageController.handleCharacterUpdateResponse(testUpdateData);
+	assert.equal(pageStatsDialogView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update success if the response says so.');
+
+	// Check even our try/catch assertions have run
+	// Must +1 for this call
+	assert.expect(5);
+
+	}
 });
 
 QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
-	// var stats = PageStatsDialogView.getStats ();
+	// var stats = pageStatsDialogView.getStats ();
 	var expectedStats = {'charname': testCharData.charname,
 		'charclass': testCharData.charclass,
 		'attributes': testCharData.scores};
 
 	// 1. Valid update
-	PageStatsDialogView.clearStatsInfoField();
-	pageController.saveCharacterData(testUpdateData);
-	let stats = PageStatsDialogView.getStats();
+	pageStatsDialogView.clearStatsInfoField();
+	assert.ok(pageController.saveCharacterData(testCharData), 'Ensure we can save our test char data.');
+	let stats = pageStatsDialogView.getStats();
 	assert.deepEqual(stats, expectedStats, 'Check our stats are set as expected');
-
-	// Check the message is displayed
-	// PageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
-	let expectedMessage = serverContextTag + CHARACTER_UPDATE_SUCCESS_MESSAGE + '\n';
-	assert.equal(PageStatsDialogView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update success if the response says so.');
 
 	// 2. Bad data
 	// Copy the original and modify
-	var badResponse = JSON.parse(JSON.stringify(testUpdateData));
-	badResponse['char-data'] = {'charname': 'roo', 'pos_x': 10, 'pos_y': 10, 'health': 100, 'charclass': 'fighter', 'free_points': 5, 'scores': {}};
+	var badResponse = {'charname': 'roo', 'pos_x': 10, 'pos_y': 10, 'health': 100, 'charclass': 'fighter', 'free_points': 5, 'scores': {}};
 	try {
-		pageController.saveCharacterData(badDataNoScores);
+		assert.notOk(pageController.saveCharacterData(badResponse), 'Ensure we fail to save our bad data.');
 	} catch (err) {
 		assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save bad character data.');
 	}
@@ -243,7 +270,7 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 	// 3. Empty data
 	var emptyData = {};
 	try {
-		pageController.saveCharacterData(emptyData);
+		assert.notOk(pageController.saveCharacterData(emptyData), 'Ensure we fail to save our bad data.');
 	} catch (err) {
 		assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save empty character data.');
 	}
@@ -256,10 +283,8 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 		assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save crappy character data.');
 	}
 
-	// 5. Legit w/ invalid values??
-
 	// assert the total number of assertions
-	assert.expect(5);
+	assert.expect(6);
 });
 
 QUnit.skip(TEST_TAG + 'bindEvents', function (assert) {
@@ -275,15 +300,15 @@ QUnit.test(TEST_TAG + 'handleMovementResponse', function (assert) {
 	let expectedMessage = serverContextTag + MOVEMENT_FAILURE_MESSAGE + '\n';
 
 	// 1. Valid - No message
-	PageChatView.clearMessageLog();
+	pageChatView.clearMessageLog();
 	pageController.handleMovementResponse(responseData);
-	assert.equal(PageChatView.getMessageLogValue(), '', 'Check valid movement response does not leave a message.');
+	assert.equal(pageChatView.getMessageLogValue(), '', 'Check valid movement response does not leave a message.');
 
 	// 2. Invalid - failure message
 	responseData.success = false;
-	PageChatView.clearMessageLog();
+	pageChatView.clearMessageLog();
 	pageController.handleMovementResponse(responseData);
-	assert.equal(PageChatView.getMessageLogValue(), expectedMessage, 'Check invalid movement response leaves a message.');
+	assert.equal(pageChatView.getMessageLogValue(), expectedMessage, 'Check invalid movement response leaves a message.');
 });
 
 QUnit.skip(TEST_TAG + 'submitChatMessage', function (assert) {
@@ -297,17 +322,23 @@ QUnit.skip(TEST_TAG + 'submitPassword', function (assert) {
 QUnit.test(TEST_TAG + 'requestUserPassword', function (assert) {
 	// 1. Username is given
 	pageController.requestUserPassword(true);
-	assert.ok($(PageChatView.getPasswordInputField()).is(':visible'), 'Check the password field is showing');
 
-	assert.ok(PageChatView.getMessageLogValue().startsWith('Creating a new user, please enter a password for it: '), 'Check pwd request message.');
+	pageChatView.showPasswordInput();
+	console.log('Password input currently: ' + pageChatView.getPasswordInput())
+	assert.ok(pageChatView.getPasswordInputFieldJquery().is(':visible'), 'Check the jquert password field is showing');
+
+	assert.ok($(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the jquert password field is showing');
+	assert.ok($(pageChatView.getPasswordInputField()).is(':visible'), 'Check the password field is showing');
+
+	assert.ok(pageChatView.getMessageLogValue().startsWith('Creating a new user, please enter a password for it: '), 'Check pwd request message.');
 
 	// Check we're set to send a password
-	let messageInputEvents = $._data(PageChatView.getMessageInputField(), 'events');
+	let messageInputEvents = $._data(pageChatView.getMessageInputField(), 'events');
 	assert.equal(messageInputEvents['keyup'][0].handler, pageController.passwordFieldKeyupTrigger, 'Check password sending on key-up is bound.');
 
 	// 2. No username passed
 	pageController.requestUserPassword();
-	assert.equal(PageChatView.getMessageLogValue(), 'Please enter your password: ', 'Check pwd request message.');
+	assert.equal(pageChatView.getMessageLogValue(), 'Please enter your password: ', 'Check pwd request message.');
 });
 
 QUnit.skip(TEST_TAG + 'messageFieldKeyupTrigger', function (assert) {
@@ -320,7 +351,7 @@ QUnit.skip(TEST_TAG + 'passwordFieldKeyupTrigger', function (assert) {
 
 QUnit.test(TEST_TAG + 'bindStageClick', function (assert) {
 	var expectedBinding = PixiController.stageClicked;
-	var mainWindowDomElem = PageView.getMainWindowJquery()[0];
+	var mainWindowDomElem = pageView.getMainWindowJquery()[0];
 
 	// Enabled / Bind
 	pageController.bindStageClick(true);
@@ -340,7 +371,7 @@ QUnit.test(TEST_TAG + 'disableUI', function (assert) {
 
 	// Check page click has been unbound
 	pageController.bindStageClick(false);
-	var mainWindowDomElem = PageView.getMainWindowJquery()[0];
+	var mainWindowDomElem = pageView.getMainWindowJquery()[0];
 	var clickBinding = extractFirstJqueryBinding(mainWindowDomElem, 'click');
 	assert.equal(undefined, clickBinding, 'Check unbinding clears the click handler.');
 	
@@ -353,7 +384,7 @@ QUnit.test(TEST_TAG + 'enableUI', function (assert) {
 
 	// Check page click has been bound
 	var expectedBinding = PixiController.stageClicked;
-	var mainWindowDomElem = PageView.getMainWindowJquery()[0];
+	var mainWindowDomElem = pageView.getMainWindowJquery()[0];
 	pageController.bindStageClick(true);
 	var clickBinding = extractFirstJqueryBinding(mainWindowDomElem, 'click');
 	assert.equal(expectedBinding, clickBinding, 'Check unbinding clears the click handler.');

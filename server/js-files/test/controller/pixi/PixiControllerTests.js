@@ -1,4 +1,5 @@
 import { PixiController, PixiControllerClass } from 'src/controller/pixi/PixiController.js';
+import { PageView } from 'src/view/page/PageView.js';
 
 var TEST_TAG = '|PIXI CONTROLLER|';
 
@@ -13,14 +14,14 @@ function beforeAll (assert) {
 function beforeEachTest (assert) {
 	// Make sure we have a fresh controller every time
 	// To prevent knock-on state changes
-	pixiController = new PixiControllerClass();
+	pixiController = new PixiControllerClass(PageView.getWindowDimensions());
 	assert.ok(pixiController instanceof PixiControllerClass, 'Check controller instance is instanciated.');
 }
 
 // Hookup before each test setup / assertion
 QUnit.module('PixiControllerTests', { before: beforeAll, beforeEach: beforeEachTest })
 
-QUnit.test(TEST_TAG + 'setupConsoleButton', async function (assert) {
+QUnit.skip(TEST_TAG + 'setupConsoleButton', async function (assert) {
 	await pixiController.setupConsoleButton();
 	assert.ok(false, 'TODO');
 });

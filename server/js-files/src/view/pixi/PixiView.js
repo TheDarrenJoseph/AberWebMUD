@@ -4,7 +4,6 @@ import * as PIXI from 'libs/pixi.min.js';
 
 import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
 
-import { PageView } from 'src/view/page/PageView.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
 import { Session } from 'src/model/Session.js';
 
@@ -13,7 +12,7 @@ const RENDERER_CANVAS = 'Canvas';
 const RENDERER_WEBGL = 'WebGL';
 
 export default class PixiView {
-	constructor (windowSize = PageView.getWindowDimensions()) {
+	constructor (windowSize) {
 		// Ask the page view what our available space in the window is
 		this.windowSize = windowSize;
 

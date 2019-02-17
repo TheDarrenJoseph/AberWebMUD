@@ -76,7 +76,7 @@ export default class PixiMapView {
 	async initialise () {
 		if (this.tileSpriteArray === undefined) {
 			//	Sprites for the map viewPixiMapView
-			var tsa = await this.buildTileSpriteArray();
+			let tsa = await this.buildTileSpriteArray();
 			this.tileSpriteArray = tsa;
 		}
 	}
@@ -107,19 +107,25 @@ export default class PixiMapView {
 	}
 
 	async buildTileSpriteArray () {
+		console.log('Building tile sprite array with atlas: ');
+		console.log(this.assetPaths);
+
+		let tileSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD_GRASS, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+
 		// Create enough dummy tiles for the map model
 		// Create a pretty crappy 2d array of tileCount size
 		var tileSpriteArray = Array(this.tileCount);
 		for (var x = 0; x < this.tileCount; x++) {
 			tileSpriteArray[x] = Array(this.tileCount); // 2nd array dimension per row
 			for (var y = 0; y < this.tileCount; y++) {
-				let tileSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+
+				//console.log('Sprite made: '+x+' '+y+' ');
 				let pixelX = x * this.tileSize;
 				let pixelY = y * this.tileSize;
 				let spritePos = new PIXI.Point(pixelX, pixelY);
 				tileSprite.position = spritePos;
 				tileSprite.interactive = true;
-				tileSprite.name = '' + x + '' + y;
+				tileSprite.name = ('' + x) + y;
 
 				//	allocate it to the tileSpriteArray
 				tileSpriteArray[x][y] = new Array(tileSprite);

@@ -107,25 +107,26 @@ export default class SessionController {
 	};
 
 	static setClientSessionSessionId (sessionId) {
-		//	Update the client session to contain our new data
-		if (sessionId != undefined && sessionId != null) {
+		//	Update the client session to contain our new data			
+		if (ValidationHandler.notUndefOrNull(sessionId)) {
 			Session.clientSession.sessionId = sessionId;
 			//	Also save it in a cookie
 			SessionController.saveSessionIdCookie(sessionId);
 		} else {
-			throw new RangeError(invalid_session_data + '(SessionId): ' + sessionId);
+			throw new RangeError(invalid_session_data + ' (SessionId) ' + sessionId);
 		}
 	};
 
 	static updateClientSessionData (data) {
-		//	var playerStatus = data['player-status'];
-		console.log('Login data received: ');
-		console.log(data);
+		console.log('Updating session with');
+		console.log(data);		
+		if (ValidationHandler.checkDataAttributes(data, ['username', 'sessionId', 'char-data'])) {
+			console.log('Updating session with: '+JSON.stringify(data))
+			SessionController.setClientSessionUsername(data['username']);
+			SessionController.setClientSessionSessionId(data['sessionId']);
+			SessionController.updateCharacterDetails(data['char-data']);
+		}
 		
-		SessionController.setClientSessionUsername(data['username']);
-		SessionController.setClientSessionSessionId(data['sessionId']);
-		SessionController.updateCharacterDetails(data['char-data']);
-
 		console.log('Saved session object: ');
 		console.log(Session.clientSession);
 	};
