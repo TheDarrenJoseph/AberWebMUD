@@ -33,8 +33,6 @@ export class PageView {
 			mainWindow.setAttribute('id',_MAIN_WINDOW_ID);
 
 			this.DOCUMENT.body.appendChild(mainWindow);
-			console.log('created main window')
-			console.log(this.DOCUMENT)
 		}
 	}
 	
@@ -48,8 +46,6 @@ export class PageView {
 	}
 	
 	getMainWindowJquery() {
-		console.log('Finding main window in')
-		console.log(this.DOCUMENT)
 		return $('#'+_MAIN_WINDOW_ID, this.DOCUMENT);
 	}
 	

@@ -107,9 +107,6 @@ export default class PixiMapView {
 	}
 
 	async buildTileSpriteArray () {
-		console.log('Building tile sprite array with atlas: ');
-		console.log(this.assetPaths);
-
 		let tileSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD_GRASS, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
 
 		// Create enough dummy tiles for the map model

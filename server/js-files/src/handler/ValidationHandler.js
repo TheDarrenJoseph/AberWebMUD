@@ -64,11 +64,8 @@ export default class ValidationHandler {
 		
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
 			let coreDataExists = ValidationHandler.checkDataAttributes(updateJSON, updateJSON['free_points','scores']);
-			console.log('Validating scores:'); console.log(updateJSON['scores'])
 			let attributesExist = ValidationHandler.checkDataAttributes(updateJSON['scores'], ['STR','DEX','CON','INT','WIS','CHA']);
-
 			return coreDataExists && attributesExist;
-
 		} else {
 			console.log('Missing character update data.');
 			return false;

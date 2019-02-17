@@ -143,14 +143,8 @@ export default class PageChatView {
 	};
 
 	showPasswordInput () {
-		console.log('SHOWING.')
 		var mypwdinput = $('#'+_PWD_INPUT_ID, this.pageView.DOCUMENT);
 		mypwdinput.show();
-		console.log(mypwdinput)
-
-		console.log('SHOWN?.' + 	$('#'+_MESSAGE_INPUT_ID, this.pageView.DOCUMENT).is(':visible'))
-
-		console.log('SHOWN?.' + 	mypwdinput.is(':visible'))
 	}
 
 	hidePasswordInput () {

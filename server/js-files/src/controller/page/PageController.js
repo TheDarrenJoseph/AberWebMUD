@@ -97,7 +97,6 @@ export default class PageController {
 	}
 	
 	handlePlayerLoginError (data) {
-		console.log(data);
 		if (data['playerExists']) {
 			this.pageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PWD, 'server');
 		} else {

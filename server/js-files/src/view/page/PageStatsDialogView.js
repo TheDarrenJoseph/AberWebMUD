@@ -240,8 +240,6 @@ export default class PageStatsDialogView {
 	}
 
 	getClassOptionIndex (optionId) {
-		console.log('Looking for : ' + optionId)
-		console.log(CLASS_OPTIONS)
 		return CLASS_OPTIONS.findIndex(obj => { return obj.id == optionId } );
 	}
 

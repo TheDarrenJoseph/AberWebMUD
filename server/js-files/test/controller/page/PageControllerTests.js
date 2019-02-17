@@ -158,7 +158,8 @@ QUnit.test(TEST_TAG + 'checkCharacterDetails_noCharacter', function (assert) {
 	pageController.checkCharacterDetails();
 
 	var statsInfoFieldVal = pageStatsDialogView.getStatsInfoFieldValue();
-	assert.ok(statsInfoFieldVal.indexOf(SET_CHARDETAILS_PROMPT_MESSAGE) !== -1, 'Check we prompt for character details if they are not set');
+	let expectedMessageThere = (statsInfoFieldVal.indexOf(SET_CHARDETAILS_PROMPT_MESSAGE) !== -1);
+	assert.ok(expectedMessageThere, 'Check we prompt for character details if they are not set');
 	assert.notOk(callbacked, 'Ensure the character details confirmed callback is not called.');
 });
 
@@ -322,13 +323,7 @@ QUnit.skip(TEST_TAG + 'submitPassword', function (assert) {
 QUnit.test(TEST_TAG + 'requestUserPassword', function (assert) {
 	// 1. Username is given
 	pageController.requestUserPassword(true);
-
-	pageChatView.showPasswordInput();
-	console.log('Password input currently: ' + pageChatView.getPasswordInput())
-	assert.ok(pageChatView.getPasswordInputFieldJquery().is(':visible'), 'Check the jquert password field is showing');
-
-	assert.ok($(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the jquert password field is showing');
-	assert.ok($(pageChatView.getPasswordInputField()).is(':visible'), 'Check the password field is showing');
+	assert.ok($(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
 
 	assert.ok(pageChatView.getMessageLogValue().startsWith('Creating a new user, please enter a password for it: '), 'Check pwd request message.');
 
