@@ -41,6 +41,7 @@ module.exports = function (config) {
 				testTimeout: 1000
 			}
 		},
+		browserNoActivityTimeout: 60000,
 		// list of files / patterns to exclude
 		exclude: [
 			''
