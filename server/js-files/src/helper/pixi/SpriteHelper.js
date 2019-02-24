@@ -6,18 +6,12 @@ import { DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
 export default class SpriteHelper {
 	static async promisePixiTexture (tileAtlasPath, subtileName, tileHeight, tileWidth) {
 		return new Promise((resolve, reject) => {
-				AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName, spriteTexture => {
-				 // console.log('SpriteHelper - Awaited sprite texture: ' + subtileName);
-				//	Check the texture
-				if (spriteTexture != null) {
-					// Resolve with (return) the texture
-					resolve(spriteTexture);
-				} else {
-					reject(new Error('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' +
-					tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']'));
+				try {
+					AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName, (spriteTexture) => { resolve(spriteTexture); } );
+				} catch (err) {	 
+					reject("Could not fulfil promise for spriteTexture: " + err);
 				}
 			});
-		});
 	}
 
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
@@ -29,25 +23,30 @@ export default class SpriteHelper {
 
 			// Load the named subtile from the given atlas
 			subtexturePromise.then(spriteTexture => {
-				var thisSprite = new PIXI.Sprite(spriteTexture);
-				// console.log('New Sprite');
-				// console.log(thisSprite);
-				
-				thisSprite.height = tileHeight;
-				thisSprite.width = tileWidth;
-				
-				if (pixiPoint !==  undefined) {
-					thisSprite.position = pixiPoint;
-				}
-				
-				if (interactive !== undefined) {
-					thisSprite.interactive = interactive;
-				}
-				
-				// Not sure if we'll be setting this just here
-				// thisSprite.interactive = interactive;
+				if (spriteTexture == undefined || spriteTexture == null) {
+					reject(new Error('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' +
+								tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']'));
+				} else {
+					var thisSprite = new PIXI.Sprite(spriteTexture);
+					console.log('New Sprite');
+					console.log(thisSprite);
+					
+					thisSprite.height = tileHeight;
+					thisSprite.width = tileWidth;
+					
+					if (pixiPoint !==  undefined) {
+						thisSprite.position = pixiPoint;
+					}
+					
+					if (interactive !== undefined) {
+						thisSprite.interactive = interactive;
+					}
+					
+					// Not sure if we'll be setting this just here
+					// thisSprite.interactive = interactive;
 
-				resolve(thisSprite);
+					resolve(thisSprite);
+				}
 			}).catch(err => {
 				reject(err);
 			});

@@ -2,7 +2,6 @@ import $ from 'libs/jquery.js';
 
 import { _STATS_WINDOW_ID } from 'src/view/page/PageStatsDialogView.js';
 
-
 // Class ID mappings
 var htmlWindows = { mainWindowId: '#main-window', messageWindowId: '#message-window', statWindowId: '#'+_STATS_WINDOW_ID, inventoryWindowId: '#inventory-window' };
 const _MAIN_WINDOW_ID = 'main-window';

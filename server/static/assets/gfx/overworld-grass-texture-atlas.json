@@ -12,7 +12,7 @@
 		}
 	},
 	"meta": {
-		"image": "./overworld.png",
+		"image": "./overworld-grass.png",
 		"size": {"w":240,"h":256}
 	}
 }

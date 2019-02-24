@@ -49,10 +49,6 @@ export default class MapController {
 		this.pixiMapView.drawMapCharacterArray();
 		this.pixiMapView.renderCharacterContainer();
 	}
-	
-	redrawMap () {
-		return this.pixiMapView.drawMapToGrid();
-	}
 
 	//	Handles a movement
 	// 'movement-update', {'username':message['username'],'oldX':oldX, 'oldY':oldY,'pos_x':pos_x,'pos_y':pos_y}
@@ -79,9 +75,12 @@ export default class MapController {
 	}
 
 	//	Moves the UI to a new position and draws the map there
-	async showMapPosition (startX, startY) {
+	showMapPosition (startX, startY) {
 		this.setMapViewPosition(startX, startY);
-		return this.redrawMap();
+
+		// Either full re-draw or just re-render
+		//return this.pixiMapView.drawMapToGrid();
+		this.pixiMapView.renderAll();
 	}
 
 	// Wrappers calls to the data model to include validation

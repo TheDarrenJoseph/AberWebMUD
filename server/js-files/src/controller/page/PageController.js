@@ -221,6 +221,10 @@ export default class PageController {
 			this.uiEnabled = true;
 		}
 	}
+	
+	isUIEnabled () {
+		return this.uiEnabled;
+	}
 }
 
 export { PageController };

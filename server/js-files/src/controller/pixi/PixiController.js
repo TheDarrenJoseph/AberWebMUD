@@ -27,6 +27,10 @@ const assetPathOverworldGrass = assetPathZelda + 'overworld-grass-texture-atlas.
 const assetPathCharacters = assetPathZelda + 'character-texture-atlas.json';
 const assetPathObjects = assetPathZelda + 'zelda-objects-texture-atlas.json';
 
+const CONSOLE_BUTTON_NAME = 'consoleButtonSprite';
+const INVENTORY_BUTTON_NAME = 'inventoryButtonSprite';
+const STATS_BUTTON_NAME = 'statsButtonSprite';
+
 export const ASSET_PATHS = {
 	ASSET_PATH_OVERWORLD: assetPathOverworld,
 	ASSET_PATH_OVERWORLD_GRASS: assetPathOverworldGrass,
@@ -37,6 +41,7 @@ export const ASSET_PATHS = {
 //	Handles the PixiJS renderer
 class PixiControllerClass {
 	constructor (windowSize) {
+		this.isSetup   = false;
 		this.uiEnabled = false;
 
 		this.windowSize = windowSize;
@@ -60,36 +65,38 @@ class PixiControllerClass {
 		if (this.pixiView.controlsContainer.getChildByName('consoleButtonSprite') == undefined) {
 			console.log('Creating a console button..');
 			var mapTileSize = this.mapController.getPixiMapView().tileSize;
-			var consoleButtonSpritePromise = SpriteHelper.makeSpriteFromAtlas(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chat-bubble-blank');
-
-			var consoleButtonSprite = await consoleButtonSpritePromise;
-			consoleButtonSprite.name = 'consoleButtonSprite';
+			var consoleButtonSprite = await SpriteHelper.makeSpriteFromAtlas(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chat-bubble-blank');
+			consoleButtonSprite.name = CONSOLE_BUTTON_NAME;
 			this.pixiView.controlsContainer.addChild(consoleButtonSprite);
 			consoleButtonSprite.on('click', this.pageView.toggleConsoleVisibility);
 		}
 	}
 
-	setupContextButtons () {
+	async setupContextButtons () {
+
+		let contextButtons = [];
+
 		var mapTileSize = this.mapController.getPixiMapView().windowSize;
-		var inventoryButtonSpritePromise = new Promise((resolve) => { resolve(this.pixiView.controlsContainer.getChildByName('inventoryButtonSprite')); });
-		if (this.pixiView.controlsContainer.getChildByName('inventoryButtonSprite') == undefined) {
+
+		let inventoryButtonSprite = this.pixiView.controlsContainer.getChildByName(INVENTORY_BUTTON_NAME);
+		if (inventoryButtonSprite == undefined) {
 			console.log('Creating a context button..');
-			inventoryButtonSpritePromise = PixiView.createInventoryButton(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chest-single', this.windowSize, mapTileSize).then((inventoryButtonSprite) => {
-				inventoryButtonSprite.name = 'inventoryButtonSprite';
-				this.pixiView.controlsContainer.addChild(inventoryButtonSprite);
-			});
+			inventoryButtonSprite = await PixiView.createInventoryButton(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
+			inventoryButtonSprite.name = INVENTORY_BUTTON_NAME;
+			this.pixiView.controlsContainer.addChild(inventoryButtonSprite);
 		}
+		contextButtons[0] = inventoryButtonSprite;
 
-		var statsButtonSpritePromise = new Promise((resolve) => { resolve(this.pixiView.controlsContainer.getChildByName('statsButtonSprite')); });
-		if (this.pixiView.controlsContainer.getChildByName('inventoryButtonSprite') == undefined) {
+		let statsButtonSprite = this.pixiView.controlsContainer.getChildByName(STATS_BUTTON_NAME);
+		if (this.pixiView.controlsContainer.getChildByName('statsButtonSprite') == undefined) {
 			console.log('Creating a inventory button..');
-			statsButtonSpritePromise = PixiView.createStatsButton(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chest-single', this.windowSize, mapTileSize).then((statsButtonSprite) => {
-				inventoryButtonSprite.name = 'statsButtonSprite';
-				this.pixiView.controlsContainer.addChild(statsButtonSprite);
-			});
+			statsButtonSprite = await PixiView.createStatsButton(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
+			inventoryButtonSprite.name = STATS_BUTTON_NAME;
+			this.pixiView.controlsContainer.addChild(statsButtonSprite);
 		}
+		contextButtons[1] = statsButtonSprite;
 
-		return Promise.all([inventoryButtonSpritePromise, statsButtonSpritePromise]);
+		return contextButtons;
 	}
 
 	// UI Building
@@ -108,6 +115,10 @@ class PixiControllerClass {
 	}
 
 	enableUI () {
+		if (!this.isSetup) {
+			this.setupUI();
+		}
+		
 		if (!this.uiEnabled) {
 			PageChatView.clearMessageLog();
 			PageChatView.hidePasswordInput();
@@ -134,6 +145,10 @@ class PixiControllerClass {
 
 			this.uiEnabled = false;
 		}
+	}
+	
+	isUIEnabled () {
+		return this.uiEnabled;
 	}
 
 	assetsLoaded () {

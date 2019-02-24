@@ -1,6 +1,7 @@
 # Client JS files
 server/static/*.js
 *coverage
+*.map
 
 # Locally installed node modules
 node_modules/

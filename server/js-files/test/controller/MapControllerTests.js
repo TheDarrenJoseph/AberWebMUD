@@ -8,13 +8,13 @@ import { PageView }  from 'src/view/page/PageView.js';
 var MAPCONTROLLER_TEST_TAG = '|MAP CONTROLLER|';
 
 var pixiView = new PixiView();
-var mapController = new MapController(pixiView.getRenderer(), undefined, PageView.getWindowDimensions(), null, ASSET_PATHS);
+var mapController;
 
 var MAX_TIMEOUT = 2000;
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
-
+	mapController = new MapController(pixiView.getRenderer(), undefined, PageView.getWindowDimensions(), null, ASSET_PATHS);
 }
 
 // Setup / assertions before each test
@@ -26,14 +26,14 @@ function beforeEachTest (assert) {
 QUnit.module('MapControllerTests', { before: beforeAll, beforeEach: beforeEachTest })
 
 // Valid map view range is ( -halfZeroIndexedTileCountFloored to halfZeroIndexedTileCountFloored )
-QUnit.test(MAPCONTROLLER_TEST_TAG + 'showMapPosition-valid', async function (assert) {
+QUnit.test(MAPCONTROLLER_TEST_TAG + 'showMapPosition-valid', function (assert) {
 
 	// PixiMapView construction can be a little slow
 	assert.timeout(MAX_TIMEOUT);
-	await mapController.initialise();
+	mapController.initialise();
 
 	// 1.	Smallest global position valid
-	await mapController.showMapPosition(0, 0);
+	mapController.showMapPosition(0, 0);
 
 	let startPositions = mapController.getPixiMapView().getMapViewStartPosition();
 	assert.equal(startPositions[0], 0, 'Map view start x should be 0');
@@ -42,7 +42,7 @@ QUnit.test(MAPCONTROLLER_TEST_TAG + 'showMapPosition-valid', async function (ass
 	// 2.	Smallest relative position negative 1/2 window tilecount
 	let lowestRange = - mapController.getPixiMapView().halfZeroIndexedTileCountFloored;
 	// console.log('Lowest map view overhang co-ords: ' + lowestRange + ',' + lowestRange);
-	await mapController.showMapPosition(lowestRange, lowestRange);
+	mapController.showMapPosition(lowestRange, lowestRange);
 	startPositions = mapController.getPixiMapView().getMapViewStartPosition();
 	assert.equal(startPositions[0], lowestRange, 'Should be able to set Map View start to x pos to negative half tilecount: ' + lowestRange);
 	assert.equal(startPositions[1], lowestRange, 'Should be able to set Map View start to y pos to negative half tilecount: ' + lowestRange);
@@ -53,7 +53,7 @@ QUnit.test(MAPCONTROLLER_TEST_TAG + 'showMapPosition-valid', async function (ass
 	let halfOverhangingY = mapController.getMap().mapSizeY - mapController.getPixiMapView().halfZeroIndexedTileCountFloored;
 	// console.log('End of map view overhang co-ords: ' + halfOverhangingX + ',' + halfOverhangingY);
 
-	await mapController.showMapPosition(halfOverhangingX, halfOverhangingY);
+	mapController.showMapPosition(halfOverhangingX, halfOverhangingY);
 	startPositions = mapController.getPixiMapView().getMapViewStartPosition();
 	assert.equal(startPositions[0], halfOverhangingX, 'Should be able to set Map View start to x pos: ' + halfOverhangingX);
 	assert.equal(startPositions[1], halfOverhangingY, 'Should be able to set Map View start to y pos: ' + halfOverhangingY);

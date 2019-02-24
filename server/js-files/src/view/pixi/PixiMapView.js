@@ -113,7 +113,6 @@ export default class PixiMapView {
 
 	async buildTileSpriteArray () {
 		let tileSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD_GRASS, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
-
 		// Create enough dummy tiles for the map model
 		// Create a pretty crappy 2d array of tileCount size
 		var tileSpriteArray = Array(this.tileCount);
@@ -139,6 +138,7 @@ export default class PixiMapView {
 
 		return tileSpriteArray;
 	}
+		
 
 	//	Creates a character sprite on-the-fly to represent another character
 	//	gridX, gridY are character positions on the map
@@ -152,11 +152,13 @@ export default class PixiMapView {
 			var localY = localPos[1];
 			if (this.isPositionRelativeToView(localX, localY)) {
 				// We need to await so we can return this Sprite
+				console.log('Making sprite..');
 				var characterSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
 				var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
 				characterSprite.x = pixiPos[0];
 				characterSprite.y = pixiPos[1];
-				
+
+				console.log('Making MapCharacter..');
 				let mapChar = new MapCharacter(charactername, gridX, gridY, characterSprite);
 				this.mapCharacterArray[localX][localY].push(mapChar);
 			

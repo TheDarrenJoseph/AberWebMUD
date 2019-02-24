@@ -22,8 +22,8 @@ class GameControllerClass {
 		this.pageView = this.pageController.pageView;
 
 		//	Get the general UI ready
-		this.pageController.setupUI();
-		PixiController.setupUI();
+		//this.pageController.setupUI();
+		//this.pixiController.setupUI();
 	}
 	
 	connect() {
@@ -34,25 +34,31 @@ class GameControllerClass {
 				SocketHandler.emit('map-data-request');
 			});
 	}
-
+	
+	
+	// Setup and enable UI elements
+	// This should be idempotent
+	enableUI () {
+		if (PixiController.isUIEnabled()) {
+			this.pageController.enableUI();
+		}
+		
+		if (!this.pageController.isUIEnabled()) {
+			this.pageController.enableUI();
+		}
+	}
+	
 	//	Continues the login process after a user inputs their character details
 	characterDetailsConfirmed () {
 		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.clientSession);
 		//	Hide the stats window
 		this.pageView.hideWindow('statWindowId');
+		this.enableUI();
+		PixiController.getMapController().showMapPosition(Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
 
-		if (!this.pageView.UI_ENABLED) {
-			PixiController.setupUI();
-			// Turn on UI components
-			PageController.enableUI();
-			PixiController.enableUI();
-		
-			PixiController.getMapController().showMapPosition(Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
-
-			//	Creates the new character to represent the player
-			// PixiMapView.newCharacterOnMap(Session.clientSession.character.charname, Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
-			// mapController.drawMapCharacterArray();
-		}
+		//	Creates the new character to represent the player
+		// PixiMapView.newCharacterOnMap(Session.clientSession.character.charname, Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
+		// mapController.drawMapCharacterArray();
 	}
 	
 	newUser(username) {
