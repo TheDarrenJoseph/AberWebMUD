@@ -1,18 +1,20 @@
 {
-	"frames": {
-		"grass-plain":{
-			"frame":{"x":0,"y":0,"w":16,"h":16},
-			"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
-			"sourceSize": {"w":16,"h":16}
-		},
-		"grass-bush":{
-			"frame":{"x":160,"y":32,"w":32,"h":32},
-			"spriteSourceSize": {"w":32,"h":32},
-			"sourceSize": {"w":32,"h":32}
-		}
+"frames": {
+	"grass-plain":{
+		"frame":{"x":0,"y":0,"w":16,"h":16},
+		"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+		"sourceSize": {"w":16,"h":16}
 	},
-	"meta": {
-		"image": "./overworld-grass.png",
-		"size": {"w":240,"h":256}
+	"grass-bush":{
+		"frame":{"x":160,"y":32,"w":32,"h":32},
+		"spriteSourceSize": {"w":32,"h":32},
+		"sourceSize": {"w":32,"h":32}
 	}
+},
+"meta": {
+	"image": "./overworld-grass.png",
+	"format": "RGBA8888",
+	"scale" : 1,
+	"size": {"w":240,"h":256}
+}
 }

@@ -9,7 +9,7 @@ export default class SpriteHelper {
 				try {
 					AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName, (spriteTexture) => { resolve(spriteTexture); } );
 				} catch (err) {	 
-					reject("Could not fulfil promise for spriteTexture: " + err);
+					reject(err);
 				}
 			});
 	}
@@ -28,8 +28,6 @@ export default class SpriteHelper {
 								tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']'));
 				} else {
 					var thisSprite = new PIXI.Sprite(spriteTexture);
-					console.log('New Sprite');
-					console.log(thisSprite);
 					
 					thisSprite.height = tileHeight;
 					thisSprite.width = tileWidth;

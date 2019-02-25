@@ -114,7 +114,7 @@ QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 
 QUnit.test(
 TEST_TAG + 'newCharacterOnMap', function (assert) {
-	assert.timeout(TEST_TILECOUNT);
+	assert.timeout(MAX_TIMEOUT);
 
 	let characterAtlasPath = null;
 	let characterName = 'TIMMY TEST';

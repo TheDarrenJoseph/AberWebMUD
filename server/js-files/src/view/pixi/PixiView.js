@@ -97,14 +97,17 @@ export default class PixiView {
 
 	// Re-renders the parent container with all children
 	renderAll () {
+		console.log('PixiView - rendering all in parent container.. ');
 		this.renderer.render(this.parentContainer); // Re-renders the stage to show blank
 	}
 
 	renderDialogContainer () {
+		console.log('PixiView - rendering dialog container.. ');
 		this.renderer.render(this.dialogContainer);
 	}
 
 	renderControlsContainer () {
+		console.log('PixiView - rendering controls container.. ');
 		this.renderer.render(this.controlsContainer); // Re-renders the stage to show blank
 	}
 

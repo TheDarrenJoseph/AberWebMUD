@@ -217,7 +217,7 @@ class PixiControllerClass {
 	}
 
 	renderAll () {
-		this.pixiView.renderAll();
+		// this.pixiView.renderAll();
 	}
 
 	// Hide everything if we lose connection

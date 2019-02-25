@@ -227,7 +227,6 @@ export default class PixiMapView {
 		}
 		// Return a promise of all subtexture updates
 		// then Re-drawing the container when they are complete
-		console.log('Awaiting subtextures: ' + subTexturePromises);
 		return Promise.all(subTexturePromises).then(() => { this.renderMapContainer });
 	} 
 
