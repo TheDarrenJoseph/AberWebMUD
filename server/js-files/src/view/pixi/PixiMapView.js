@@ -112,13 +112,13 @@ export default class PixiMapView {
 	}
 
 	async buildTileSpriteArray () {
-		let tileSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD_GRASS, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
 		// Create enough dummy tiles for the map model
 		// Create a pretty crappy 2d array of tileCount size
 		var tileSpriteArray = Array(this.tileCount);
 		for (var x = 0; x < this.tileCount; x++) {
 			tileSpriteArray[x] = Array(this.tileCount); // 2nd array dimension per row
 			for (var y = 0; y < this.tileCount; y++) {
+				let tileSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD_GRASS, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
 
 				//console.log('Sprite made: '+x+' '+y+' ');
 				let pixelX = x * this.tileSize;
@@ -152,16 +152,14 @@ export default class PixiMapView {
 			var localY = localPos[1];
 			if (this.isPositionRelativeToView(localX, localY)) {
 				// We need to await so we can return this Sprite
-				console.log('Making sprite..');
 				var characterSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
 				var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
 				characterSprite.x = pixiPos[0];
 				characterSprite.y = pixiPos[1];
 
-				console.log('Making MapCharacter..');
 				let mapChar = new MapCharacter(charactername, gridX, gridY, characterSprite);
 				this.mapCharacterArray[localX][localY].push(mapChar);
-			
+
 				return mapChar;
 			} else {
 				console.log('New player not in our view at this position: ' + gridX + ' ' + gridY);
@@ -201,12 +199,12 @@ export default class PixiMapView {
 								
 								// Then perform the mapContainer update asynchronously
 								subTexturePromise.then(subTexture => {
-									//	If the texture exists, set this sprite's texture,
+									//	If the texture exists, update this sprite's texture,
 									// and add it to the pixi container
 									if (subTexture != null) {
 										tileSprite.texture = subTexture;
 										// Might not need this
-										// this.mapContainer.addChild(tileSprite);
+										//this.mapContainer.addChild(tileSprite);
 									}
 								}).catch(err => {
 									console.log('Subtexture promise failed when loading a texture to draw the map to view: ' + err);

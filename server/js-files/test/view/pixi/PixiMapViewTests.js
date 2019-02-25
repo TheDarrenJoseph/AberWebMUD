@@ -54,9 +54,6 @@ QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 
 	// Let it block us while it sets up
 	testPixiMapView.initialise().then( () => {
-
-		console.log('View for testing inited.')
-
 		assert.ok(testPixiMapView.mapModel instanceof Map, 'Check the constructor sets it\'s Map model the one provided.');
 
 		assert.ok(testPixiMapView.renderer instanceof PIXI.WebGLRenderer ||
@@ -123,9 +120,9 @@ TEST_TAG + 'newCharacterOnMap', function (assert) {
 	let asyncDone = assert.async(1);
 	// Wait for the map character to build and return
 
-	let mapCharPromise = pixiMapView.newCharacterOnMap(characterName, gridX, gridY)
+	let mapCharPromise = pixiMapView.newCharacterOnMap(characterName, gridX, gridY);
 
-	mapCharPromise.then( () => {
+	mapCharPromise.then( (mapChar) => {
 		assert.ok(mapChar instanceof MapCharacter, 'Check we created a MapCharacter for this position.');
 		asyncDone();
 	}, rejection => {
@@ -154,13 +151,15 @@ TEST_TAG + 'drawMapToGrid', function (assert) {
 
 			assert.ok(pixiMapView.mapContainer instanceof PIXI.Container, 'Check the map Container is a PIXI.Container');
 			assert.ok(pixiMapView.mapContainer.children instanceof Array, 'Check the map Container has a children array');
+			console.log(pixiMapView.mapContainer.children);
+			
 			assert.equal(pixiMapView.mapContainer.children.length, totalTileArea, 'Check the map Container has enough children for each tile');
 			asyncDrawDone();
 		}).catch(rejection => {
 			assert.ok(false, 'Map drawing Promise rejected with: ' + rejection);
 		});
 	});
-	//assert.expect(3);
+	assert.expect(3);
 }
 );
 
