@@ -1,29 +1,59 @@
 // Helper class for creating PixiJS sprites
 import * as PIXI from 'libs/pixi.min.js';
 import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
+import { DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
 
 export default class SpriteHelper {
+	static async promisePixiTexture (tileAtlasPath, subtileName, tileHeight, tileWidth) {
+		return new Promise((resolve, reject) => {
+				try {
+					AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName, (spriteTexture) => { resolve(spriteTexture); } );
+				} catch (err) {	 
+					reject(err);
+				}
+			});
+	}
+
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
-	static makeSpriteFromAtlas (tileAtlasPath, subtileName, tileSize) {
-		// Load the named subtile from the given atlas
-		var spriteTexture = AtlasHelper.getAtlasSubtexture(tileAtlasPath, subtileName);
+	static async makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight = DEFAULT_TILE_SIZE, tileWidth = DEFAULT_TILE_SIZE, pixiPoint, interactive) {
+		// Wrap the subtexture promise to make a Sprite and return that
+		// Otherwise bubble up the error
+		return new Promise((resolve, reject) => {
+			let subtexturePromise = SpriteHelper.promisePixiTexture(tileAtlasPath, subtileName, tileHeight, tileWidth);
 
-		//	Check the texture
-		if (spriteTexture != null) {
-			let thisSprite = new PIXI.Sprite(spriteTexture);
-			thisSprite.height = tileSize;
-			thisSprite.width = tileSize;
-			return thisSprite;
-		} else {
-			console.log('Could not create sprite from atlas with given parameters: ' + tileAtlasPath + ':' + subtileName + ':' + tileSize);
-		}
+			// Load the named subtile from the given atlas
+			subtexturePromise.then(spriteTexture => {
+				if (spriteTexture == undefined || spriteTexture == null) {
+					reject(new Error('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' +
+								tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']'));
+				} else {
+					var thisSprite = new PIXI.Sprite(spriteTexture);
+					
+					thisSprite.height = tileHeight;
+					thisSprite.width = tileWidth;
+					
+					if (pixiPoint !==  undefined) {
+						thisSprite.position = pixiPoint;
+					}
+					
+					if (interactive !== undefined) {
+						thisSprite.interactive = interactive;
+					}
+					
+					// Not sure if we'll be setting this just here
+					// thisSprite.interactive = interactive;
 
-		return null;
+					resolve(thisSprite);
+				}
+			}).catch(err => {
+				reject(err);
+			});
+		});
 	}
 
-	static PlayerSprite (characterAtlasPath) {
-		return SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player');
-	}
+	// static PlayerSprite (characterAtlasPath) {
+	//	return SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+	// }
 
 	// function deleteMapCharacter(global_x, global_y) {
 	//  //Converting global pos to local relative to view

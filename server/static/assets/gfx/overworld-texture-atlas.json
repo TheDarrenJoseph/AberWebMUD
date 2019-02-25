@@ -12,7 +12,6 @@
 		}
 	},
 	"meta": {
-		"image": "./overworld.png",
-		"size": {"w":640,"h":576}
+		"image": "./overworld.png"
 	}
 }

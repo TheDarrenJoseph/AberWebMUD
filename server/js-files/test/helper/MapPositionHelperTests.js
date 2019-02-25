@@ -1,21 +1,22 @@
-import Map from 'src/model/Map.js';
 import PixiMapView from 'src/view/pixi/PixiMapView.js';
 
 import { DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
-import { DEFAULT_MAP_SIZE_XY } from 'src/model/Map.js';
+import { Map, DEFAULT_MAP_SIZE_XY } from 'src/model/Map.js';
 
-import { MapController } from 'src/controller/MapController.js';
+import MapController from 'src/controller/MapController.js';
 import { testPositionRangeError } from 'test/utils/PositionTestHelper.js';
 import { PixiView } from 'src/view/pixi/PixiView.js';
-import { PixiController } from 'src/controller/pixi/PixiController.js';
+import { ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
 
 import { POS_LOCAL_TO_GLOBAL_LOCAL_INVALID_START, POS_TILE_TO_PIXI_INVALID_PIXI_ERROR } from 'src/helper/MapPositionHelper.js';
+
+import { PageView } from 'src/view/page/PageView.js';
 
 var POSITION_TEST_TAG = '|MAP-POSITION-HELPER|';
 
 // Enough pixels for 20 tiles
-let testTileCount = 20;
-let testWindowSize = DEFAULT_TILE_SIZE * testTileCount;
+let TEST_TILECOUNT = 20;
+let TEST_WINDOW_SIZE = DEFAULT_TILE_SIZE * TEST_TILECOUNT;
 
 // We'll initialise each of these before each test to have fresh objects
 let pixiView = null;
@@ -37,9 +38,10 @@ function beforeEachTest (assert) {
 	// Re-initialise our classes
 	pixiView = new PixiView();
 	renderer = pixiView.getRenderer();
-	mapModel = new Map(20);
-	pixiMapView = new PixiMapView(mapModel, null, renderer, null, testWindowSize);
-	mapController = new MapController(renderer, mapModel, pixiMapView);
+	mapModel = new Map(DEFAULT_MAP_SIZE_XY);
+	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, ASSET_PATHS);
+	// (renderer, map = new Map(), pixiMapView = null, ASSET_PATH_OVERWORLD)
+	mapController = new MapController(renderer, mapModel, PageView.getWindowDimensions(), pixiMapView, ASSET_PATHS);
 
 	mapViewTilecount = mapController.getPixiMapView().getTilecount();
 	mapPositionHelper = mapController.getPositionHelper();
@@ -51,97 +53,14 @@ function beforeEachTest (assert) {
 	assert.equal(mapViewStartPos[1], 0);
 
 	let mapSizes = mapController.getMap().getMapSizes();
-	assert.equal(mapSizes[0], DEFAULT_MAP_SIZE_XY);
-	assert.equal(mapSizes[1], DEFAULT_MAP_SIZE_XY);
+	assert.equal(mapSizes[0], TEST_TILECOUNT);
+	assert.equal(mapSizes[1], TEST_TILECOUNT);
 
-	assert.equal(mapViewTilecount, DEFAULT_MAP_SIZE_XY);
+	assert.equal(mapViewTilecount, TEST_TILECOUNT);
 }
 
 // Hookup before each test setup / assertion
 QUnit.module('viewPositionTests', { before: beforeAll, beforeEach: beforeEachTest });
-
-//	Testing relative co-ords (tile view co-ords) that are 0 indexed
-QUnit.test(POSITION_TEST_TAG + 'relative-to-view-valid', function (assert) {
-	//	Lowest possible
-	assert.ok(pixiMapView.isPositionRelativeToView(0, 0), 'Checking validity of map view position 0,0');
-	//	Highest possible (-1 for 0 indexing)
-	let largestPos = mapViewTilecount - 1;
-	assert.ok(pixiMapView.isPositionRelativeToView(largestPos, largestPos), 'Checking validity of largest map view pos ' + largestPos + ',' + largestPos);
-}
-);
-
-QUnit.test(POSITION_TEST_TAG + 'relative-to-view-invalid', function (assert) {
-	let justOverTileCount = mapViewTilecount + 1;
-
-	//  Lower x bound out of range
-	assert.notOk(
-		pixiMapView.isPositionRelativeToView(-1, 0), 'Check X bound under-range (-1)');
-	//  Lower y bound out of range
-	assert.notOk(pixiMapView.isPositionRelativeToView(0, -1), 'Check Y bound under-range (-1)');
-	//  Higher x bound out of range
-	assert.notOk(pixiMapView.isPositionRelativeToView(
-		justOverTileCount, 0), 'Check X bound over-range (' + justOverTileCount + ')');
-	//  Higher y bound out of range
-	assert.notOk(pixiMapView.isPositionRelativeToView(
-		0, justOverTileCount), 'Check Y bound over-range (' + justOverTileCount + ')');
-	//  Lower x and y bound out of range
-	assert.notOk(pixiMapView.isPositionRelativeToView(-1, -1), 'Check X and Y (-1, -1) bound under-range.');
-
-	//  Upper x and y bound out of range
-	assert.notOk(pixiMapView.isPositionRelativeToView(
-		justOverTileCount, justOverTileCount), 'Check X and Y (' + justOverTileCount + ',' + justOverTileCount + ') bound over-range.');
-}
-);
-
-QUnit.test(POSITION_TEST_TAG + 'in-mapview-valid', function (assert) {
-
-	// Wherever our map view is starting (top-left corner)
-	let mapViewStartPos = mapController.getPixiMapView().getMapViewStartPosition();
-	let mapStartX = mapViewStartPos[0];
-	let mapStartY = mapViewStartPos[1];
-
-	//  Lowest range posible
-	assert.ok(pixiMapView.isGlobalPositionInMapView(mapStartX, mapStartY), 'Check lowest valid map view range: ' + mapStartX + ',' + mapStartY);
-
-	// Calculate the end of our map-view (bottom-right)
-	let tileCountIncrement = mapViewTilecount - 1;
-	let topRangeX = mapStartX + tileCountIncrement;
-	let topRangeY = mapStartX + tileCountIncrement;
-
-	// Highest range possible
-	assert.ok(
-		pixiMapView.isGlobalPositionInMapView(topRangeX,
-			topRangeY), 'Check highest valid range in-map-view: ' + topRangeX + ',' + topRangeY);
-}
-);
-
-// The map view can move around a larger map, check invalid global positions
-QUnit.test(POSITION_TEST_TAG + 'in-mapview-invalid', function (assert) {
-	let mapViewStartPos = mapController.getPixiMapView().getMapViewStartPosition();
-	let mapViewStartX = mapViewStartPos[0];
-	let mapViewStartY = mapViewStartPos[1];
-
-	// Correct starting positions - 1
-	let xBoundUnder = mapViewStartX - 1;
-	let yBoundUnder = mapViewStartY - 1;
-
-	// Correct ending positions + 1
-	let xBoundOver = mapViewStartX + mapViewTilecount + 1;
-	let yBoundOver = mapViewStartY + mapViewTilecount + 1;
-
-	assert.notOk(pixiMapView.isGlobalPositionInMapView(xBoundUnder, mapViewStartY), 'Check mapview x bound under range: ' + xBoundUnder + ',' + mapViewStartY);
-	assert.notOk(pixiMapView.isGlobalPositionInMapView(mapViewStartX, yBoundUnder), 'Check mapview y bound under range: ' + mapViewStartX + ',' + yBoundUnder);
-	assert.notOk(pixiMapView.isGlobalPositionInMapView(-1, -1), 'Check mapview x and y bound under range: ' + xBoundUnder + ',' + mapViewStartY);
-
-	assert.notOk(pixiMapView.isGlobalPositionInMapView(-1, mapViewStartY), 'Check mapview negative x is invalid: ' + -1 + ',' + 0);
-	assert.notOk(pixiMapView.isGlobalPositionInMapView(mapViewStartX, -1), 'Check mapview negative y is invalid:  ' + 0 + ',' + -1);
-	assert.notOk(pixiMapView.isGlobalPositionInMapView(-1, -1), 'Check mapview negative x and y is invalid ' + xBoundUnder + ',' + mapViewStartY);
-
-	assert.notOk(pixiMapView.isGlobalPositionInMapView(xBoundOver, mapViewStartY), 'Check mapview x bound over range: ' + xBoundOver + ',' + mapViewStartY);
-	assert.notOk(pixiMapView.isGlobalPositionInMapView(mapViewStartX, yBoundOver), 'Check mapview y bound over range: ' + mapViewStartX + ',' + yBoundOver);
-	assert.notOk(pixiMapView.isGlobalPositionInMapView(xBoundOver, yBoundOver), 'Check mapview x and y bound over range: ' + xBoundOver + ',' + yBoundOver);
-}
-);
 
 //	Check that a position is valid for the global map
 QUnit.test(POSITION_TEST_TAG + 'in-map-valid', function (assert) {
@@ -181,20 +100,19 @@ QUnit.test(POSITION_TEST_TAG + 'in-map-invalid', function (assert) {
 //  e.g the top-left corner 0, 0 could be on tile 20 of the map
 QUnit.test(POSITION_TEST_TAG + 'local-to-global-valid', function (assert) {
 	let mapViewStartPos = mapController.getPixiMapView().getMapViewStartPosition();
-	let mapViewStartX = mapViewStartPos[0];
-	let mapViewStartY = mapViewStartPos[1];
 	assert.deepEqual(mapViewStartPos, [0, 0], 'Check map view starting positions are zero.');
 
-  //	Local position (relative to view) is 0-tilecount-1, global = X or Y+XYoffset
-  //	1. Lowest possible local position
+	//	Local position (relative to view) is 0-tilecount-1, global = X or Y+XYoffset
+	//	1. Lowest possible local position
 	let result = mapPositionHelper.localTilePosToGlobal(0, 0);
-	console.log('local to global 0,0 conversion result: ' + result);
-	assert.deepEqual(result, [mapViewStartX, mapViewStartY], 'Check local mapview position 0, 0 resolves to mapview start pos');
+	// console.log('local to global 0,0 conversion result: ' + result);
+	assert.deepEqual(result, [0, 0], 'Check local mapview position 0, 0 resolves to mapview start pos');
 
 	//	2. Highest possible local position with an offset (-1 for zero indexing)
-
+	let expectedGlobalPos = [19, 19];
 	let highestViewPos = pixiMapView.getHighestInMapPosition();
-	let expectedGlobalPos = highestViewPos; // Map view starts at 0
+	assert.deepEqual(highestViewPos, expectedGlobalPos, 'Check highest mapview pos ' + highestViewPos + ' resolves to the correct global postion: ' + expectedGlobalPos);
+
 	result = mapPositionHelper.localTilePosToGlobal(highestViewPos[0], highestViewPos[1]);
 	assert.deepEqual(result, expectedGlobalPos, 'Check highest mapview pos ' + highestViewPos + ' resolves to the correct global postion: ' + expectedGlobalPos);
 }
@@ -215,14 +133,14 @@ QUnit.test(POSITION_TEST_TAG + 'local-to-global-valid-moving-view', function (as
 	assert.deepEqual(pixiMapView.getMapViewStartPosition(), [0, 0], 'Check mapview start position.');
 
 	let furthestBackwardViewPos = pixiMapView.mapViewMinPosition;
-	let furthestForwardViewPos = pixiMapView.mapViewMaxPosition
+	let furthestForwardViewPos = pixiMapView.mapViewMaxPosition;
 
 	// minus 9 or plus 9
 	assert.deepEqual(furthestBackwardViewPos, [-9, -9], 'Check furthest backwards position is as expected.');
 	assert.deepEqual(furthestForwardViewPos, [9, 9], 'Check furthest forward pos is as expected.');
 
 	// 1. Try moving the map view back as far as possible;
-	console.log('Checking furthest back map view position: ' + furthestBackwardViewPos);
+	// console.log('Checking furthest back map view position: ' + furthestBackwardViewPos);
 	mapController.setMapViewPosition(furthestBackwardViewPos[0], furthestBackwardViewPos[1]);
 	let highestViewPos = mapController.getPixiMapView().getHighestInMapPosition();
 	assert.deepEqual(highestViewPos, [19, 19], 'Check theres 10 tiles at the end of the map view. Ending at pos 19,19');
@@ -343,7 +261,7 @@ QUnit.test(POSITION_TEST_TAG + 'tile-to-pixi-valid', function (assert) {
 	//	Furthest co-ord possible
 	let furthestTilePos = mapController.getPixiMapView().zeroIndexedTileCount;
 	let furthestPixiPos = (furthestTilePos * tileSize);
-	console.log('furthestPixiPos: ' + furthestPixiPos);
+	// console.log('furthestPixiPos: ' + furthestPixiPos);
 
 	// Check furthest x,y positions
 	// Furthest tile x pos to pixi pos

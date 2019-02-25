@@ -4,74 +4,69 @@
 // Default imports
 import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
 import SessionController from 'src/controller/SessionController.js';
-import PageController from 'src/controller/PageController.js';
+import PageController from 'src/controller/page/PageController.js';
 
 // Named imports
-import { MapController } from 'src/controller/MapController.js';
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PageView } from 'src/view/page/PageView.js';
-import { Session } from 'src/model/SessionModel.js';
+import { Session } from 'src/model/Session.js';
 
 class GameControllerClass {
-	constructor () {
-		this.mapController = new MapController(PixiController.pixiView.getRenderer());
-	}
-
-	//  Sets up client elements, hooks up callbacks to enable event-driven reponses, then asks the server for a map update
-	performSetup () {
+	
+	constructor() {
 		console.log('Starting client..');
+		
+		this.pageController = new PageController(this.characterDetailsConfirmed);
+		// Extract the view for now
+		this.pageView = this.pageController.pageView;
 
 		//	Get the general UI ready
-		PageController.setupPageUI();
-		PixiController.setupPixiUI();
-
-		var connected = SocketHandler.connectSocket();
-		console.log('Socket: ' + connected);
-		if (connected) {
-			// setupChat();
-			// setStatusUpdateCallbacks();
-			// socket.emit('map-data-request');
+		//this.pageController.setupUI();
+		//this.pixiController.setupUI();
+	}
+	
+	connect() {
+			SocketHandler.connectSocket('http://localhost:5000', () => {
+				console.log('SocketIO connected to game server!');
+				SocketHandler.setupChat();
+				SocketHandler.setStatusUpdateCallbacks();
+				SocketHandler.emit('map-data-request');
+			});
+	}
+	
+	
+	// Setup and enable UI elements
+	// This should be idempotent
+	enableUI () {
+		if (PixiController.isUIEnabled()) {
+			this.pageController.enableUI();
+		}
+		
+		if (!this.pageController.isUIEnabled()) {
+			this.pageController.enableUI();
 		}
 	}
-
-	//	Checks that the player's character details are set
-	//	and asks them to set them if false
-	static checkCharacterDetails () {
-		if (!SessionController.characterDetailsExist()) {
-			PageStatsDialogView.requestCharacterDetails();
-		} else {
-			PageView.characterDetailsConfirmed();
-		}
-	}
-
-	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
-	static handlePlayerLogin (data) {
-		//	console.log(data);
-		SessionController.updateClientSessionData(data);
-		GameController.checkCharacterDetails(); //	Check/Prompt for character details
-	}
-
+	
 	//	Continues the login process after a user inputs their character details
-	static characterDetailsConfirmed () {
+	characterDetailsConfirmed () {
 		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.clientSession);
 		//	Hide the stats window
-		PageView.hideWindow('statWindowId');
+		this.pageView.hideWindow('statWindowId');
+		this.enableUI();
+		PixiController.getMapController().showMapPosition(Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
 
-		if (!PageView.UI_ENABLED) {
-			PixiController.setupUI();
-			PageController.enableUI(); //	Enables player interactions
-			this.mapController.showMapPosition(Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
-
-			//	Creates the new character to represent the player
-			// PixiMapView.newCharacterOnMap(Session.clientSession.character.charname, Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
-			// mapController.drawMapCharacterArray();
-
-			PageView.UI_ENABLED = true;
-		}
+		//	Creates the new character to represent the player
+		// PixiMapView.newCharacterOnMap(Session.clientSession.character.charname, Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
+		// mapController.drawMapCharacterArray();
 	}
+	
+	newUser(username) {
+		// Store the username for later
+		SessionController.setClientSessionUsername(username);
+		PageController.requestUserPassword(true);
+	}
+
 }
 
-// Create an instance we can refer to nicely (hide instanciation)
-let GameController = new GameControllerClass();
-export { GameController };
+export var GameController = new GameControllerClass();

@@ -1,17 +1,18 @@
 {
 	"frames": {
 		"chest-single": {
-			"frame":{"x":0,"y":0,"w":16,"h":16},
-			"spriteSourceSize":{"x":0,"y":0,"w":16,"h":16},
-			"sourceSize":{"w":16,"h":16}
+			"frame": {"x":0,"y":0,"w":16,"h":16},
+			"spriteSourceSize": {"x":0,"y":0,"w":16,"h":16},
+			"sourceSize": {"w":16,"h":16}
 		},
 		"chat-bubble-blank": {
-			"frame":{"x":32,"y":98,"w":13,"h":12},
-			"spriteSourceSize":{"w":13,"h":12},
-			"sourceSize":{"w":12,"h":12}
+			"frame": {"x":32,"y":98,"w":13,"h":12},
+			"spriteSourceSize": {"w":13,"h":12},
+			"sourceSize": {"w":12,"h":12}
 		}
 	},
 	"meta": {
-		"image": "./objects.png"
+		"image": "./objects.png",
+		"size": {"w":528,"h":320}
 	}
 }

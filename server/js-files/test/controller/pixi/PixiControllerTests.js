@@ -1,14 +1,47 @@
-import { PixiController } from 'src/controller/pixi/PixiController.js';
+import { PixiController, PixiControllerClass } from 'src/controller/pixi/PixiController.js';
+import { PageView } from 'src/view/page/PageView.js';
 
-var PIXICONTROLLER_TEST_TAG = '|PIXI CONTROLLER|';
+var TEST_TAG = '|PIXI CONTROLLER|';
 
-// Check Pixi Tile mapping codes
-// A bit of a dumb test until the tilemappings are improved
-QUnit.test(PIXICONTROLLER_TEST_TAG + 'getTileMapping-valid', function (assert) {
-	let expectedMappings = ['grass-plain', 'barn-front'];
-	assert.deepEqual(PixiController.tileMappings, expectedMappings, 'Expecting tilemappings: ' + PixiController.tileMappings + ' To match: ' + expectedMappings);
+var pixiController;
 
-	assert.equal(PixiController.getTileMapping(0), 'grass-plain', 'Check getting first is grass-plain');
-	assert.equal(PixiController.getTileMapping(1), 'barn-front', 'Check getting second is barn-front');
+// Setup / assertions before any test runs
+function beforeAll (assert) {
+	// DO SOME STUFF
 }
-);
+
+// Setup / assertions before each test
+function beforeEachTest (assert) {
+	// Make sure we have a fresh controller every time
+	// To prevent knock-on state changes
+	pixiController = new PixiControllerClass(PageView.getWindowDimensions());
+	assert.ok(pixiController instanceof PixiControllerClass, 'Check controller instance is instanciated.');
+}
+
+// Hookup before each test setup / assertion
+QUnit.module('PixiControllerTests', { before: beforeAll, beforeEach: beforeEachTest })
+
+QUnit.skip(TEST_TAG + 'setupConsoleButton', async function (assert) {
+	await pixiController.setupConsoleButton();
+	assert.ok(false, 'TODO');
+});
+
+QUnit.skip(TEST_TAG + 'setupContextButtons', function (assert) {
+	pixiController.setupContextButtons();
+	assert.ok(false, 'TODO');
+});
+
+QUnit.skip(TEST_TAG + 'setupUI', function (assert) {
+	pixiController.setupUI();
+	assert.ok(false, 'TODO');
+});
+
+QUnit.skip(TEST_TAG + 'setupContextButtons', function (assert) {
+	pixiController.setupContextButtons();
+	assert.ok(false, 'TODO');
+});
+
+QUnit.skip(TEST_TAG + 'setupPixiUI', function (assert) {
+	pixiController.setupPixiUI();
+	assert.ok(false, 'TODO');
+});

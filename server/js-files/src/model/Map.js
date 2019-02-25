@@ -1,3 +1,6 @@
+import MapTile from 'src/model/MapTile.js';
+import ArrayHelper from 'src/helper/ArrayHelper.js'
+
 // Raw data model for the current Map
 // No errors thrown or validation here
 // responsibility for data validation is on the calling controller
@@ -5,15 +8,12 @@ export var DEFAULT_MAP_SIZE_XY = 20;
 
 export default class Map {
 	constructor (tileCount = DEFAULT_MAP_SIZE_XY) {
-		this.mapTiles = [];
-
-		//	Sizes of the map
 		this.mapSizeX = tileCount;
 		this.mapSizeY = tileCount;
-
-		console.log(this);
+		this.mapTiles = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, MapTile);
 	}
 
+	// Checks if a global pos is in the local map pos range
 	// Checks whether the position is valid in the range of 0 - < mapSizeXorY
 	isPositionInMap (globalX, globalY) {
 		// < for max range as map tiles are 0-indexed
@@ -32,4 +32,5 @@ export default class Map {
 	}
 }
 
+// Allow named import also
 export { Map };

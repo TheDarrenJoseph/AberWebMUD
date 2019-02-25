@@ -2,21 +2,27 @@
 //	Holds and generic Pixi View code / or code that's yet to be refactored
 import * as PIXI from 'libs/pixi.min.js';
 
-import PixiMapView from 'src/view/pixi/PixiMapView.js';
+import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
 
-import { PageView } from 'src/view/page/PageView.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
+import { Session } from 'src/model/Session.js';
+
+// HTML 5 Canvas
+const RENDERER_CANVAS = 'Canvas';
+const RENDERER_WEBGL = 'WebGL';
 
 export default class PixiView {
 	constructor (windowSize) {
 		// Ask the page view what our available space in the window is
-		this.windowSize = PageView.getWindowDimensions();
+		this.windowSize = windowSize;
 
 		// Top level container for all children
 		this.parentContainer = new PIXI.Container();
 		this.dialogContainer = new PIXI.Container();
 		this.controlsContainer = new PIXI.Container();
 		this.parentContainer.addChild(this.dialogContainer, this.controlsContainer);
+
+		this.statBars = this.setupStatBars();
 
 		this.setupDialogWindow();
 	}
@@ -37,6 +43,21 @@ export default class PixiView {
 			}
 		}
 	}
+	
+	showParentContainer(show) {
+		this.parentContainer.visible = show;
+		this.renderAll();
+	}
+	
+	showDialogContainer(show) {
+		this.dialogContainer.visible = show;
+		this.renderDialogContainer();
+	}
+	
+	showControlsContainer(show) {
+		this.controlsContainer.visible = show;
+		this.renderControlsContainer();
+	}
 
 	// Because PixiJS has 2 types of renderer, WebGL and Canvas, check for both
 	isPixiRenderer (renderer) {
@@ -44,12 +65,20 @@ export default class PixiView {
 						renderer instanceof PIXI.CanvasRenderer);
 	}
 
+	getRendererType () {
+		let rendererType = RENDERER_CANVAS;
+		// Check that WebGL is supported and that we've managed to use it
+		if (PIXI.utils.isWebGLSupported() && (this.renderer instanceof PIXI.WebGLRenderer)) {
+			rendererType = RENDERER_WEBGL;
+		}
+
+		return rendererType;
+	}
+
 	// Builds the one PixiJS Renderer to rule them all
 	_buildRenderer () {
 		let renderer = PIXI.autoDetectRenderer(this.windowSize, this.windowSize);
 		renderer.autoresize = true;
-		console.log('Created renderer: ' + renderer);
-
 		return renderer;
 	}
 
@@ -66,20 +95,19 @@ export default class PixiView {
 		return this.parentContainer;
 	}
 
-	getMapView () {
-		return this.pixiMapView;
-	}
-
 	// Re-renders the parent container with all children
 	renderAll () {
+		console.log('PixiView - rendering all in parent container.. ');
 		this.renderer.render(this.parentContainer); // Re-renders the stage to show blank
 	}
 
 	renderDialogContainer () {
+		console.log('PixiView - rendering dialog container.. ');
 		this.renderer.render(this.dialogContainer);
 	}
 
 	renderControlsContainer () {
+		console.log('PixiView - rendering controls container.. ');
 		this.renderer.render(this.controlsContainer); // Re-renders the stage to show blank
 	}
 
@@ -98,13 +126,14 @@ export default class PixiView {
 
 	//	Creates the needed stat bars
 	//	Returns an array of these statbars for later adjustment
-	setupStatBars (mapWindowSize, thirdMapWindowSize) {
+	setupStatBars (mapWindowSize) {
+		let thirdMapWindowSize = Math.floor(mapWindowSize / 3);
 		let healthBarPosX = mapWindowSize - thirdMapWindowSize - 2;
 		let healthBarPosY = 0;
 		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, thirdMapWindowSize, Map.mapTileSize);
-
-		PixiMapView.controlsContainer.addChild(healthBar.backgroundBar);
-		PixiMapView.controlsContainer.addChild(healthBar.innerBar);
+	
+		this.controlsContainer.addChild(healthBar.backgroundBar);
+		this.controlsContainer.addChild(healthBar.innerBar);
 
 		return [healthBar];
 	}
@@ -114,28 +143,44 @@ export default class PixiView {
 		this.dialogBackground.visible = bool;
 	}
 
-	static createInventoryButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
-		return this.createSprite(zeldaObjectsAtlasPath,
-		'chest-single',
-		PixiMapView.tileSize,
-		PixiMapView.tileSize * 2,
-		mapWindowSize - (tileSize * 2),
-		mapWindowSize - tileSize,
-		true
-		);
+	setHealthBarValue (health) {
+		this.statBars[0].setValue(Session.clientSession.character.health);
+		this.statBars[0].drawInnerBar();
 	}
 
-	static createStatsButtont (zeldaObjectsAtlasPath) {
-		return this.createSprite(zeldaObjectsAtlasPath,
-		'chest-single',
-		PixiMapView.tileSize,
-		PixiMapView.tileSize * 2,
-		PixiMapView.mapWindowSize - MapView.tileSize * 4,
-		PixiMapView.mapWindowSize - MapView.tileSize,
-		true
-	);
+	showStatBars () {
+		console.log(this.statBars);
+		this.statBars[0].setValue(0);
+		this.statBars[0].drawBackgroundBar(Map.thirdMapWindowSize, this.mapTileSize);
+		this.statBars[0].drawInnerBar();
+		this.statBars[0].setVisible(true);
+	}
+	
+	hideStatBars() {
+		this.statBars[0].setVisible(false);
 	}
 
+	static async createInventoryButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
+		let pixiPos = new PIXI.Point(mapWindowSize - (tileSize * 2), mapWindowSize - tileSize);
+		
+		return SpriteHelper.makeSpriteFromAtlas(tileAtlasPath,
+		subtileName,
+		tileSize,
+		tileSize * 2,
+		pixiPos,
+		true);
+	}
+
+	static async createStatsButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
+		let pixiPos = new PIXI.Point(mapWindowSize - (tileSize * 4), mapWindowSize - tileSize);
+		
+		return SpriteHelper.makeSpriteFromAtlas(tileAtlasPath,
+		subtileName,
+		tileSize,
+		tileSize * 2,
+		pixiPos,
+		true);
+	}
 }
 
 export { PixiView };

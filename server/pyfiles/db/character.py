@@ -29,14 +29,15 @@ class Character(db_instance.DatabaseInstance._database.Entity):
                     'pos_x': self.position.pos_x,
                     'pos_y': self.position.pos_y
                    }
-
+		
+		# Append stats onto our JSON response
         if self.stats is None:
             self.stats = stats.Stats(character=self)
         response.update(self.stats.get_json())
-
+		
         #Sets the attributes to default if not found when needed
         if self.attributes is None:
             self.attributes = attributes.Attributes(character=self)
-
+		# Append attribs onto our JSON response
         response.update(self.attributes.get_json())
         return response

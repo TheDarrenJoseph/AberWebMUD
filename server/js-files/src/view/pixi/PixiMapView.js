@@ -1,20 +1,24 @@
 import * as PIXI from 'libs/pixi.min.js';
 
 import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
+import ArrayHelper from 'src/helper/ArrayHelper.js'
 
 import { MapPositionHelper } from 'src/helper/MapPositionHelper.js';
-import { GridCharacter } from 'src/model/pixi/GridCharacter.js';
+import { MapCharacter } from 'src/model/pixi/MapCharacter.js';
 
 export var DEFAULT_TILE_SIZE = 40;
 
+var DEFAULT_TILE_MAPPINGS = ['grass-plain', 'barn-front'];
+
 export default class PixiMapView {
-	constructor (mapModel, tileMappings, renderer, overworldAtlasPath, windowSize) {
+	constructor (mapModel, renderer, windowSize, assetPaths) {
 		// For map model position validations
 		this.mapModel = mapModel;
 
-		this.tileMappings = tileMappings;
+		//	Maps tile codes to resource keys
+		this.tileMappings = DEFAULT_TILE_MAPPINGS;
 		this.renderer = renderer;
-		this.overworldAtlasPath = overworldAtlasPath;
+		this.assetPaths = assetPaths;
 
 		this.tileSize = DEFAULT_TILE_SIZE;
 
@@ -50,23 +54,33 @@ export default class PixiMapView {
 		this.mapViewMinPosition = [this.lowestViewPosition, this.lowestViewPosition];
 		this.mapViewMaxPosition = [this.highestViewPosition, this.highestViewPosition];
 
-		// For quick debugging
-		// console.log(this);
-	}
-
-	setupPixiContainers (tileCount) {
 		// Top level container for all children
 		this.parentContainer = new PIXI.Container();
 
 		// Using ParticleContainer for large amounts of sprites
 		this.mapContainer = new PIXI.particles.ParticleContainer();
+		this.mapContainer.name = 'mapContainer'
 		this.characterContainer = new PIXI.particles.ParticleContainer();
+		this.characterContainer.name = 'characterContainer';
 		this.parentContainer.addChild(this.mapContainer, this.characterContainer);
 
-		//	Sprites for the map viewPixiMapView
-		this.tileSpriteArray = null;
 		//	Sprites for the players in the current map view
-		this.mapCharacterArray = this.createMapCharacterArray(tileCount);
+		// 2D array containing arrays for all characters in a position
+		this.mapCharacterArray = ArrayHelper.create2dArray(this.tileCount, this.tileCount, Array);
+		this.mapPositionHelper = new MapPositionHelper(this);
+
+		// For quick debugging
+		// console.log(this);
+	}
+
+	async initialise () {
+		if (this.tileSpriteArray === undefined) {
+			//	Sprites for the map viewPixiMapView
+			let tsa = await this.buildTileSpriteArray();
+			this.tileSpriteArray = tsa;
+		}
+
+		return;
 	}
 
 	getParentContainer () {
@@ -74,44 +88,48 @@ export default class PixiMapView {
 	}
 
 	renderAll () {
+		console.log('PixiMapView - Rendering all containers.');
 		this.renderer.render(this.parentContainer);
 	}
 
 	renderMapContainer () {
-		this.renderer.render(this.this.mapContainer);
+		console.log('PixiMapView - Rendering map container.');
+		this.renderer.render(this.mapContainer);
 	}
 
 	renderCharacterContainer () {
-		this.renderer.render(this.this.mapContainer);
+		console.log('PixiMapView - Rendering character container.');
+		this.renderer.render(this.characterContainer);
 	}
 
-	//	Creates an empty 2D array to store players in our view
-	createMapCharacterArray (tileCount) {
-		// console.log('Tilecount: ' + tileCount);
-		var mapCharacterArray = Array(tileCount);
-		for (var x = 0; x < tileCount; x++) {
-			mapCharacterArray[x] = Array(tileCount); // 2nd array dimension per row
-		}
-
-		return mapCharacterArray;
+	getTileMappings () {
+		return this.tileMappings;
 	}
 
-	setupMapUI (overworldAtlasPath, tileCount, tileSize) {
+	// Slightly cleaner way to access the indexed tile keys
+	getTileMapping (tileTypeIndex) {
+		return this.tileMappings[tileTypeIndex];
+	}
+
+	async buildTileSpriteArray () {
+		// Create enough dummy tiles for the map model
 		// Create a pretty crappy 2d array of tileCount size
-		var tileSpriteArray = Array(tileCount);
-		for (var x = 0; x < tileCount; x++) {
-			tileSpriteArray[x] = Array(tileCount); // 2nd array dimension per row
-			for (var y = 0; y < tileCount; y++) {
-				// Create a new Pixi Sprite
-				var tileSprite = SpriteHelper.makeSpriteFromAtlas(this.overworldAtlasPath, 'grass-plain');
-				tileSprite.position.x = x * tileSize;
-				tileSprite.position.y = y * tileSize;
+		var tileSpriteArray = Array(this.tileCount);
+		for (var x = 0; x < this.tileCount; x++) {
+			tileSpriteArray[x] = Array(this.tileCount); // 2nd array dimension per row
+			for (var y = 0; y < this.tileCount; y++) {
+				let tileSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD_GRASS, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+
+				//console.log('Sprite made: '+x+' '+y+' ');
+				let pixelX = x * this.tileSize;
+				let pixelY = y * this.tileSize;
+				let spritePos = new PIXI.Point(pixelX, pixelY);
+				tileSprite.position = spritePos;
 				tileSprite.interactive = true;
-				tileSprite.interactive = true;
-				tileSprite.name = '' + x + '' + y;
+				tileSprite.name = ('' + x) + y;
 
 				//	allocate it to the tileSpriteArray
-				tileSpriteArray[x][y] = tileSprite;
+				tileSpriteArray[x][y] = new Array(tileSprite);
 
 				// and to the Pixi Container
 				this.mapContainer.addChild(tileSprite);
@@ -120,100 +138,107 @@ export default class PixiMapView {
 
 		return tileSpriteArray;
 	}
+		
 
 	//	Creates a character sprite on-the-fly to represent another character
 	//	gridX, gridY are character positions on the map
-	newCharacterOnMap (characterAtlasPath, charactername, gridX, gridY) {
-		console.log('new char.. ' + charactername + gridX + gridY);
-
+	async newCharacterOnMap (charactername, gridX, gridY) {
 		if (!this.mapModel.isPositionInMap(gridX, gridY)) {
-			console.log('bad pos: ' + gridX + ' ' + gridY);
-			return false; //	Do nothing ican't access lexical declarationf the coordinates don't exist on the map
+			throw new RangeError('Invalid position for MapCharacter! (must be a valid global map co-ord): ' + gridX + ',' + gridY);
 		} else {
 			//	Convert global co-ords to local view ones so we can modify the UI
-			var localPos = MapPositionHelper.globalTilePosToLocal(gridX, gridY);
+			var localPos = this.mapPositionHelper.globalTilePosToLocal(gridX, gridY);
 			var localX = localPos[0];
 			var localY = localPos[1];
-
 			if (this.isPositionRelativeToView(localX, localY)) {
-				var characterSprite = SpriteHelper.makeSpriteFromAtlas(characterAtlasPath, 'player');
-				var pixiPos = MapPositionHelper.tileCoordToPixiPos(localX, localY);
-
-				console.log('PIXI POS for new char: ' + pixiPos[0] + ' ' + pixiPos[1]);
+				// We need to await so we can return this Sprite
+				var characterSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+				var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
 				characterSprite.x = pixiPos[0];
 				characterSprite.y = pixiPos[1];
 
-				this.mapCharacterArray[localX][localY] = new GridCharacter(charactername, gridX, gridY, characterSprite);
-				return characterSprite;
+				let mapChar = new MapCharacter(charactername, gridX, gridY, characterSprite);
+				this.mapCharacterArray[localX][localY].push(mapChar);
+
+				return mapChar;
 			} else {
 				console.log('New player not in our view at this position: ' + gridX + ' ' + gridY);
 			}
 
-			return false;
+			return null;
 		}
 	}
-
-	//	tileSpriteArray -- the grid array of sprites available to the UI
-	//	mapData -- the JSON response from the server describing the area
-	//	startX/Y - the start areas to draw from
-	drawMapToGrid (startX, startY) {
-		PixiMapView.mapContainer.removeChildren(); //	Clear the map display container first
-
-		//	Check there's at least enough tiles to fill our grid (square map)
-		if (this.mapModel.mapTiles.length >= this.tileCount) {
-			var endX = startX + this.tileCount;
-			var endY = startY + this.tileCount;
-
-			console.log('MAP DRAWING| to grid from: ' + startX + ' ' + startY + ' to ' + endX + ' ' + endY);
-
-			//	Local looping to iterate over the view tiles
-			//	Oh gosh condense this please!
-			for (var x = 0; x < this.tileCount; x++) {
-				for (var y = 0; y < this.tileCount; y++) {
-					//	Accessing one of the window tiles
-					let tileSprite = PixiMapView.tileSpriteArray[x][y];
-
+	
+	// Clears and rebuilds the mapContainer contents
+	drawMapToGrid () {
+		let subTexturePromises = new Array();
+		
+		// Clear the map display container first
+		// Might not need this
+		// this.mapContainer.removeChildren();
+		
+		//	Local looping to iterate over the view tiles
+		//	Oh gosh condense this please!
+		for (var x = 0; x < this.tileCount; x++) {
+			for (var y = 0; y < this.tileCount; y++) {
+				// Grab the Sprite for this pos
+				let tileSprite = this.tileSpriteArray[x][y];
+				
+				if (tileSprite != undefined && tileSprite != null) {
 					try {
 						var globalXY = this.mapPositionHelper.localTilePosToGlobal(x, y);
 						var globalX = globalXY[0];
 						var globalY = globalXY[1];
-
-						if (this.this.mapModel.isPositionInMap(globalX, globalY)) {
+						if (this.mapModel.isPositionInMap(globalX, globalY)) {
 							var tileFromServer = this.mapModel.mapTiles[globalX][globalY];
-
-							if (tileSprite != null && tileFromServer != null) { //	Check the data for this tile exists
-								//	var thisSprite = PixiMapView.mapContainer.getChildAt(0); //	Our maptile sprite should be the base child of this tile
-								var subTexture = this.getAtlasSubtexture(this.overworldAtlasPath, this.tileMappings[tileFromServer.tileType]);
-
-								//	If the texture exists, set this sprite's texture,
-								// and add it back to the container
-								if (subTexture != null) {
-									tileSprite.texture = subTexture;
-									PixiMapView.mapContainer.addChild(tileSprite);
-								}
+							if (tileFromServer != undefined && tileFromServer != null) {
+								
+								// Promise the loading of the subtexture
+								var subTexturePromise = SpriteHelper.promisePixiTexture(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileFromServer.tileType], DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
+								subTexturePromises.push(subTexturePromise);
+								
+								// Then perform the mapContainer update asynchronously
+								subTexturePromise.then(subTexture => {
+									//	If the texture exists, update this sprite's texture,
+									// and add it to the pixi container
+									if (subTexture != null) {
+										tileSprite.texture = subTexture;
+										// Might not need this
+										//this.mapContainer.addChild(tileSprite);
+									}
+								}).catch(err => {
+									console.log('Subtexture promise failed when loading a texture to draw the map to view: ' + err);
+								});
+															
+							} else {
+								throw new RangeError('Map model data from remote is missing.');
 							}
 						}
 					} catch (err) {
+						// Local / Global conversion failure isn't an issue here.
 						continue;
 					}
+				} else {
+					throw new RangeError('No tile Sprite for map position: ' + x + ', ' + y);
 				}
 			}
-		} else {
-			console.log('MAP DRAWING| overworld map data from remote is missing.');
 		}
-	}
+		// Return a promise of all subtexture updates
+		// then Re-drawing the container when they are complete
+		return Promise.all(subTexturePromises).then(() => { this.renderMapContainer });
+	} 
 
 	// Draws the map characters
 	drawMapCharacterArray () {
-		PixiMapView.characterContainer.removeChildren();
+		this.characterContainer.removeChildren();
 
 		for (var x = 0; x < this.mapModel.tileCount; x++) {
 			for (var y = 0; y < this.mapModel.tileCount; y++) {
-				var thisCharacter = PixiMapView.mapCharacterArray[x][y];
+				// Draw whatever's at the top of the array
+				var thisCharacter = this.mapCharacterArray[x][y][0];
 
 				if (thisCharacter != null && thisCharacter.sprite != null) {
-					console.log('drawing tile..');
-					PixiMapView.characterContainer.addChild(thisCharacter.sprite);
+					this.characterContainer.addChild(thisCharacter.sprite);
 				}
 			}
 		}
@@ -232,7 +257,8 @@ export default class PixiMapView {
 						startY <= this.highestViewPosition);
 	}
 
-	//	Checks to see if a local (view-based) tile pos is in the map
+	//	Checks to see if a local (view-based) tile pos 
+	//	Is actually on a map tile
 	isLocalPositionInMap (localX, localY) {
 		let positionInStartingRange = localX >= this.mapViewStartX && localX >= this.mapViewStartY;
 
@@ -246,14 +272,10 @@ export default class PixiMapView {
 
 	//	Check whether or not a GLOBAL POSITION is within our map view window
 	isGlobalPositionInMapView (globalX, globalY) {
-		if (globalX < (this.mapViewStartX + this.tileCount) &&
+		return (globalX < (this.mapViewStartX + this.tileCount) &&
 				globalX >= this.mapViewStartX &&
 				globalY < (this.mapViewStartY + this.tileCount) &&
-				globalY >= this.mapViewStartY) {
-			return true;
-		} else {
-			return false;
-		}
+				globalY >= this.mapViewStartY);
 	}
 
 	// Returns the smallest valid local view position that's on a map tile
@@ -289,7 +311,6 @@ export default class PixiMapView {
 			fittableTiles--;
 		}
 
-		console.log('Chose mapview tile count of: ' + fittableTiles);
 		return fittableTiles;
 	}
 
@@ -321,3 +342,5 @@ export default class PixiMapView {
 		return [gridX - this.halfZeroIndexedTileCountFloored, gridY - this.halfZeroIndexedTileCountFloored];
 	}
 }
+
+export { PixiMapView };

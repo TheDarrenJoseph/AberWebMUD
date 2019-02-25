@@ -3,6 +3,9 @@ const testConfig = require('./webpack.test.js');
 // Karma configuration
 // Generated on Wed Oct 31 2018 22:40:20 GMT+0000 (Greenwich Mean Time)
 
+const HTTP_URL = 'http://localhost';
+const PORT = 5001;
+
 module.exports = function (config) {
 	config.set({
 		// base path that will be used to resolve all patterns (eg. files, exclude)
@@ -14,8 +17,16 @@ module.exports = function (config) {
 		// list of files / patterns to 1load in the browser
 		files: [
 			{ pattern: 'tests.js', included: true, served: true },
-			{ pattern: 'tests.js.map', included: false, served: true, watched: false, nocache: true }
+			{ pattern: 'tests.js.map', included: false, served: true, watched: false, nocache: true },
+			// Atlas images
+			{ pattern: 'assets/**/*.png', included: false, served: true, watched: false, nocache: false },
+			// Atlas files
+			{ pattern: 'assets/**/*.json', included: false, served: true, watched: false, nocache: false }
 		],
+		// Proxy asset requests to the correct folder
+		proxies: {
+			'/static/': HTTP_URL + ':' + PORT + '/base/'
+		},
 		// Load the webpack source map
 		preprocessors: {
 			'tests.js': [ 'sourcemap' ]
@@ -30,6 +41,7 @@ module.exports = function (config) {
 				testTimeout: 1000
 			}
 		},
+		browserNoActivityTimeout: 60000,
 		// list of files / patterns to exclude
 		exclude: [
 			''
@@ -43,7 +55,7 @@ module.exports = function (config) {
 		// available reporters: https://npmjs.org/browse/keyword/karma-reporter
 		reporters: ['progress'],
 		// web server port
-		port: 9876,
+		port: PORT,
 		// enable / disable colors in the output (reporters and logs)
 		colors: true,
 		// level of logging

@@ -4,7 +4,7 @@ import { PixiController } from 'src/controller/pixi/PixiController.js';
 
 //	There's going to be a look of controller hookups here for now..
 import SessionController from 'src/controller/SessionController.js';
-import PageController from 'src/controller/PageController.js';
+import PageController from 'src/controller/page/PageController.js';
 
 //	Views
 import PageChatView from 'src/view/page/PageChatView.js';
@@ -17,7 +17,7 @@ import io from 'socket.io-client';
 
 //import io from 'socket.io-client';
 
-const socket = io();
+var socket = io();
 
 //	Static Helper class
 //	A collection of SocketIO management functions
@@ -65,14 +65,13 @@ class SocketHandler {
 		console.log('MAP DATA RECEIVED');
 	}
 
-	static connectSocket () {
+	static connectSocket (url, callback) {
 		console.log('[SocketHandler] Connecting to the game server...');
 
 		//	Try to connect
-		socket = io.connect();
-
-		//	return an indication of success/failure.
-		return SocketHandler.isSocketConnected();
+		socket = io.connect(url);
+		// Call us back when we really connect
+		socket.on('connect', callback);
 	}
 
 	static unpackMessageData (data) {
@@ -97,9 +96,8 @@ class SocketHandler {
 		socket.on('movement-update', PixiController.handleMovementUpdate);
 
 		socket.on('character-details-update', PageController.handleCharacterUpdateResponse);
-		socket.on('request-password', PageView.requestUserPassword); //  Request for existing password
-		socket.on('request-password', PageView.requestUserPassword); //  Request for existing password
-		socket.on('request-new-password', PageView.userDoesNotExist); //  Request for new password
+		socket.on('request-password', PageController.requestUserPassword); //  Request for existing password
+		socket.on('request-new-password', PageController.newUser); //  Request for new password
 	}
 
 	//	Handlers for socket events
@@ -117,9 +115,13 @@ class SocketHandler {
 	static setupChat () {
 		// Socket custom event trigger for message response, passing in our function for a callback
 		socket.on('chat-message-response', this.handleMessageData);
-		socket.on('login-success', this.handlePlayerLogin);
-		socket.on('login-failure', this.handlePlayerLoginError);
+		socket.on('login-success', GameController.handlePlayerLogin);
+		socket.on('login-failure', PageController.handlePlayerLoginError);
 		socket.on('session-error', this.handleSessionError);
+	}
+	
+	static emit(eventName) {
+		socket.emit(eventName);
 	}
 }
 

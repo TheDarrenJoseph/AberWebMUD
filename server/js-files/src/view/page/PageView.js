@@ -1,32 +1,73 @@
 import $ from 'libs/jquery.js';
 
-// Class ID mappings
-var htmlWindows = { messageWindowId: '#message-window', statWindowId: '#stat-window', inventoryWindowId: '#inventory-window' };
+import { _STATS_WINDOW_ID } from 'src/view/page/PageStatsDialogView.js';
 
-export var UI_ENABLED = false;
+// Class ID mappings
+var htmlWindows = { mainWindowId: '#main-window', messageWindowId: '#message-window', statWindowId: '#'+_STATS_WINDOW_ID, inventoryWindowId: '#inventory-window' };
+const _MAIN_WINDOW_ID = 'main-window';
+
+//export var this.DOCUMENT = document;
+//export var this.DOCUMENT = document.implementation.createHTMLDocument('PageView');
 
 //	General UI Page View
+// This is the main page view and builds the parent div for all others
 export class PageView {
-	static showWindow (dialog) {
-		$(htmlWindows[dialog]).show();
+	constructor(doc) {
+		// Use the base document if we've not provided one
+		if (doc == undefined) {
+			doc = document;
+		}
+
+		this.DOCUMENT = doc;
+		//console.log(this)
 	}
 
-	static hideWindow (dialog) {
-		$(htmlWindows[dialog]).hide();
+	// Creates the HTML for this view if needed
+	buildView () {
+		var mainWindowJquery = $('#'+_MAIN_WINDOW_ID, this.DOCUMENT);
+		var mainWindowExists = mainWindowJquery.length > 0;
+		
+		if (!mainWindowExists) {
+			var mainWindow = this.DOCUMENT.createElement('div');
+			mainWindow.setAttribute('id',_MAIN_WINDOW_ID);
+
+			this.DOCUMENT.body.appendChild(mainWindow);
+		}
+	}
+	
+	destroyView() {
+		var mainWindowJquery = this.getMainWindowJquery();
+		var mainWindowExists = mainWindowJquery.length > 0;
+		if (mainWindowExists) {
+			// Remove all that match from the DOM
+			$(mainWindowJquery).remove();
+		}
+	}
+	
+	getMainWindowJquery() {
+		return $('#'+_MAIN_WINDOW_ID, this.DOCUMENT);
+	}
+	
+	showWindow (dialog) {
+		$(htmlWindows[dialog], this.DOCUMENT).show();
 	}
 
-	static hideWindows () {
+	hideWindow (dialog) {
+		$(htmlWindows[dialog], this.DOCUMENT).hide();
+	}
+
+	hideWindows () {
 		for (var windowId in htmlWindows) {
 			this.hideWindow(windowId);
 		}
 	}
 
-	static toggleWindow (dialog) {
+	toggleWindow (dialog) {
 		var thisWindow = $(htmlWindows[dialog]);
 		//	Check if the dialog is visible to begin with
 		var toHide = thisWindow.is(':visible');
 
-		$('.dialog:visible').hide();
+		$('.dialog:visible', this.DOCUMENT).hide();
 
 		if (toHide) {
 			thisWindow.hide();
@@ -35,32 +76,32 @@ export class PageView {
 		}
 	}
 
-	static bindStageClick (enabled, clickedFunction) {
-		var mainWindow = $('#main-window');
+	bindStageClick (enabled, clickedFunction) {
+		var mainWindow = $(htmlWindows['mainWindowId']);
 		if (enabled) {
 			mainWindow.on('click', clickedFunction);
 		} else {
 			mainWindow.unbind('click');
 		}
 	}
-	static toggleStatWinVisibility () {
-		PageView.toggleWindow('statWindowId');
+	toggleStatWinVisibility () {
+		this.toggleWindow('statWindowId');
 	}
 
-	static toggleIventoryWinVisibility () {
-		PageView.toggleWindow('inventoryWindowId');
+	toggleIventoryWinVisibility () {
+		this.toggleWindow('inventoryWindowId');
 	}
 
-	static toggleConsoleVisibility () {
-		PageView.toggleWindow('messageWindowId');
+	toggleConsoleVisibility () {
+		this.toggleWindow('messageWindowId');
 	}
 
-	static appendToConsoleButtonClass (contextButtons) {
-		$('#console-button').append(contextButtons);
+	appendToConsoleButtonClass (contextButtons) {
+		$('#console-button', this.DOCUMENT).append(contextButtons);
 	}
 
-	static appendToMainWindow (content) {
-		$('#main-window').append(content);
+	appendToMainWindow (content) {
+		$('#main-window', this.DOCUMENT).append(content);
 	}
 
 	static getWindowDimensions () {
@@ -74,3 +115,5 @@ export class PageView {
 		}
 	}
 }
+
+//export var PageView = new PageViewClass(document);
