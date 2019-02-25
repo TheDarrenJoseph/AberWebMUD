@@ -146,12 +146,10 @@ TEST_TAG + 'drawMapToGrid', function (assert) {
 		let mapDrawPromise = pixiMapView.drawMapToGrid();
 
 		mapDrawPromise.then(() => {
-			console.log('MAP DRAWN');
 			let totalTileArea = TEST_TILECOUNT * TEST_TILECOUNT;
 
 			assert.ok(pixiMapView.mapContainer instanceof PIXI.Container, 'Check the map Container is a PIXI.Container');
 			assert.ok(pixiMapView.mapContainer.children instanceof Array, 'Check the map Container has a children array');
-			console.log(pixiMapView.mapContainer.children);
 			
 			assert.equal(pixiMapView.mapContainer.children.length, totalTileArea, 'Check the map Container has enough children for each tile');
 			asyncDrawDone();
