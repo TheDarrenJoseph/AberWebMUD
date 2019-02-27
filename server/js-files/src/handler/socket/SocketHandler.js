@@ -1,4 +1,3 @@
-
 //	Other Handlers
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 
@@ -16,112 +15,69 @@ import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 import io from 'socket.io-client';
 
 //import io from 'socket.io-client';
-
-var socket = io();
+// var socket = io();
 
 //	Static Helper class
 //	A collection of SocketIO management functions
 class SocketHandler {
-	static isSocketConnected () {
-		return socket.connected;
+	
+	constructor (pageController) {
+		this.socket = new io();
+	}
+	
+	isSocketConnected () {
+		return this.socket.connected;
+	}
+	
+	emit(eventType, messageData) {
+		// We can send an event without data in some cases
+		if (messageData == undefined) {
+			this.socket.emit(eventType);
+		} else if (messageData !== undefined  && messageData !== '' && messageData !== null) {
+			this.socket.emit(eventType, MessageHandler.createDataMessage(messageData));
+		} 
+	}
+	
+	bind(event, callback) {
+		this.socket.on(event,callback);
 	}
 
-	static sendCharacterDetails (attrValuesJSON) {
-		console.log('STATS: ' + attrValuesJSON);
-
-		if (attrValuesJSON != null) {
-			socket.emit('character-details', MessageHandler.createDataMessage(attrValuesJSON));
-		}
-
-		console.log('Character details sent for saving..');
-		PageStatsDialogView.updateStatsInfoLog('Character details submitted (unsaved).', 'client');
+	sendCharacterDetails (attrValuesJSON) {
+		this.emit('character-details', attrValuesJSON);
 	}
 
-	static sendNewChatMessage (userInput) {
-		if (userInput !== '') {
-			socket.emit('new-chat-message', MessageHandler.createDataMessage(userInput));
-		}
+	sendNewChatMessage (userInput) {
+		this.emit('new-chat-message', userInput);
 	}
 
 	//	Tries to send movement input for the current user
-	static sendMovementCommand (x, y) {
+	sendMovementCommand (x, y) {
 		var messagePayload = MessageHandler.createMovementMessage(x, y);
 		if (messagePayload[MessageHandler.SESSION_JSON_NAME] != null) {
 			console.log(messagePayload);
-			socket.emit('movement-command', messagePayload);
+			this.socket.emit('movement-command', messagePayload);
 		} else {
 			console.log('Session info missing for movement command.');
 		}
 	}
 
 	//	Send the user's password to the sever
-	static sendAuthentication (username, passwordFieldVal) {
-		socket.emit('client-auth', {'username': username, 'password': passwordFieldVal});
+	sendAuthentication (username, passwordFieldVal) {
+		this.socket.emit('client-auth', {'username': username, 'password': passwordFieldVal});
 	}
 
-	static saveMapUpdate (mapData) {
-		//	Hand the data straight over to the relevant controller
-		SessionController.saveMapUpdate(mapData);
-		console.log('MAP DATA RECEIVED');
-	}
-
-	static connectSocket (url, callback) {
+	connectSocket (url, callback) {
 		console.log('[SocketHandler] Connecting to the game server...');
 
 		//	Try to connect
-		socket = io.connect(url);
+		this.socket = io.connect(url);
 		// Call us back when we really connect
-		socket.on('connect', callback);
-	}
-
-	static unpackMessageData (data) {
-		return data['messageData'];
-	}
-
-	static handleSessionLinking (data) {
-		// Send the data over to the session controller for linking
-		SessionController.linkConnectionToSession(data);
-
-		//	Session start welcome message
-		//	Unpack message data and send it to the message log
-		PageChatView.setMessageLog(SocketHandler.unpackMessageData(data));
-	}
-
-	static setStatusUpdateCallbacks () {
-		//	Link the Session using the sessionId response
-		socket.on('connection-response', this.handleSessionLinking);
-		socket.on('map-data-response', this.saveMapUpdate);
-
-		socket.on('movement-response', PageController.handleMovementResponse);
-		socket.on('movement-update', PixiController.handleMovementUpdate);
-
-		socket.on('character-details-update', PageController.handleCharacterUpdateResponse);
-		socket.on('request-password', PageController.requestUserPassword); //  Request for existing password
-		socket.on('request-new-password', PageController.newUser); //  Request for new password
+		this.socket.on('connect', callback);
 	}
 
 	//	Handlers for socket events
-	static handleSessionError () {
+	handleSessionError () {
 		console.log('Session Error!');
-	}
-
-	static handleMessageData (data) {
-		var messageData = data['chat-data'];
-		var username = data['username'];
-		console.log('Received: ' + data);
-		PageChatView.updateMessageLog(messageData, username);
-	}
-
-	static setupChat () {
-		// Socket custom event trigger for message response, passing in our function for a callback
-		socket.on('chat-message-response', this.handleMessageData);
-		socket.on('login-success', GameController.handlePlayerLogin);
-		socket.on('login-failure', PageController.handlePlayerLoginError);
-		socket.on('session-error', this.handleSessionError);
-	}
-	
-	static emit(eventName) {
-		socket.emit(eventName);
 	}
 }
 

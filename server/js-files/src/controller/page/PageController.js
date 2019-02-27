@@ -143,7 +143,10 @@ export default class PageController {
 	}
 
 	sendCharDetails () {
-		SocketHandler.sendCharacterDetails(this.pageStatsDialogView.getStats());
+		let attribs = this.pageStatsDialogView.getStats();
+		SocketHandler.sendCharacterDetails(attribs);
+		console.log('Character details sent for saving..');
+		this.pageStatsDialogView.updateStatsInfoLog('Character details submitted (unsaved).', 'client');
 	}
 
 	//	Handles a movement response (success/fail) for this client's move action
