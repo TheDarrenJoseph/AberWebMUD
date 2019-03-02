@@ -1,4 +1,4 @@
-import * as PIXI from 'libs/pixi.min.js';
+import PIXI from 'libs/pixi.min.js';
 
 class PixiStatBar {
 	constructor (name, posX, posY, thirdMapWindowSize, tileSize) {

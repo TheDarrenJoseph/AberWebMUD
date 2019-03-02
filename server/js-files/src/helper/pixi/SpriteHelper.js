@@ -1,5 +1,5 @@
 // Helper class for creating PixiJS sprites
-import * as PIXI from 'libs/pixi.min.js';
+import PIXI from 'libs/pixi.min.js';
 import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 import { DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
 

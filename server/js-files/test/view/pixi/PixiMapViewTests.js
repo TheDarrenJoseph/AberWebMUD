@@ -1,4 +1,4 @@
-import * as PIXI from 'libs/pixi.min.js';
+import PIXI from 'libs/pixi.min.js';
 
 import Map from 'src/model/Map.js';
 import MapCharacter from 'src/model/pixi/MapCharacter.js';
@@ -103,7 +103,9 @@ QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 
 		initDone();
 	}).catch(rejection => {
-		assert.ok(false, 'Initialisation Promise rejected with: ' + rejection);
+		assert.ok(false, 'Initialisation Promise rejected with: ' + JSON.stringify(rejection));
+		console.log('Iinitialisation promise rejected with: ');
+		console.log(rejection);
 	});
 
 }
@@ -127,6 +129,7 @@ TEST_TAG + 'newCharacterOnMap', function (assert) {
 		asyncDone();
 	}, rejection => {
 		assert.ok(false, 'new Character on Map Promise rejected with: ' + rejection);
+		throw(rejection);
 	});
 
 	assert.expect(1);

@@ -1,3 +1,7 @@
+//import { as io} from 'libs/socket.io.js';
+
+import io from 'socket.io-client';
+
 //	Other Handlers
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 
@@ -11,8 +15,6 @@ import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
 import { PageView } from 'src/view/page/PageView.js';
 
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
-//import * as io from 'libs/socket.io.js';
-import io from 'socket.io-client';
 
 //import io from 'socket.io-client';
 // var socket = io();

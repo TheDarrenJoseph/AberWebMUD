@@ -1,4 +1,4 @@
-const testConfig = require('./webpack.test.js');
+// const testConfig = require('./webpack.test.js');
 
 // Karma configuration
 // Generated on Wed Oct 31 2018 22:40:20 GMT+0000 (Greenwich Mean Time)
@@ -27,11 +27,11 @@ module.exports = function (config) {
 		proxies: {
 			'/static/': HTTP_URL + ':' + PORT + '/base/'
 		},
-		// Load the webpack source map
+		// Load the source map
 		preprocessors: {
 			'tests.js': [ 'sourcemap' ]
 		},
-		webpack: testConfig,
+		//webpack: testConfig,
 		// webpackServer: { noInfo: true }
 		// client configuration
 		client: {

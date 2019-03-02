@@ -1,4 +1,5 @@
-import $ from 'libs/jquery.js';
+import jquery from 'jquery';
+//import $ from 'libs/jquery.js';
 import { GameController, GameControllerClass } from 'src/controller/GameController.js';
 
 console.log('=== AberWebMUD Web Client ===');
@@ -13,4 +14,4 @@ function main() {
 }
 
 //	Initialises the client setup once the HTML page loads
-$(document).ready(main);
+jquery(document).ready(main);

@@ -1,3 +1,7 @@
+//const $ = require('jquery');
+//import $ from 'libs/jquery.js';
+import jquery from 'jquery';
+
 import { PageController, LOGIN_FAILURE_MESSAGE_PWD,
 	LOGIN_FAILURE_MESSAGE_PLAYER,
 	INVALID_JSON_CHARACTER_UPDATE,
@@ -14,7 +18,6 @@ import SessionController from 'src/controller/SessionController.js';
 import { PageStatsDialogView,
 	SET_CHARDETAILS_PROMPT_MESSAGE, CLASS_OPTIONS } from 'src/view/page/PageStatsDialogView.js';
 import PageChatView from 'src/view/page/PageChatView.js';
-import $ from 'libs/jquery.js';
 
 import { PageView } from 'src/view/page/PageView.js';
 
@@ -74,7 +77,7 @@ function beforeEachTest (assert) {
 // Using undocumented jQuery _data for events
 // to check first click handler
 function extractFirstJqueryBinding (domElement, eventType) {
-	let boundEvents = $._data(domElement, 'events');
+	let boundEvents = jquery._data(domElement, 'events');
 	if (boundEvents !== undefined) {
 		return boundEvents[eventType][0].handler;
 	} else {
@@ -98,12 +101,12 @@ QUnit.test(TEST_TAG + 'setupUI', function (assert) {
 QUnit.test(TEST_TAG + 'bindMessageInputPurpose', function (assert) {
 	// True for message sending
 	pageController.bindMessageInputPurpose(true);
-	var messageInputEvents = $._data(pageChatView.getMessageInputField(), 'events');
+	var messageInputEvents = jquery._data(pageChatView.getMessageInputField(), 'events');
 	assert.equal(messageInputEvents['keyup'][0].handler, pageController.messageFieldKeyupTrigger, 'Check message field sending on key-up is bound.');
 
 	// False for password sending
 	pageController.bindMessageInputPurpose(false);
-	messageInputEvents = $._data(pageChatView.getMessageInputField(), 'events');
+	messageInputEvents = jquery._data(pageChatView.getMessageInputField(), 'events');
 	assert.equal(messageInputEvents['keyup'][0].handler, pageController.passwordFieldKeyupTrigger, 'Check password field sending on key-up is bound.');
 });
 
@@ -307,12 +310,12 @@ QUnit.skip(TEST_TAG + 'submitPassword', function (assert) {
 QUnit.test(TEST_TAG + 'requestUserPassword', function (assert) {
 	// 1. Username is given
 	pageController.requestUserPassword(true);
-	assert.ok($(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
+	assert.ok(jquery(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
 
 	assert.ok(pageChatView.getMessageLogValue().startsWith('Creating a new user, please enter a password for it: '), 'Check pwd request message.');
 
 	// Check we're set to send a password
-	let messageInputEvents = $._data(pageChatView.getMessageInputField(), 'events');
+	let messageInputEvents = jquery._data(pageChatView.getMessageInputField(), 'events');
 	assert.equal(messageInputEvents['keyup'][0].handler, pageController.passwordFieldKeyupTrigger, 'Check password sending on key-up is bound.');
 
 	// 2. No username passed
@@ -374,13 +377,13 @@ QUnit.test(TEST_TAG + 'enableUI', function (assert) {
 	// Using undocumented jQuery _data for events
 	// to check first click handler
 	var saveStatsButton = pageStatsDialogView.getSaveStatsButton();
-	var events = $._data(saveStatsButton, 'events');
+	var events = jquery._data(saveStatsButton, 'events');
 	console.log(events);
 
 	assert.equal(events['click'][0].handler, pageController.sendCharDetails, 'Check our sendCharDetails func is bound to the button.');
 
 	var messageInputField = pageChatView.getMessageInputField();
-	var messageInputEvents = $._data(messageInputField, 'events');
+	var messageInputEvents = jquery._data(messageInputField, 'events');
 	assert.equal(messageInputEvents['keyup'][0].handler, pageController.messageFieldKeyupTrigger, 'Check message field sending on key-up is bound.');
 	
 });

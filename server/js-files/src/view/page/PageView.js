@@ -1,5 +1,6 @@
-import $ from 'libs/jquery.js';
+import jquery from 'jquery';
 
+//import $ from 'libs/jquery.js';
 import { _STATS_WINDOW_ID } from 'src/view/page/PageStatsDialogView.js';
 
 // Class ID mappings
@@ -24,7 +25,7 @@ export class PageView {
 
 	// Creates the HTML for this view if needed
 	buildView () {
-		var mainWindowJquery = $('#'+_MAIN_WINDOW_ID, this.DOCUMENT);
+		var mainWindowJquery = jquery('#'+_MAIN_WINDOW_ID, this.DOCUMENT);
 		var mainWindowExists = mainWindowJquery.length > 0;
 		
 		if (!mainWindowExists) {
@@ -40,20 +41,20 @@ export class PageView {
 		var mainWindowExists = mainWindowJquery.length > 0;
 		if (mainWindowExists) {
 			// Remove all that match from the DOM
-			$(mainWindowJquery).remove();
+			jquery(mainWindowJquery).remove();
 		}
 	}
 	
 	getMainWindowJquery() {
-		return $('#'+_MAIN_WINDOW_ID, this.DOCUMENT);
+		return jquery('#'+_MAIN_WINDOW_ID, this.DOCUMENT);
 	}
 	
 	showWindow (dialog) {
-		$(htmlWindows[dialog], this.DOCUMENT).show();
+		jquery(htmlWindows[dialog], this.DOCUMENT).show();
 	}
 
 	hideWindow (dialog) {
-		$(htmlWindows[dialog], this.DOCUMENT).hide();
+		jquery(htmlWindows[dialog], this.DOCUMENT).hide();
 	}
 
 	hideWindows () {
@@ -63,11 +64,11 @@ export class PageView {
 	}
 
 	toggleWindow (dialog) {
-		var thisWindow = $(htmlWindows[dialog]);
+		var thisWindow = jquery(htmlWindows[dialog]);
 		//	Check if the dialog is visible to begin with
 		var toHide = thisWindow.is(':visible');
 
-		$('.dialog:visible', this.DOCUMENT).hide();
+		jquery('.dialog:visible', this.DOCUMENT).hide();
 
 		if (toHide) {
 			thisWindow.hide();
@@ -77,7 +78,7 @@ export class PageView {
 	}
 
 	bindStageClick (enabled, clickedFunction) {
-		var mainWindow = $(htmlWindows['mainWindowId']);
+		var mainWindow = jquery(htmlWindows['mainWindowId']);
 		if (enabled) {
 			mainWindow.on('click', clickedFunction);
 		} else {
@@ -97,11 +98,11 @@ export class PageView {
 	}
 
 	appendToConsoleButtonClass (contextButtons) {
-		$('#console-button', this.DOCUMENT).append(contextButtons);
+		jquery('#console-button', this.DOCUMENT).append(contextButtons);
 	}
 
 	appendToMainWindow (content) {
-		$('#main-window', this.DOCUMENT).append(content);
+		jquery('#main-window', this.DOCUMENT).append(content);
 	}
 
 	static getWindowDimensions () {

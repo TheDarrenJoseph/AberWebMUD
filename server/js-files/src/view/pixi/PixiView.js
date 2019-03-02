@@ -1,6 +1,6 @@
 // Top level Pixi View
 //	Holds and generic Pixi View code / or code that's yet to be refactored
-import * as PIXI from 'libs/pixi.min.js';
+import PIXI from 'libs/pixi.min.js';
 
 import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
 

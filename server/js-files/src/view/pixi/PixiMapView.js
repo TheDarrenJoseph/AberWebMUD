@@ -1,4 +1,4 @@
-import * as PIXI from 'libs/pixi.min.js';
+import PIXI from 'libs/pixi.min.js';
 
 import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
 import ArrayHelper from 'src/helper/ArrayHelper.js'
@@ -56,7 +56,7 @@ export default class PixiMapView {
 
 		// Top level container for all children
 		this.parentContainer = new PIXI.Container();
-
+		
 		// Using ParticleContainer for large amounts of sprites
 		this.mapContainer = new PIXI.particles.ParticleContainer();
 		this.mapContainer.name = 'mapContainer'

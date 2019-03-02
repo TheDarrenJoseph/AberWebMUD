@@ -1,4 +1,5 @@
-import $ from 'libs/jquery.js';
+import jquery from 'jquery';
+//import $ from 'libs/jquery.js';
 import { PageView } from 'src/view/page/PageView.js';
 
 //	2 arrays of the same length to allow looping for creating each line of the table
@@ -36,8 +37,8 @@ export default class PageStatsDialogView {
 	}
 
 	buildView () {
-		var statsWindowJquery = $('#' + _STATS_WINDOW_ID, this.pageView.DOCUMENT);
-		var statsFormJquery = $('#' + _STATS_FORM_ID, this.pageView.DOCUMENT);
+		var statsWindowJquery = jquery('#' + _STATS_WINDOW_ID, this.pageView.DOCUMENT);
+		var statsFormJquery = jquery('#' + _STATS_FORM_ID, this.pageView.DOCUMENT);
 
 		var statsWindowExists = statsWindowJquery.length > 0;
 		var statsFormBuilt = statsFormJquery.length > 0;
@@ -61,7 +62,7 @@ export default class PageStatsDialogView {
 			}
 
 			//console.log('Built stats window DOM element:');
-			//console.log($('#'+_STATS_WINDOW_ID)[0]);
+			//console.log(jquery('#'+_STATS_WINDOW_ID)[0]);
 		}
 	}
 
@@ -71,11 +72,11 @@ export default class PageStatsDialogView {
 	}
 
 	getSaveStatsButton () {
-		return $('#' + _SAVE_STATS_BUTTON_ID, this.pageView.DOCUMENT).get(0);
+		return jquery('#' + _SAVE_STATS_BUTTON_ID, this.pageView.DOCUMENT).get(0);
 	}
 
 	getSaveStatsButtonJquery () {
-		return $('#' + _SAVE_STATS_BUTTON_ID, this.pageView.DOCUMENT);
+		return jquery('#' + _SAVE_STATS_BUTTON_ID, this.pageView.DOCUMENT);
 	}
 
 	clearStatsInfoField () {
@@ -83,11 +84,11 @@ export default class PageStatsDialogView {
 	};
 
 	getStatsInfoField () {
-		return $('#' + _STATS_INFO_FIELD_ID,  this.pageView.DOCUMENT).get(0);
+		return jquery('#' + _STATS_INFO_FIELD_ID,  this.pageView.DOCUMENT).get(0);
 	}
 
 	getStatsInfoFieldJquery () {
-		return $('#' + _STATS_INFO_FIELD_ID,  this.pageView.DOCUMENT);
+		return jquery('#' + _STATS_INFO_FIELD_ID,  this.pageView.DOCUMENT);
 	}
 
 	getStatsInfoFieldValue () {
@@ -224,11 +225,11 @@ export default class PageStatsDialogView {
 	}
 
 	getStatsCharacterNameVal () {
-		return $('#' + _CHAR_NAME_INPUT_ID, this.pageView.DOCUMENT).val();
+		return jquery('#' + _CHAR_NAME_INPUT_ID, this.pageView.DOCUMENT).val();
 	}
 
 	getStatsCharacterNameJquery () {
-		return $('#' + _CHAR_NAME_INPUT_ID, this.pageView.DOCUMENT);
+		return jquery('#' + _CHAR_NAME_INPUT_ID, this.pageView.DOCUMENT);
 	}
 
 	setStatsCharacterName (name) {
@@ -236,7 +237,7 @@ export default class PageStatsDialogView {
 	}
 
 	getStatsCharacterClass () {
-		return $('#' + _CHAR_CLASS_SELECTION_ID, this.pageView.DOCUMENT).val();
+		return jquery('#' + _CHAR_CLASS_SELECTION_ID, this.pageView.DOCUMENT).val();
 	}
 
 	getClassOptionIndex (optionId) {
@@ -246,10 +247,10 @@ export default class PageStatsDialogView {
 	// Set the stats charClass choice to a given selection number
 	// As this will be a procedurally generated option selection
 	setStatsCharacterClass (selectionNo) {
-		var options = $('#'+_CHAR_CLASS_SELECTION_ID, this.pageView.DOCUMENT).find('option');
+		var options = jquery('#'+_CHAR_CLASS_SELECTION_ID, this.pageView.DOCUMENT).find('option');
 		if (selectionNo > 0 && selectionNo < options.length) {
 			var optionChoice = options[selectionNo].value;
-			$('#'+_CHAR_CLASS_SELECTION_ID, this.pageView.DOCUMENT).val(optionChoice); //	Set the value
+			jquery('#'+_CHAR_CLASS_SELECTION_ID, this.pageView.DOCUMENT).val(optionChoice); //	Set the value
 		} else {
 			throw new RangeError('Invalid character class selection option: '+ selectionNo);
 		}
@@ -267,7 +268,7 @@ export default class PageStatsDialogView {
 		for (var i = 0; i < numberInputIds.length; i++) {
 			var statId = '#' + numberInputIds[i];
 			// Extract the value of the first match to statId
-			var statValue = parseInt($(statId, this.pageView.DOCUMENT).val());
+			var statValue = parseInt(jquery(statId, this.pageView.DOCUMENT).val());
 			output[attributeNames[i]] = statValue;
 		}
 
@@ -289,7 +290,7 @@ export default class PageStatsDialogView {
 			var statId = '#' + numberInputIds[i];
 			var inputVal = attrValuesJSON[attributeNames[i]];
 			// Set the value of the first match for our field
-			$(statId, this.pageView.DOCUMENT).val(inputVal);
+			jquery(statId, this.pageView.DOCUMENT).val(inputVal);
 		}
 	}
 
