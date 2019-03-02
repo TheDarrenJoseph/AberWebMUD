@@ -113,9 +113,6 @@ export default class PageChatView {
 		//	Hide the field to show the normal input box
 		passwordField.hide();
 		$('#'+_MESSAGE_LOG_ID, this.pageView.DOCUMENT).val('');
-
-		//	Set the send button behavior back to normal (isText)
-		this.bindMessageButton(true);
 	}
 	
 	// Tag to show message context
@@ -164,7 +161,7 @@ export default class PageChatView {
 		messageField.on('keyup', method);
 		passwordField.on('keyup', method);
 	}
-
+	
 	//	Switches the 'Send' message behavior from message to password sending
 	bindMessageButton (keyUpMethod) {
 		var thisButton = $('#'+_SEND_MESSAGE_BUTTON_ID, this.pageView.DOCUMENT);

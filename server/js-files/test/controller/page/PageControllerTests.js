@@ -93,22 +93,6 @@ QUnit.test(TEST_TAG + 'setupUI', function (assert) {
 	pageController.setupUI();
 	pageView.buildView();
 	assert.equal(pageView.getMainWindowJquery().length, 1, 'Check main window exists');
-
-	// Check bindEvents behaviour
-	// Using undocumented jQuery _data for events
-	// to check first click handler
-	var saveStatsButton = pageStatsDialogView.getSaveStatsButton();
-
-	console.log('SaveStatsButton: ');
-	console.log($._data(saveStatsButton));
-	var events = $._data(saveStatsButton, 'events');
-	console.log(events);
-
-	assert.equal(events['click'][0].handler, pageController.sendCharDetails, 'Check our sendCharDetails func is bound to the button.');
-
-	var messageInputField = pageChatView.getMessageInputField();
-	var messageInputEvents = $._data(messageInputField, 'events');
-	assert.equal(messageInputEvents['keyup'][0].handler, pageController.messageFieldKeyupTrigger, 'Check message field sending on key-up is bound.');
 });
 
 QUnit.test(TEST_TAG + 'bindMessageInputPurpose', function (assert) {
@@ -385,4 +369,18 @@ QUnit.test(TEST_TAG + 'enableUI', function (assert) {
 	assert.equal(expectedBinding, clickBinding, 'Check unbinding clears the click handler.');
 	
 	assert.ok(pageController.uiEnabled, 'UI Should be enabled now.');
+	
+		// Check bindEvents behaviour
+	// Using undocumented jQuery _data for events
+	// to check first click handler
+	var saveStatsButton = pageStatsDialogView.getSaveStatsButton();
+	var events = $._data(saveStatsButton, 'events');
+	console.log(events);
+
+	assert.equal(events['click'][0].handler, pageController.sendCharDetails, 'Check our sendCharDetails func is bound to the button.');
+
+	var messageInputField = pageChatView.getMessageInputField();
+	var messageInputEvents = $._data(messageInputField, 'events');
+	assert.equal(messageInputEvents['keyup'][0].handler, pageController.messageFieldKeyupTrigger, 'Check message field sending on key-up is bound.');
+	
 });
