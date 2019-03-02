@@ -56,8 +56,8 @@ export default class PageController {
 
 	}
 	
+	// Builds UI Components
 	setupUI () {
-		
 		if (!this.isSetup) {
 			// Ensure our HTML DOM content is built
 			this.pageView.buildView();
