@@ -40,15 +40,9 @@ class GameControllerClass {
 	
 	
 	// Setup and enable UI elements
-	// This should be idempotent
 	enableUI () {
-		if (PixiController.isUIEnabled()) {
 			PixiController.enableUI();
-		}
-		
-		if (!this.pageController.isUIEnabled()) {
 			this.pageController.enableUI();
-		}
 	}
 	
 	//	Continues the login process after a user inputs their character details

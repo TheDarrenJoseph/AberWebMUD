@@ -30,6 +30,8 @@ export var INVALID_LOGIN_MESSAGE = 'Invalid username/password.';
 export default class PageController {
 	
 	constructor(characterConfirmedCallback, pageView, pageStatsDialogView, pageChatView) {
+		// Only perform setup once
+		this.isSetup   = false;
 		this.uiEnabled = false;
 		this.characterConfirmedCallback = characterConfirmedCallback;
 
@@ -55,16 +57,14 @@ export default class PageController {
 	}
 	
 	setupUI () {
-		// Ensure our HTML DOM content is built
-		this.pageView.buildView();
-		this.pageStatsDialogView.buildView();
-		this.pageChatView.buildView();
-		//	Hookup message sending and other controls
-		this.bindEvents(); 
 		
-		// DEBUG
-		// console.log('View built');
-		// console.log(this.pageView.getMainWindowJquery()[0]);
+		if (!this.isSetup) {
+			// Ensure our HTML DOM content is built
+			this.pageView.buildView();
+			this.pageStatsDialogView.buildView();
+			this.pageChatView.buildView();
+		}
+
 	}
 
 	// boolean switch for message / password sending
@@ -171,6 +171,9 @@ export default class PageController {
 		if (username !== null && passwordInput !== '') {
 			SocketHandler.sendAuthentication(username, passwordInput);
 			this.pageChatView.endPasswordSubmission();
+			//	Set the send button behavior back to normal (isText)
+			this.bindMessageInputPurpose(true);
+			
 		} else {
 			this.pageChatView.updateMessageLog(INVALID_LOGIN_MESSAGE, 'client');
 		}
@@ -217,11 +220,16 @@ export default class PageController {
 			this.uiEnabled = false;
 		}
 	}
-
+	
+	// Idempotent UI Enabling
 	enableUI () {
 		if (!this.uiEnabled) {
+			this.setupUI();
 			this.bindStageClick(true); //	Activate movement click input
 			this.uiEnabled = true;
+			
+			//	Hookup message sending and other controls
+			this.bindEvents(); 
 		}
 	}
 	
