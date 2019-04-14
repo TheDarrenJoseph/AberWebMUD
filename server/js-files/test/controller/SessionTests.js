@@ -1,4 +1,4 @@
-import SessionController from 'src/controller/SessionController.js';
+import { Session } from 'src/model/Session.js';
 
 var TEST_TAG = '|SESSION CONTROLLER|';
 
@@ -53,7 +53,7 @@ QUnit.skip(TEST_TAG + 'linkConnectionToSession', function (assert) {
 	assert.ok(false, 'TODO');
 });
 
-QUnit.skip(TEST_TAG + 'setClientSessionSessionId', function (assert) {
+QUnit.skip(TEST_TAG + 'setSessionId', function (assert) {
 	assert.ok(false, 'TODO');
 });
 

@@ -1,13 +1,11 @@
 import jquery from 'jquery';
-//import $ from 'libs/jquery.js';
-import { PageView } from 'src/view/page/PageView.js';
 
-//	2 arrays of the same length to allow looping for creating each line of the table
-const attributeNames = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
-const defaultStats = {'STR':1,'DEX':1,'CON':1,'INT':1,'WIS':1,'CHA':1};
-const numberInputIds = ['strNumber', 'dexNumber', 'conNumber', 'intNumber', 'wisNumber', 'chaNumber'];
-const minAttributeVal = 1;
-const maxAttributeVal = 100;
+//import EventMapping from 'src/helper/EventMapping.js';
+
+//import $ from 'libs/jquery.js';
+import { EVENTS as characterDetailsEvents, CLASS_OPTIONS, DEFAULT_STATS, ATTRIB_NAMES, ATTRIB_INPUT_IDS, MIN_ATTRIB_VAL, MAX_ATTRIB_VAL } from 'src/model/page/CharacterDetails.js';
+import { PageView } from 'src/view/page/PageView.js';
+import { EventMapping } from 'src/helper/EventMapping.js';
 
 export var _STATS_WINDOW_ID = 'stat-window';
 const _STATS_FORM_ID = 'stat-form';
@@ -20,25 +18,38 @@ const _CHAR_CLASS_SELECTION_ID = 'class-selection';
 
 export var SET_CHARDETAILS_PROMPT_MESSAGE = 'You need to set your character details.';
 
-// this might be a little messy
-// but we want to be able to store a simple ID and the Option display text
-// While still allowing indexing from option number
-export var CLASS_OPTIONS = [
-		{ id: 'fighter', text : 'Fighter'},
-		{ id: 'spellcaster', text : 'Spellcaster'}
-	];
+export const EVENTS = { SAVE_STATS : 'save_stats' };
 
+// DOM View for the Character Stats dialog window
+export default class PageCharacterDetailsView  extends EventMapping {
 
-// DOM View for the stats dialog window
-export default class PageStatsDialogView {
+	/**
+	 * Construct and manage the HTML view elements for Character Details
+	 * @param pageView the parent Page View so we can access parent view elements and behaviours
+	 * @param characterDetails CharacterDetails model to display
+	 */
+	constructor (pageView, characterDetails) {
+		super();
 
-	constructor (pageView) {
+		// We need to be able to make some calls to show/hide windows etc
 		this.pageView = pageView;
+		// Extract the page view document
+		let doc = this.pageView.pageModel.doc;
+		if (doc == undefined) {
+			throw new RangeError("No Document provided for PageCharacterDetailsView");
+		}
+
+		this.doc = this.pageView.pageModel.doc;
+
+		// Assign the stats window to the main page view windows
+		this.pageView.htmlWindows['statWindowId'] = '#'+_STATS_WINDOW_ID;
+
+		this.characterDetails = characterDetails;
 	}
 
 	buildView () {
-		var statsWindowJquery = jquery('#' + _STATS_WINDOW_ID, this.pageView.DOCUMENT);
-		var statsFormJquery = jquery('#' + _STATS_FORM_ID, this.pageView.DOCUMENT);
+		var statsWindowJquery = jquery('#' + _STATS_WINDOW_ID, this.doc);
+		var statsFormJquery = jquery('#' + _STATS_FORM_ID, this.doc);
 
 		var statsWindowExists = statsWindowJquery.length > 0;
 		var statsFormBuilt = statsFormJquery.length > 0;
@@ -53,12 +64,12 @@ export default class PageStatsDialogView {
 				statsWindowJquery.append(statWindowForm);
 			} else {
 				console.log('No preset stat window div found, building it..');
-				var statWindow = this.pageView.DOCUMENT.createElement('div');
+				var statWindow = this.doc.createElement('div');
 				statWindow.setAttribute('class', 'dialog');
 				statWindow.setAttribute('id', _STATS_WINDOW_ID);
 				statWindow.appendChild(statWindowForm);
 
-				this.pageView.getMainWindowJquery().append(statWindow);
+				return statWindow;
 			}
 
 			//console.log('Built stats window DOM element:');
@@ -66,29 +77,60 @@ export default class PageStatsDialogView {
 		}
 	}
 
-	// And in the darkness bind them
-	bindSaveCharacterDetails (callback) {
-		this.getSaveStatsButtonJquery().click(callback);
+	bindEvents () {
+			// Ensure we update our view whenever the model is updated
+			this.characterDetails.on(characterDetailsEvents.SET_STATS, this.setStatsAttributeValues);
+			let statsButtonJquery = this.getSaveStatsButtonJquery();
+
+			if (statsButtonJquery.length >= 1) {
+				statsButtonJquery[0].click(this.emit(EVENTS.SAVE_STATS));
+			} else {
+				throw new Error("Cannot bind to non-existent save stats button");
+			}
+
 	}
 
-	getSaveStatsButton () {
-		return jquery('#' + _SAVE_STATS_BUTTON_ID, this.pageView.DOCUMENT).get(0);
+	getStatsWindow() {
+		let elements = this.getStatsWindowJquery();
+		if (elements.length >= 1) {
+			return elements.get(0);
+		} else {
+			throw new Error("Stats window not present.");
+		}
 	}
 
-	getSaveStatsButtonJquery () {
-		return jquery('#' + _SAVE_STATS_BUTTON_ID, this.pageView.DOCUMENT);
+	getStatsWindowJquery() {
+		return jquery('#'+_STATS_WINDOW_ID, this.doc);
 	}
 
-	clearStatsInfoField () {
+	getSaveStatsButton() {
+		let elements = this.getSaveStatsButtonJquery();
+		if (elements.length >= 1) {
+			return elements.get(0);
+		} else {
+			throw new Error("Save stats button not present.");
+		}
+	}
+
+	getSaveStatsButtonJquery() {
+		return jquery('#' + _SAVE_STATS_BUTTON_ID, this.doc);
+	}
+
+	clearStatsInfoField() {
 		this.getStatsInfoFieldJquery().val('');
 	};
 
-	getStatsInfoField () {
-		return jquery('#' + _STATS_INFO_FIELD_ID,  this.pageView.DOCUMENT).get(0);
+	getStatsInfoField() {
+		let elements = this.getStatsInfoFieldJquery();
+		if (elements.length >= 1) {
+			return elements.get(0);
+		} else {
+			throw new Error("Stats info field not present.");
+		}
 	}
 
 	getStatsInfoFieldJquery () {
-		return jquery('#' + _STATS_INFO_FIELD_ID,  this.pageView.DOCUMENT);
+		return jquery('#' + _STATS_INFO_FIELD_ID,  this.doc);
 	}
 
 	getStatsInfoFieldValue () {
@@ -96,29 +138,33 @@ export default class PageStatsDialogView {
 	};
 
 	createSelectorOption (tagValue, text) {
-		var classSelector = this.pageView.DOCUMENT.createElement('option');
+		var classSelector = this.doc.createElement('option');
 		classSelector.setAttribute('value', tagValue);
-		classSelector.append(this.pageView.DOCUMENT.createTextNode(text));
+		classSelector.append(this.doc.createTextNode(text));
 
 		return classSelector;
 	}
 
 	//	Generates the attribute rows and appends them to the given table element
 	createTableRows (statsTable) {
-		for (var i = 0; i < attributeNames.length; i++) {
-			var attributeRow = this.pageView.DOCUMENT.createElement('tr');
-			var attributeNameElem = this.pageView.DOCUMENT.createElement('td');
-			attributeNameElem.append(this.pageView.DOCUMENT.createTextNode(attributeNames[i]));
+		let ATTRIB_NAMES = Object.keys(DEFAULT_STATS);
 
-			var attributeValElem = this.pageView.DOCUMENT.createElement('td');
+		for (var i = 0; i < ATTRIB_NAMES.length; i++) {
 
-			var attributeValInput = this.pageView.DOCUMENT.createElement('input');
+			let attribName = ATTRIB_NAMES[i]
+			var attributeRow = this.doc.createElement('tr');
+			var attributeNameElem = this.doc.createElement('td');
+			attributeNameElem.append(this.doc.createTextNode(attribName));
+
+			var attributeValElem = this.doc.createElement('td');
+
+			var attributeValInput = this.doc.createElement('input');
 			attributeValInput.setAttribute('class', 'attrVal');
 			attributeValInput.setAttribute('type', 'number');
 			attributeValInput.setAttribute('value', 1);
-			attributeValInput.setAttribute('id', numberInputIds[i]);
-			attributeValInput.setAttribute('min', minAttributeVal);
-			attributeValInput.setAttribute('max', maxAttributeVal);
+			attributeValInput.setAttribute('id', ATTRIB_INPUT_IDS[i]);
+			attributeValInput.setAttribute('min', MIN_ATTRIB_VAL);
+			attributeValInput.setAttribute('max', MAX_ATTRIB_VAL);
 			attributeValElem.append(attributeValInput);
 
 			attributeRow.append(attributeNameElem);
@@ -129,13 +175,13 @@ export default class PageStatsDialogView {
 	}
 
 	createStatsTable () {
-		var statsTable = this.pageView.DOCUMENT.createElement('table');
+		var statsTable = this.doc.createElement('table');
 		statsTable.setAttribute('id', _STATS_TABLE_ID);
 
-		var statsTableHeaderRow = this.pageView.DOCUMENT.createElement('tr');
-		var statsTableLeftHeader = this.pageView.DOCUMENT.createElement('th');
-		statsTableLeftHeader.append(this.pageView.DOCUMENT.createTextNode('Attributes'));
-		var statsTableRightHeader = this.pageView.DOCUMENT.createElement('th');
+		var statsTableHeaderRow = this.doc.createElement('tr');
+		var statsTableLeftHeader = this.doc.createElement('th');
+		statsTableLeftHeader.append(this.doc.createTextNode('Attributes'));
+		var statsTableRightHeader = this.doc.createElement('th');
 		statsTableHeaderRow.append(statsTableLeftHeader);
 		statsTableHeaderRow.append(statsTableRightHeader);
 
@@ -162,15 +208,15 @@ export default class PageStatsDialogView {
 	// Generate the inner content for the stat window
 	generateStatWindow () {
 		//	Form div to append our elements to
-		var form = this.pageView.DOCUMENT.createElement('form');
+		var form = this.doc.createElement('form');
 		form.setAttribute('id', _STATS_FORM_ID);
 
 		//	'Character Name' section
-		var nameLabel = this.pageView.DOCUMENT.createElement('p');
+		var nameLabel = this.doc.createElement('p');
 		nameLabel.setAttribute('class', 'classLabel');
-		nameLabel.append(this.pageView.DOCUMENT.createTextNode('Character Name'));
+		nameLabel.append(this.doc.createTextNode('Character Name'));
 
-		var nameInput = this.pageView.DOCUMENT.createElement('input');
+		var nameInput = this.doc.createElement('input');
 		nameInput.setAttribute('type', 'text');
 		nameInput.setAttribute('id', 'char-name-input');
 		nameInput.setAttribute('required', 'required');
@@ -178,11 +224,11 @@ export default class PageStatsDialogView {
 		nameInput.setAttribute('Title', '1-12 characters using: a-Z, 0-9, and _');
 
 		//	'Character Class' section
-		var classLabel = this.pageView.DOCUMENT.createElement('p');
+		var classLabel = this.doc.createElement('p');
 		classLabel.setAttribute('class', 'classLabel');
-		classLabel.append(this.pageView.DOCUMENT.createTextNode('Character Class'));
+		classLabel.append(this.doc.createTextNode('Character Class'));
 		//	Dropdown for class type
-		var classSelector = this.pageView.DOCUMENT.createElement('select');
+		var classSelector = this.doc.createElement('select');
 		classSelector.setAttribute('id', 'class-selection');
 		classSelector.setAttribute('disabled', true);
 
@@ -194,10 +240,10 @@ export default class PageStatsDialogView {
 		var statsTable = this.createStatsTable();
 
 		//	This allows displaying any needed info
-		var statsInfo = this.pageView.DOCUMENT.createElement('textarea');
+		var statsInfo = this.doc.createElement('textarea');
 		statsInfo.setAttribute('id', _STATS_INFO_FIELD_ID);
 
-		var saveButton = this.pageView.DOCUMENT.createElement('input');
+		var saveButton = this.doc.createElement('input');
 		saveButton.setAttribute('type', 'submit');
 		saveButton.setAttribute('id', _SAVE_STATS_BUTTON_ID);
 		saveButton.setAttribute('value', 'Save');
@@ -214,22 +260,17 @@ export default class PageStatsDialogView {
 		return form;
 	}
 
-	//	Brings up the stats window
-	showStatWindow () {
-		this.pageView.showWindow('statWindowId');
-	}
-
 	requestCharacterDetails () {
-		this.showStatWindow();
+		this.pageView.showWindow('statWindowId');
 		this.updateStatsInfoLog(SET_CHARDETAILS_PROMPT_MESSAGE, 'client');
 	}
 
 	getStatsCharacterNameVal () {
-		return jquery('#' + _CHAR_NAME_INPUT_ID, this.pageView.DOCUMENT).val();
+		return jquery('#' + _CHAR_NAME_INPUT_ID, this.doc).val();
 	}
 
 	getStatsCharacterNameJquery () {
-		return jquery('#' + _CHAR_NAME_INPUT_ID, this.pageView.DOCUMENT);
+		return jquery('#' + _CHAR_NAME_INPUT_ID, this.doc);
 	}
 
 	setStatsCharacterName (name) {
@@ -237,7 +278,7 @@ export default class PageStatsDialogView {
 	}
 
 	getStatsCharacterClass () {
-		return jquery('#' + _CHAR_CLASS_SELECTION_ID, this.pageView.DOCUMENT).val();
+		return jquery('#' + _CHAR_CLASS_SELECTION_ID, this.doc).val();
 	}
 
 	getClassOptionIndex (optionId) {
@@ -247,10 +288,10 @@ export default class PageStatsDialogView {
 	// Set the stats charClass choice to a given selection number
 	// As this will be a procedurally generated option selection
 	setStatsCharacterClass (selectionNo) {
-		var options = jquery('#'+_CHAR_CLASS_SELECTION_ID, this.pageView.DOCUMENT).find('option');
+		var options = jquery('#'+_CHAR_CLASS_SELECTION_ID, this.doc).find('option');
 		if (selectionNo > 0 && selectionNo < options.length) {
 			var optionChoice = options[selectionNo].value;
-			jquery('#'+_CHAR_CLASS_SELECTION_ID, this.pageView.DOCUMENT).val(optionChoice); //	Set the value
+			jquery('#'+_CHAR_CLASS_SELECTION_ID, this.doc).val(optionChoice); //	Set the value
 		} else {
 			throw new RangeError('Invalid character class selection option: '+ selectionNo);
 		}
@@ -265,11 +306,11 @@ export default class PageStatsDialogView {
 	getStatsAttributeValues () {
 		var output = {};
 
-		for (var i = 0; i < numberInputIds.length; i++) {
-			var statId = '#' + numberInputIds[i];
+		for (var i = 0; i < ATTRIB_INPUT_IDS.length; i++) {
+			var statId = '#' + ATTRIB_INPUT_IDS[i];
 			// Extract the value of the first match to statId
-			var statValue = parseInt(jquery(statId, this.pageView.DOCUMENT).val());
-			output[attributeNames[i]] = statValue;
+			var statValue = parseInt(jquery(statId, this.doc).val());
+			output[ATTRIB_NAMES[i]] = statValue;
 		}
 
 		return output;
@@ -286,11 +327,13 @@ export default class PageStatsDialogView {
 
 	//	Takes a JSON object of form: {'STR':1,'DEX':2,...} and sets the value fields to match
 	setStatsAttributeValues (attrValuesJSON) {
-		for (var i = 0; i < numberInputIds.length; i++) {
-			var statId = '#' + numberInputIds[i];
-			var inputVal = attrValuesJSON[attributeNames[i]];
+		console.log('Displaying stats:'+JSON.stringify(attrValuesJSON));
+
+		for (var i = 0; i < ATTRIB_INPUT_IDS.length; i++) {
+			var statId = '#' + ATTRIB_INPUT_IDS[i];
+			var inputVal = attrValuesJSON[ATTRIB_NAMES[i]];
 			// Set the value of the first match for our field
-			jquery(statId, this.pageView.DOCUMENT).val(inputVal);
+			jquery(statId, this.doc).val(inputVal);
 		}
 	}
 
@@ -307,4 +350,4 @@ export default class PageStatsDialogView {
 	}
 }
 
-export { PageStatsDialogView };
+export { PageCharacterDetailsView };
