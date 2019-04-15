@@ -8,6 +8,7 @@ import 'test/helper/ArrayHelperTests.js';
 import 'test/helper/AtlasHelperTests.js';
 import 'test/helper/EventMappingTests.js';
 import 'test/helper/MapPositionHelperTests.js';
+import 'test/helper/SpriteHelperTests.js';
 
 import 'test/model/MapModelTests.js';
 

@@ -8,8 +8,7 @@ import { MapPositionHelper } from 'src/helper/MapPositionHelper.js';
 import { MapCharacter } from 'src/model/pixi/map/MapCharacter.js';
 import { DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
 
-
-var DEFAULT_TILE_MAPPINGS = ['grass-plain', 'barn-front'];
+export var DEFAULT_TILE_MAPPINGS = ['grass-plain', 'barn-front'];
 
 var DEFAULT_WINDOW_SIZE_PIXELS = 500;
 var DEFAULT_WINDOW_SIZE = DEFAULT_WINDOW_SIZE_PIXELS / DEFAULT_TILE_SIZE;
@@ -182,6 +181,20 @@ export default class PixiMapView {
 		}
 	}
 
+	promiseSpriteForTile (tileType, localX, localY) {
+		var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
+		// Promise the loading of the subtexture
+		var spritePromise = SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileType], DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
+		return characterSprite;
+	}
+
+	promiseSpriteForPlayer (localX, localY) {
+		var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
+		// Promise the loading of the subtexture
+  	var spritePromise = SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
+		return spritePromise;
+	}
+
 	// Creates a character sprite on-the-fly to represent another character
 	//	gridX, gridY are character positions on the map
 	// TODO subscribe to new Players added to the MapModel instead
@@ -196,11 +209,11 @@ export default class PixiMapView {
 			if (this.isPositionRelativeToView(localX, localY)) {
 				// We need to await so we can return this Sprite
 				var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
-				var characterSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
+				var characterSprite = await this.promiseSpriteForPlayer(localX, localY);
 
-				let mapChar = new MapCharacter(charactername, gridX, gridY, characterSprite);
+				let mapCharacter = new MapCharacter(charactername, gridX, gridY, characterSprite);
 				let newPlayer = new Player('Person', mapCharacter);
-				this.mapModel.addPlayer(localX,localY, newPlayer);
+				this.mapModel.addPlayer(localX, localY, newPlayer);
 
 				return newPlayer;
 			} else {
@@ -211,12 +224,38 @@ export default class PixiMapView {
 		}
 	}
 
-	promiseSpriteForTile(tileType, localX, localY) {
-		var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
-		// Promise the loading of the subtexture
-		SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileType], DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
-		return spritePromise;
+	/**
+	 *
+	 * @returns a Promise for as many Sprites as we've needed to create
+	 */
+	drawPlayers() {
+		// Clear the map display container first
+		this.mapContainer.removeChildren();
+
+		//	Local looping to iterate over the view tiles
+		//	Oh gosh condense this please!
+		for (var x = 0; x < this.tileCount; x++) {
+			for (var y = 0; y < this.tileCount; y++) {
+				var globalXY = this.mapPositionHelper.localTilePosToGlobal(x, y);
+				var globalX = globalXY[0];
+				var globalY = globalXY[1];
+
+				let players = this.mapModel.getPlayers(x,y);
+
+				// If there are players, get the top one, create a Sprite for them and draw them to the map
+				if (players != undefined && players != null && players.length >= 1) {
+
+					let playerSprite = players.get(0).getCharacter().getSprite();
+
+					// Try simply adding the sprite if it's set
+					if (playerSprite != undefined && playerSprite != null) {
+						this.mapContainer.addChild(playerSprite);
+					}
+				}
+			}
+		}
 	}
+
 
 	/**
 	 *
@@ -238,7 +277,7 @@ export default class PixiMapView {
 				let mapTile = this.mapModel.getTile(globalX, globalY);
 
 				if (mapTile != undefined && mapTile != null) {
-
+						let tileType = mapTile.getTileType();
 						let tileSprite = mapTile.getSprite();
 
 						// Try simply adding the sprite if it's set

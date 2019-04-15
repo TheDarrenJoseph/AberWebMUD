@@ -132,7 +132,6 @@ TEST_TAG + 'newPlayerOnMap', function (assert) {
 	mapPlayerPromise.then( (player) => {
 		assert.ok(player instanceof Player, 'Check we created a Player for this position.');
 		assert.ok(player.getCharacter() instanceof MapCharacter, 'Check the Player has a MapCharacter');
-
 		asyncDone();
 	}, rejection => {
 		assert.ok(false, 'new Player on Map Promise rejected with: ' + rejection);
