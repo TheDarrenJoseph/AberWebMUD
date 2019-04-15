@@ -63,6 +63,10 @@ export default class EventMapping {
 		this.dispatchEvent(dispatchedEvent);
 	}
 
+	getMappings(eventString) {
+		return this.mappings[eventString];
+	}
+
 	/**
 	 * Clear all mappings for an event string
  	 */

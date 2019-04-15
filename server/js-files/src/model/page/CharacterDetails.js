@@ -70,11 +70,12 @@ export default class CharacterDetails extends EventMapping {
 				let attribDefined = theAttrib != undefined && theAttrib != null;
 				let attribValid = (theAttrib >= MIN_ATTRIB_VAL && theAttrib <= MAX_ATTRIB_VAL);
 
+				// Definitely log invalid values
 				if (attribDefined && !attribValid) {
 					console.log('Char Stats: ' + charStats + ' value for attribute invalid: ' + attribName);
 					failed = true;
 				} else {
-					console.log('Char Stats: ' + charStats + ' missing an attribute value for: ' + attribName);
+					// console.log('Char Stats: ' + charStats + ' missing an attribute value for: ' + attribName);
 					failed = true;
 				}
 

@@ -1,7 +1,8 @@
 import jquery from 'jquery';
+import { PageView } from 'src/view/page/PageView.js';
+import { EventMapping } from 'src/helper/EventMapping.js';
 
 //import $ from 'libs/jquery.js';
-import { PageView } from 'src/view/page/PageView.js';
 
 const _MESSAGE_WINDOW_ID = 'message-window';
 const _MESSAGE_INPUT_ID = 'message-input';
@@ -10,7 +11,7 @@ const _MESSAGE_LOG_ID = 'message-log';
 const _SEND_MESSAGE_BUTTON_ID = 'send-message-button';
 
 // DOM view for the chat
-export default class PageChatView {
+export default class PageChatView extends EventMapping {
 
 	//	<div id='message-window'>
 	//		<textarea id='message-log' disabled='true'></textarea>
@@ -19,34 +20,40 @@ export default class PageChatView {
 	//		<input type='submit' id='send-message-button' value='Send'>
 	//	</div>
 
-	constructor (pageView) {
-		this.pageView = pageView;
+	constructor (pageModel) {
+		super();
+
+		if (pageModel.doc !== undefined) {
+			this.doc = pageModel.doc;
+		} else {
+			throw new RangeError("Bad constructor arguments: " + JSON.stringify(arguments));
+		}
 	}
 
 	// Creates the HTML for this view if needed
 	buildView () {
-		var messageWindowJquery = jquery('#'+_MESSAGE_WINDOW_ID, this.pageView.DOCUMENT);
+		var messageWindowJquery = jquery('#'+_MESSAGE_WINDOW_ID, this.doc);
 		var messageWindowExists = messageWindowJquery.length > 0;
 		
 		if (!messageWindowExists) {
 			// Parent div
-			var messageWindow = this.pageView.DOCUMENT.createElement('div');
+			var messageWindow = this.doc.createElement('div');
 			messageWindow.setAttribute('id', _MESSAGE_WINDOW_ID);
 			
-			var messageLog = this.pageView.DOCUMENT.createElement('textarea');
+			var messageLog = this.doc.createElement('textarea');
 			messageLog.setAttribute('id', _MESSAGE_LOG_ID);
 			// read-only message log
 			messageLog.setAttribute('disabled', true);
 						
-			var messageInput = this.pageView.DOCUMENT.createElement('input');
+			var messageInput = this.doc.createElement('input');
 			messageInput.setAttribute('id', _MESSAGE_INPUT_ID);
 			messageInput.setAttribute('type', 'text');
 			
-			var pwdInput = this.pageView.DOCUMENT.createElement('input');
+			var pwdInput = this.doc.createElement('input');
 			pwdInput.setAttribute('id', _PWD_INPUT_ID);
 			pwdInput.setAttribute('type', 'password');
 
-			var submitButton = this.pageView.DOCUMENT.createElement('input');
+			var submitButton = this.doc.createElement('input');
 			submitButton.setAttribute('type', 'submit');
 			submitButton.setAttribute('id', _SEND_MESSAGE_BUTTON_ID);
 			submitButton.setAttribute('value', 'Send');
@@ -56,35 +63,35 @@ export default class PageChatView {
 			messageWindow.append(pwdInput);
 			messageWindow.append(submitButton);
 
-			this.pageView.getMainWindowJquery().append(messageWindow);
+			return messageWindow;
 		}
 		
 		//console.log('Built chat view DOM element:');
-		//console.log(jquery('#'+_MESSAGE_WINDOW_ID, this.pageView.DOCUMENT)[0]);
+		//console.log(jquery('#'+_MESSAGE_WINDOW_ID, this.doc)[0]);
 	}	
 	
 	updateInputField (character) {
 		var inputField;
-		inputField = jquery('#'+_MESSAGE_INPUT_ID, this.pageView.DOCUMENT);
+		inputField = jquery('#'+_MESSAGE_INPUT_ID, this.doc);
 		if (inputField.val.length === 0) {
 			return inputField.append('<p class=\'user-input\'>' + character.data + '</p>');
 		} else {
-			return jquery('#'+_MESSAGE_INPUT_ID+'.user-input', this.pageView.DOCUMENT).append(character.data);
+			return jquery('#'+_MESSAGE_INPUT_ID+'.user-input', this.doc).append(character.data);
 		}
 	};
 	
 	// Return a single matching DOM element
 	getMessageInputField () {
-		return jquery('#'+_MESSAGE_INPUT_ID, this.pageView.DOCUMENT)[0];
+		return jquery('#'+_MESSAGE_INPUT_ID, this.doc)[0];
 	}
 
 	getMessageInput () {
-		return jquery('#'+_MESSAGE_INPUT_ID, this.pageView.DOCUMENT).val();
+		return jquery('#'+_MESSAGE_INPUT_ID, this.doc).val();
 	}
 
 	// Return a single matching DOM element
 	getPasswordInputFieldJquery () {
-		return jquery('#'+_PWD_INPUT_ID, this.pageView.DOCUMENT);
+		return jquery('#'+_PWD_INPUT_ID, this.doc);
 	}
 	
 	// Return a single matching DOM element
@@ -93,28 +100,28 @@ export default class PageChatView {
 	}
 
 	getPasswordInput () {
-		return jquery('#'+_PWD_INPUT_ID, this.pageView.DOCUMENT).val();
+		return jquery('#'+_PWD_INPUT_ID, this.doc).val();
 	}
 	
 	getMessageLogValue () {
-		return jquery('#'+_MESSAGE_LOG_ID, this.pageView.DOCUMENT).val();
+		return jquery('#'+_MESSAGE_LOG_ID, this.doc).val();
 	};
 
 	clearMessageLog () {
-		jquery('#'+_MESSAGE_LOG_ID, this.pageView.DOCUMENT).val('');
+		jquery('#'+_MESSAGE_LOG_ID, this.doc).val('');
 	}
 
 	setMessageLog (text) {
-		return jquery('#'+_MESSAGE_LOG_ID, this.pageView.DOCUMENT).val(text);
+		return jquery('#'+_MESSAGE_LOG_ID, this.doc).val(text);
 	};
 
 	endPasswordSubmission () {
-		let passwordField = jquery('#'+_PWD_INPUT_ID, this.pageView.DOCUMENT);
+		let passwordField = jquery('#'+_PWD_INPUT_ID, this.doc);
 		passwordField.val('');
 
 		//	Hide the field to show the normal input box
 		passwordField.hide();
-		jquery('#'+_MESSAGE_LOG_ID, this.pageView.DOCUMENT).val('');
+		jquery('#'+_MESSAGE_LOG_ID, this.doc).val('');
 	}
 	
 	// Tag to show message context
@@ -130,31 +137,31 @@ export default class PageChatView {
 	//	Updates the input field using the message and username strings
 	updateMessageLog (msg, username) {
 		var logVal;
-		logVal = jquery('#'+_MESSAGE_LOG_ID, this.pageView.DOCUMENT).val();
+		logVal = jquery('#'+_MESSAGE_LOG_ID, this.doc).val();
 
 		if (username != null && username !== undefined) msg = this.getContextTagString(username) + msg; //	Add a user tag to the message
 
-		jquery('#'+_MESSAGE_LOG_ID, this.pageView.DOCUMENT).val(logVal + msg + '\n');
+		jquery('#'+_MESSAGE_LOG_ID, this.doc).val(logVal + msg + '\n');
 	};
 
 	clearMessageInputField () {
-		return jquery('#'+_MESSAGE_INPUT_ID, this.pageView.DOCUMENT).val('');
+		return jquery('#'+_MESSAGE_INPUT_ID, this.doc).val('');
 	};
 
 	showPasswordInput () {
-		var mypwdinput = jquery('#'+_PWD_INPUT_ID, this.pageView.DOCUMENT);
+		var mypwdinput = jquery('#'+_PWD_INPUT_ID, this.doc);
 		mypwdinput.show();
 	}
 
 	hidePasswordInput () {
-		jquery('#'+_PWD_INPUT_ID, this.pageView.DOCUMENT).hide();
+		jquery('#'+_PWD_INPUT_ID, this.doc).hide();
 	}
 
 	//	Binds 'Enter' to send message behavior
 	bindEnterKeyUp (method) {
 		//	grab the fields
-		var messageField = jquery('#'+_MESSAGE_INPUT_ID, this.pageView.DOCUMENT);
-		var passwordField = jquery('#'+_PWD_INPUT_ID, this.pageView.DOCUMENT);
+		var messageField = jquery('#'+_MESSAGE_INPUT_ID, this.doc);
+		var passwordField = jquery('#'+_PWD_INPUT_ID, this.doc);
 		messageField.unbind('keyup'); //	Clear previous bindings first
 		passwordField.unbind('keyup');
 		
@@ -166,7 +173,7 @@ export default class PageChatView {
 	
 	//	Switches the 'Send' message behavior from message to password sending
 	bindMessageButton (keyUpMethod) {
-		var thisButton = jquery('#'+_SEND_MESSAGE_BUTTON_ID, this.pageView.DOCUMENT);
+		var thisButton = jquery('#'+_SEND_MESSAGE_BUTTON_ID, this.doc);
 		thisButton.unbind('click');
 		this.bindEnterKeyUp(keyUpMethod); //	Bind the enter key too
 

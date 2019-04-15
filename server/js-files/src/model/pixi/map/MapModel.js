@@ -1,6 +1,6 @@
 import ArrayHelper from 'src/helper/ArrayHelper.js'
-import Player from 'src/model/Player.js';
 import MapTile from 'src/model/pixi/map/MapTile.js';
+import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 
 // Default map size in tiles
 export var DEFAULT_MAP_SIZE_XY = 20;
@@ -15,7 +15,7 @@ export default class MapModel {
 	constructor (tileCount = DEFAULT_MAP_SIZE_XY) {
 		this.mapSizeX = tileCount;
 		this.mapSizeY = tileCount;
-		// We can store multiple Players per tile
+		// We can store multiple Players per tile, so initialise as Arrays
 		this.mapPlayerArray = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, Array);
 		this.mapTileArray = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, MapTile);
 	}
@@ -55,6 +55,10 @@ export default class MapModel {
 		return [this.mapSizeX, this.mapSizeY];
 	}
 
+	getTiles(){
+		return this.mapTileArray;
+	}
+
 	/**
 	 * Get the MapTile at a position
 	 * @param x
@@ -63,6 +67,13 @@ export default class MapModel {
 	 */
 	getTile(x,y) {
 		return this.mapTileArray[x][y];
+	}
+
+	/**
+	 * @returns a 2D Array of Arrays (3D) containing any Player(s) for each position
+	 */
+	getPlayers(){
+		return this.mapPlayerArray;
 	}
 
 	/**
@@ -98,11 +109,23 @@ export default class MapModel {
 			return null;
 	}
 
+	/**
+	 *
+	 * @param x
+	 * @param y
+	 * @param sprite
+	 */
+	setTileSprite(x,y, tileSprite) {
+		this.getTile(x,y).setSprite(tileSprite);
+	}
+
 	async initMapTileSpriteArray () {
 		// Create enough dummy tiles for the map model
 		// Create a pretty crappy 2d array of tileCount size
 		for (var x = 0; x < this.mapSizeX; x++) {
 			for (var y = 0; y < this.mapSizeY; y++) {
+				let tileType = this.getTile(x,y).getTileType();
+
 				let tileSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD_GRASS, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
 
 				//console.log('Sprite made: '+x+' '+y+' ');
@@ -118,6 +141,8 @@ export default class MapModel {
 			}
 		}
 	}
+
+
 }
 
 // Allow named import also

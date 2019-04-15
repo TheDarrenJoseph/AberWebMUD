@@ -2,28 +2,19 @@
 
 import io from 'socket.io-client';
 
-//	Other Handlers
-import { PixiController } from 'src/controller/pixi/PixiController.js';
-
-//	There's going to be a look of controller hookups here for now..
-import SessionController from 'src/controller/SessionController.js';
-import PageController from 'src/controller/page/PageController.js';
-
-//	Views
-import PageChatView from 'src/view/page/PageChatView.js';
-import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
-import { PageView } from 'src/view/page/PageView.js';
-
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 
 //import io from 'socket.io-client';
 // var socket = io();
 
+// One instance only
+var SOCKET_HANDLER = null;
+
 //	Static Helper class
 //	A collection of SocketIO management functions
 class SocketHandler {
 	
-	constructor (pageController) {
+	constructor () {
 		this.socket = new io();
 	}
 	
@@ -81,7 +72,17 @@ class SocketHandler {
 	handleSessionError () {
 		console.log('Session Error!');
 	}
+
+	static getInstance() {
+		if (SOCKET_HANDLER == null) {
+			SOCKET_HANDLER = new SocketHandler();
+		} else {
+			return SOCKET_HANDLER;
+		}
+	}
 }
+
+
 
 export { SocketHandler };
 export default SocketHandler;

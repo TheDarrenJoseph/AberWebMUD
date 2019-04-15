@@ -4,9 +4,6 @@
 export default class Page {
 	constructor (doc) {
 		this.doc = doc;
-		// Only perform setup once
-		this.isSetup   = false;
-		this.uiEnabled = false;
 	}
 }
 

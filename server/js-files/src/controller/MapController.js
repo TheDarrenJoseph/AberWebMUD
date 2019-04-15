@@ -1,12 +1,12 @@
 //	Manages a Map model, updates to it, and handles delegation to the PixiMapView renderer
 // Default imports
-import SessionController from 'src/controller/SessionController.js';
 import MapPositionHelper from 'src/helper/MapPositionHelper.js';
 import ValidationHandler from 'src/handler/ValidationHandler.js';
-import Map from 'src/model/Map.js';
+import MapModel from 'src/model/pixi/map/MapModel.js';
 import PixiMapView from 'src/view/pixi/PixiMapView.js';
 
 // Named imports
+import { Session } from 'src/model/Session.js';
 import { PageView } from 'src/view/page/PageView.js';
 // import { SpriteHelper } from 'src/helper/pixi/SpriteHelper.js';
 
@@ -15,13 +15,17 @@ export var POS_NOT_VALID_MAP_VIEW_ERROR = 'Cannot set Map view start position, m
 export default class MapController {
 	// Create a map controller for a specific map view
 	// renderer - the renderer from the main pixi view
-	constructor (renderer, map = new Map(), windowSize, pixiMapView = null, assetPaths) {
-		// Setup the pixi map view so we have our window dimensions
-		this.windowSize = windowSize;
-		this.mapModel = map;
+	constructor (renderer, map = new MapModel(), windowSize, pixiMapView, assetPaths) {
 
-		if (pixiMapView === null) {
-			this.pixiMapView = new PixiMapView(this.mapModel, renderer, this.windowSize, assetPaths);
+		// Setup the pixi map view so we have our window dimensions
+		if (map instanceof  MapModel) {
+			this.mapModel = map;
+		} else {
+			throw new RangeError("map is not a MapModel: " + map);
+		}
+
+		if (pixiMapView === undefined) {
+			this.pixiMapView = new PixiMapView(this.mapModel, renderer, windowSize, assetPaths);
 		} else {
 			this.pixiMapView = pixiMapView;
 		}
@@ -45,12 +49,8 @@ export default class MapController {
 		return this.pixiMapView;
 	}
 
-	redrawCharacters () {
-		this.pixiMapView.drawMapCharacterArray();
-		this.pixiMapView.renderCharacterContainer();
-	}
 
-	//	Handles a movement
+	//	Handles a character movement
 	// 'movement-update', {'username':message['username'],'oldX':oldX, 'oldY':oldY,'pos_x':pos_x,'pos_y':pos_y}
 	handleMovementUpdate (updateJSON) {
 		var username = updateJSON['username'];
@@ -61,14 +61,14 @@ export default class MapController {
 
 		if (ValidationHandler.isValidMovementUpdateData(updateJSON)) {
 			//	If it's the player, follow them with the view
-			if (username === SessionController.getClientSessionUsername()) {
+			if (username === Session.getClientSessionUsername()) {
 				this.showMapPosition(posX, posY);
 			}
 
 			console.log('A character has moved.. \nUser:' + username + ' to ' + posX + ' ' + posY);
 			// updateCharacterSpritePos(username, old_x, old_y, pos_x, pos_y);
-			this.pixiMapView.newCharacterOnMap(username, posX, posY);
-			this.redrawCharacters();
+			this.pixiMapView.newPlayerOnMap(username, 'Unknown', posX, posY);
+			this.pixiMapView.drawMapPlayerArray();
 		} else {
 			throw new Error('Missing movement update data ' + JSON.stringify(updateJSON));
 		}
@@ -79,7 +79,7 @@ export default class MapController {
 		this.setMapViewPosition(startX, startY);
 
 		// Either full re-draw or just re-render
-		//return this.pixiMapView.drawMapToGrid();
+		//return this.pixiMapView.drawMapTiles();
 		this.pixiMapView.renderAll();
 	}
 

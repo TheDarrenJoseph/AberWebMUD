@@ -1,26 +1,52 @@
 import PIXI from 'libs/pixi.min.js';
 
 import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
-import ArrayHelper from 'src/helper/ArrayHelper.js'
+import ArrayHelper from 'src/helper/ArrayHelper.js';
+import Player from 'src/model/Player.js';
 
 import { MapPositionHelper } from 'src/helper/MapPositionHelper.js';
-import { MapCharacter } from 'src/model/pixi/MapCharacter.js';
+import { MapCharacter } from 'src/model/pixi/map/MapCharacter.js';
+import { DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
 
-export var DEFAULT_TILE_SIZE = 40;
 
 var DEFAULT_TILE_MAPPINGS = ['grass-plain', 'barn-front'];
 
+var DEFAULT_WINDOW_SIZE_PIXELS = 500;
+var DEFAULT_WINDOW_SIZE = DEFAULT_WINDOW_SIZE_PIXELS / DEFAULT_TILE_SIZE;
+
 export default class PixiMapView {
+
+	/**
+	 *
+	 * @param mapModel a MapModel
+	 * @param renderer PIXI.WebGLRenderer or PIXI.CanvasRenderer
+	 * @param windowSize square window size Number (pixels)
+	 * @param assetPaths
+	 */
 	constructor (mapModel, renderer, windowSize, assetPaths) {
-		// For map model position validations
-		this.mapModel = mapModel;
+
+		if (mapModel !== undefined) {
+			// For map model position validations
+			this.mapModel = mapModel;
+		} else {
+			throw new RangeError("MapModel undefined.");
+		}
 
 		//	Maps tile codes to resource keys
 		this.tileMappings = DEFAULT_TILE_MAPPINGS;
-		this.renderer = renderer;
+
+		if (renderer instanceof PIXI.WebGLRenderer || renderer instanceof PIXI.CanvasRenderer) {
+			this.renderer = renderer;
+		} else {
+			throw new RangeError("renderer is not a supported Pixi Renderer type (WebGLRenderer, CanvasRenderer): " + renderer);
+		}
+
 		this.assetPaths = assetPaths;
 
 		this.tileSize = DEFAULT_TILE_SIZE;
+
+		if (windowSize !== undefined)
+		this.windowSize = windowSize;
 
 		// tileCount is the number of tiles we can fit into this square area
 		this.tileCount = this.getFittableTiles(windowSize, this.tileSize);
@@ -64,24 +90,13 @@ export default class PixiMapView {
 		this.characterContainer.name = 'characterContainer';
 		this.parentContainer.addChild(this.mapContainer, this.characterContainer);
 
-		//	Sprites for the players in the current map view
-		// 2D array containing arrays for all characters in a position
-		this.mapCharacterArray = ArrayHelper.create2dArray(this.tileCount, this.tileCount, Array);
+
 		this.mapPositionHelper = new MapPositionHelper(this);
 
 		// For quick debugging
 		// console.log(this);
 	}
 
-	async initialise () {
-		if (this.tileSpriteArray === undefined) {
-			//	Sprites for the map viewPixiMapView
-			let tsa = await this.buildTileSpriteArray();
-			this.tileSpriteArray = tsa;
-		}
-
-		return;
-	}
 
 	getParentContainer () {
 		return this.parentContainer;
@@ -111,38 +126,66 @@ export default class PixiMapView {
 		return this.tileMappings[tileTypeIndex];
 	}
 
-	async buildTileSpriteArray () {
+	/**
+	 * Removes the matching sprite for the given x,y, and username from the Pixi container.
+	 * @param x local view X pos
+	 * @param y local view Y pos
+	 * @param username player username to find
+	 */
+	removePlayerFromView(x, y, username) {
+		let playerCharacterSprite = this.mapModel.getPlayer(x,y, username).getCharacter().getSprite();
+		if (playerCharacterSprite !== null) {
+			characterContainer.removeChild(playerCharacterSprite);
+		} else {
+			throw new RangeError("Player Character Sprite not found to remove it from the map view.");
+		}
+	}
+
+	/**
+	 * Needed?
+	 * Adds all map tile sprites to the respective Pixi Container for rendering
+	 */
+	addMapTilesToView () {
 		// Create enough dummy tiles for the map model
 		// Create a pretty crappy 2d array of tileCount size
-		var tileSpriteArray = Array(this.tileCount);
-		for (var x = 0; x < this.tileCount; x++) {
-			tileSpriteArray[x] = Array(this.tileCount); // 2nd array dimension per row
-			for (var y = 0; y < this.tileCount; y++) {
-				let tileSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD_GRASS, 'grass-plain', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
-
-				//console.log('Sprite made: '+x+' '+y+' ');
-				let pixelX = x * this.tileSize;
-				let pixelY = y * this.tileSize;
-				let spritePos = new PIXI.Point(pixelX, pixelY);
-				tileSprite.position = spritePos;
-				tileSprite.interactive = true;
-				tileSprite.name = ('' + x) + y;
-
-				//	allocate it to the tileSpriteArray
-				tileSpriteArray[x][y] = new Array(tileSprite);
-
-				// and to the Pixi Container
-				this.mapContainer.addChild(tileSprite);
+		for (var x = 0; x < this.mapSizeX; x++) {
+			for (var y = 0; y < this.mapSizeY; y++) {
+				// Add the map tile sprites to the mapContainer
+				let mapTileSprite = this.mapModel.getTile(x, y).getSprite();
+				if (mapTileSprite !== undefined && mapTileSprite !== null) {
+					this.mapContainer.addChild(mapTileSprite);
+				}
 			}
 		}
-
-		return tileSpriteArray;
 	}
-		
 
-	//	Creates a character sprite on-the-fly to represent another character
+	/**
+	 * Needed?
+	 * Adds all character sprites to the respective Pixi Container for rendering
+	 */
+	addPlayersToView () {
+		// Create enough dummy tiles for the map model
+		// Create a pretty crappy 2d array of tileCount size
+		for (var x = 0; x < this.mapSizeX; x++) {
+			for (var y = 0; y < this.mapSizeY; y++) {
+				// Extract the sprites for every player on the tile
+				// And add those to the container too
+				let mapCharacterSprites = this.mapModel.getPlayers(x,y).map(player => player.getCharacter().getSprite());
+				mapCharacterSprites.forEach(sprite => {
+					let charSprite  = mapCharacterSprites[i];
+					if (charSprite !== undefined && charSprite !== null) {
+						this.characterContainer.addChild(charSprite);
+					}
+				});
+
+			}
+		}
+	}
+
+	// Creates a character sprite on-the-fly to represent another character
 	//	gridX, gridY are character positions on the map
-	async newCharacterOnMap (charactername, gridX, gridY) {
+	// TODO subscribe to new Players added to the MapModel instead
+	async newPlayerOnMap (username, charactername, gridX, gridY) {
 		if (!this.mapModel.isPositionInMap(gridX, gridY)) {
 			throw new RangeError('Invalid position for MapCharacter! (must be a valid global map co-ord): ' + gridX + ',' + gridY);
 		} else {
@@ -152,15 +195,14 @@ export default class PixiMapView {
 			var localY = localPos[1];
 			if (this.isPositionRelativeToView(localX, localY)) {
 				// We need to await so we can return this Sprite
-				var characterSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
 				var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
-				characterSprite.x = pixiPos[0];
-				characterSprite.y = pixiPos[1];
+				var characterSprite = await SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
 
 				let mapChar = new MapCharacter(charactername, gridX, gridY, characterSprite);
-				this.mapCharacterArray[localX][localY].push(mapChar);
+				let newPlayer = new Player('Person', mapCharacter);
+				this.mapModel.addPlayer(localX,localY, newPlayer);
 
-				return mapChar;
+				return newPlayer;
 			} else {
 				console.log('New player not in our view at this position: ' + gridX + ' ' + gridY);
 			}
@@ -168,80 +210,87 @@ export default class PixiMapView {
 			return null;
 		}
 	}
-	
-	// Clears and rebuilds the mapContainer contents
-	drawMapToGrid () {
-		let subTexturePromises = new Array();
-		
+
+	promiseSpriteForTile(tileType, localX, localY) {
+		var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
+		// Promise the loading of the subtexture
+		SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileType], DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
+		return spritePromise;
+	}
+
+	/**
+	 *
+	 * @returns a Promise for as many Sprites as we've needed to create
+	 */
+	drawMapTiles() {
+		let spritePromises = new Array();
+
 		// Clear the map display container first
-		// Might not need this
-		// this.mapContainer.removeChildren();
-		
+		this.mapContainer.removeChildren();
+
 		//	Local looping to iterate over the view tiles
 		//	Oh gosh condense this please!
 		for (var x = 0; x < this.tileCount; x++) {
 			for (var y = 0; y < this.tileCount; y++) {
-				// Grab the Sprite for this pos
-				let tileSprite = this.tileSpriteArray[x][y];
-				
-				if (tileSprite != undefined && tileSprite != null) {
-					try {
-						var globalXY = this.mapPositionHelper.localTilePosToGlobal(x, y);
-						var globalX = globalXY[0];
-						var globalY = globalXY[1];
-						if (this.mapModel.isPositionInMap(globalX, globalY)) {
-							var tileFromServer = this.mapModel.mapTiles[globalX][globalY];
-							if (tileFromServer != undefined && tileFromServer != null) {
-								
-								// Promise the loading of the subtexture
-								var subTexturePromise = SpriteHelper.promisePixiTexture(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileFromServer.tileType], DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE);
-								subTexturePromises.push(subTexturePromise);
-								
-								// Then perform the mapContainer update asynchronously
-								subTexturePromise.then(subTexture => {
-									//	If the texture exists, update this sprite's texture,
-									// and add it to the pixi container
-									if (subTexture != null) {
-										tileSprite.texture = subTexture;
-										// Might not need this
-										//this.mapContainer.addChild(tileSprite);
-									}
-								}).catch(err => {
-									console.log('Subtexture promise failed when loading a texture to draw the map to view: ' + err);
-								});
-															
-							} else {
-								throw new RangeError('Map model data from remote is missing.');
+				var globalXY = this.mapPositionHelper.localTilePosToGlobal(x, y);
+				var globalX = globalXY[0];
+				var globalY = globalXY[1];
+				let mapTile = this.mapModel.getTile(globalX, globalY);
+
+				if (mapTile != undefined && mapTile != null) {
+
+						let tileSprite = mapTile.getSprite();
+
+						// Try simply adding the sprite if it's set
+						if (tileSprite != undefined && tileSprite != null) {
+							this.mapContainer.addChild(tileSprite);
+						} else {
+							// Otherwise try to create a Sprite for this tile
+							try {
+								// Only draw bits of the map we can actually seee
+								if (this.mapModel.isPositionInMap(globalX, globalY)) {
+									var tileSpritePromise = this.promiseSpriteForTile(tileType, x, y);
+
+									// Then perform the mapContainer update asynchronously
+									tileSpritePromise.then(tileSprite => {
+										this.mapContainer.addChild(tileSprite);
+									}).catch(err => {
+										console.log('Sprite promise failed when building a tile Sprite: ' + err);
+									});
+
+								}
+							} catch (err) {
+								// Local / Global conversion failure isn't an issue here.
+								continue;
 							}
 						}
-					} catch (err) {
-						// Local / Global conversion failure isn't an issue here.
-						continue;
-					}
-				} else {
-					throw new RangeError('No tile Sprite for map position: ' + x + ', ' + y);
 				}
 			}
 		}
-		// Return a promise of all subtexture updates
-		// then Re-drawing the container when they are complete
-		return Promise.all(subTexturePromises).then(() => { this.renderMapContainer });
-	} 
 
-	// Draws the map characters
-	drawMapCharacterArray () {
+		return Promise.all(spritePromises).then(() => { this.renderMapContainer });
+	}
+
+	/**
+	 * Draws the map characters,
+	 * making assumptions that character sprites are already set (I hate making these)
+	 */
+	drawMapPlayerArray () {
 		this.characterContainer.removeChildren();
 
 		for (var x = 0; x < this.mapModel.tileCount; x++) {
 			for (var y = 0; y < this.mapModel.tileCount; y++) {
 				// Draw whatever's at the top of the array
-				var thisCharacter = this.mapCharacterArray[x][y][0];
+				//var thisCharacter = this.mapPlayerArray[x][y][0];
+				var thisCharacter = this.mapModel.getPlayers(x,y).get(0).getCharacter();
 
 				if (thisCharacter != null && thisCharacter.sprite != null) {
 					this.characterContainer.addChild(thisCharacter.sprite);
 				}
 			}
 		}
+
+		renderCharacterContainer;
 	}
 
 	//	Check whether or not this position is a view-relative one using x/y from 0 - tileCount
@@ -304,14 +353,21 @@ export default class PixiMapView {
 	}
 
 	getFittableTiles (windowSize, tileSize) {
-		// Rounding down (floor) to get a valid tile count on odd.
-		let fittableTiles = Math.floor(windowSize / tileSize);
-		// Ensure tileCount is even to allow nice halving.
-		if (fittableTiles % 3 === 0) {
-			fittableTiles--;
-		}
+		// I guess we'll check types ffs
+		if (Number.isInteger(windowSize) && Number.isInteger(tileSize)) {
+			// Rounding down (floor) to get a valid tile count on odd.
+			let fittableTiles = Math.floor(windowSize / tileSize);
+			// Ensure tileCount is even to allow nice halving.
+			if (fittableTiles % 3 === 0) {
+				fittableTiles--;
+			}
 
-		return fittableTiles;
+			// DEBUG
+			//console.log(windowSize + ',' + tileSize + ' Fittable: ' + fittableTiles)
+			return fittableTiles;
+		} else {
+			throw new RangeError("Cannot get fittable tiles, input(s) non-Number : " + windowSize + ", " + tileSize);
+		}
 	}
 
 	//	Adjusts the start values for drawing the map

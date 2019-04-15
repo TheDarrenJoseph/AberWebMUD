@@ -2,8 +2,7 @@
 // aka the Controller Controller
 
 // Default imports
-import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
-import SessionController from 'src/controller/SessionController.js';
+import PageCharacterDetailsView from 'src/view/page/PageCharacterDetailsView.js';
 import PageController from 'src/controller/page/PageController.js';
 
 // Named imports
@@ -12,10 +11,12 @@ import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { Session } from 'src/model/Session.js';
 
-class GameControllerClass {
+export class GameControllerClass {
 	
 	constructor() {		
-		this.pageController = new PageController(this.characterDetailsConfirmed);
+		this.pageController = new PageController();
+		this.pixiController = new PixiController(PageView.getWindowDimensions(), this.pageController);
+		
 		// Extract the view for now
 		this.pageView = this.pageController.pageView;
 		this.socketHandler = new SocketHandler();
@@ -25,25 +26,36 @@ class GameControllerClass {
 		//this.pixiController.setupUI();
 	}
 	
-	onConnected(){
+	onConnected() {
 		console.log('SocketIO connected to game server!');
 		console.log(this.pageController);
-		
-		this.bindChat();
-		this.bindStatsUpdates();
+
+		this.bindComponents();
+
 		this.socketHandler.emit('map-data-request');
 	}
 	
 	connect() {
 		this.socketHandler.connectSocket('http://localhost:5000', () => { this.onConnected() });
 	}
-	
-	
+
 	// Setup and enable UI elements
 	enableUI () {
-			PixiController.enableUI();
+			this.pixiController.enableUI();
 			this.pageController.enableUI();
 	}
+
+	bindComponents () {
+		this.pageController.bindStageClick(this.pixiController.stageClicked);
+
+		// EventMappings
+		this.pageController.pageCharacterDetailsView.on('save-details')
+		this.pageController.characterDetails.on(characterDetailsEvents.DETAILS_CONFIRMED, this.characterDetailsConfirmed);
+
+		this.bindChat();
+		this.bindStatsUpdates();
+	}
+
 	
 	//	Continues the login process after a user inputs their character details
 	characterDetailsConfirmed () {
@@ -51,22 +63,21 @@ class GameControllerClass {
 		//	Hide the stats window
 		this.pageView.hideWindow('statWindowId');
 		this.enableUI();
-		PixiController.getMapController().showMapPosition(Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
+		this.pixiController.getMapController().showMapPosition(Session.clientSession.characterDetails.pos_x, Session.clientSession.characterDetails.pos_y);
 
 		//	Creates the new character to represent the player
-		// PixiMapView.newCharacterOnMap(Session.clientSession.character.charname, Session.clientSession.character.pos_x, Session.clientSession.character.pos_y);
-		// mapController.drawMapCharacterArray();
+		// TODO Add a player and draw them
 	}
 	
 	newUser(username) {
 		// Store the username for later
-		SessionController.setClientSessionUsername(username);
+		Session.setClientSessionUsername(username);
 		this.pageController.requestUserPassword(true);
 	}
 	
 	handleSessionLinking (data) {
 		// Send the data over to the session controller for linking
-		SessionController.linkConnectionToSession(data);
+		Session.linkConnectionToSession(data);
 
 		//	Session start welcome message
 		//	Unpack message data and send it to the message log
@@ -76,10 +87,17 @@ class GameControllerClass {
 	bindStatsUpdates () {
 		//	Link the Session using the sessionId response
 		this.socketHandler.bind('connection-response', (data) => { this.handleSessionLinking(data) } );
-		this.socketHandler.bind('map-data-response', SessionController.saveMapUpdate);
+
+
+		//this.socketHandler.bind('map-data-response', Session.saveMapUpdate);
+		this.socketHandler.bind('map-data-response', (data) => {
+			let mapModel = this.pixiController.getMapController().getMap()
+			MessageHandler.updateMapFromResponse(mapModel, mapJson);
+		});
+
 
 		this.socketHandler.bind('movement-response',  (data) => { this.pageController.handleMovementResponse(data) });
-		this.socketHandler.bind('movement-update', PixiController.handleMovementUpdate);
+		this.socketHandler.bind('movement-update', this.pixiController.handleMovementUpdate);
 
 		this.socketHandler.bind('character-details-update',  (data) => { this.pageController.handleCharacterUpdateResponse(data) });
 		this.socketHandler.bind('request-password',  (newUser) => { this.pageController.requestUserPassword(newUser) }); //  Request for existing password
@@ -92,7 +110,16 @@ class GameControllerClass {
 		console.log('Received: ' + data);
 		this.pageController.pageChatView.updateMessageLog(messageData, username);
 	}
-	
+
+	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
+	handlePlayerLogin (data) {
+		// Save this data for our session
+		Session.updateClientSessionData(data);
+
+		this.pageController.checkCharacterDetails( () => { this.characterDetailsConfirmed() });
+	}
+
+
 	bindChat () {
 		// Socket custom event trigger for message response, passing in our function for a callback
 		this.socketHandler.bind('chat-message-response', this.handleMessageData);

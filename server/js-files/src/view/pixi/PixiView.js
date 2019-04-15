@@ -144,7 +144,7 @@ export default class PixiView {
 	}
 
 	setHealthBarValue (health) {
-		this.statBars[0].setValue(Session.clientSession.character.health);
+		this.statBars[0].setValue(Session.clientSession.characterDetails.health);
 		this.statBars[0].drawInnerBar();
 	}
 

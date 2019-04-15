@@ -6,9 +6,21 @@ const DEFAULT_TILETYPE = 0;
  *  sprite - A Pixi Sprite for representing the given tileType
  */
 export default class MapTile {
-	constructor (tileType = DEFAULT_TILETYPE) {
+	constructor (tileType = DEFAULT_TILETYPE, sprite=null) {
 		this.tileType = tileType;
-		this.sprite = null;
+		this.sprite = sprite;
+	}
+
+	getTileType() {
+		return this.tileType;
+	}
+
+	setTileType(tileType) {
+		if (Number.isInteger(tileType)) {
+			this.tileType = tileType;
+		} else {
+			throw new RangeError("tileType is not an Integer");
+		}
 	}
 
 	getSprite() {

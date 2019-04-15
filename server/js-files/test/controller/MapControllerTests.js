@@ -14,7 +14,7 @@ var MAX_TIMEOUT = 2000;
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
-	mapController = new MapController(pixiView.getRenderer(), undefined, PageView.getWindowDimensions(), null, ASSET_PATHS);
+	mapController = new MapController(pixiView.getRenderer(), undefined, PageView.getWindowDimensions(), undefined, ASSET_PATHS);
 }
 
 // Setup / assertions before each test

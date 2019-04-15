@@ -1,4 +1,4 @@
-import { PixiController, PixiControllerClass } from 'src/controller/pixi/PixiController.js';
+import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PageView } from 'src/view/page/PageView.js';
 
 var TEST_TAG = '|PIXI CONTROLLER|';
@@ -14,8 +14,8 @@ function beforeAll (assert) {
 function beforeEachTest (assert) {
 	// Make sure we have a fresh controller every time
 	// To prevent knock-on state changes
-	pixiController = new PixiControllerClass(PageView.getWindowDimensions());
-	assert.ok(pixiController instanceof PixiControllerClass, 'Check controller instance is instanciated.');
+	pixiController = new PixiController(PageView.getWindowDimensions());
+	assert.ok(pixiController instanceof PixiController, 'Check controller instance is instanciated.');
 }
 
 // Hookup before each test setup / assertion

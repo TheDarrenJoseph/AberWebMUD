@@ -47,36 +47,6 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		this.characterDetails = characterDetails;
 	}
 
-	buildView () {
-		var statsWindowJquery = jquery('#' + _STATS_WINDOW_ID, this.doc);
-		var statsFormJquery = jquery('#' + _STATS_FORM_ID, this.doc);
-
-		var statsWindowExists = statsWindowJquery.length > 0;
-		var statsFormBuilt = statsFormJquery.length > 0;
-
-		// Check we haven't built the form before
-		if (!statsFormBuilt) {
-			var statWindowForm = this.generateStatWindow();
-
-			// There should be a stat-window div in our HTML to append to
-			// Otherwise create it
-			if (statsWindowExists) {
-				statsWindowJquery.append(statWindowForm);
-			} else {
-				console.log('No preset stat window div found, building it..');
-				var statWindow = this.doc.createElement('div');
-				statWindow.setAttribute('class', 'dialog');
-				statWindow.setAttribute('id', _STATS_WINDOW_ID);
-				statWindow.appendChild(statWindowForm);
-
-				return statWindow;
-			}
-
-			//console.log('Built stats window DOM element:');
-			//console.log(jquery('#'+_STATS_WINDOW_ID)[0]);
-		}
-	}
-
 	bindEvents () {
 			// Ensure we update our view whenever the model is updated
 			this.characterDetails.on(characterDetailsEvents.SET_STATS, this.setStatsAttributeValues);
@@ -348,6 +318,42 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		// Extract just the attribute fields
 		this.setStatsAttributeValues(statsValuesJson['scores']);
 	}
+
+	buildStatsWindow () {
+		var statsWindowJquery = this.getStatsWindowJquery();
+		var statsFormJquery = jquery('#' + _STATS_FORM_ID, this.doc);
+
+		var statsWindowExists = statsWindowJquery.length > 0;
+		var statsFormBuilt = statsFormJquery.length > 0;
+
+		// Check we haven't built the form before
+		if (!statsFormBuilt) {
+			var statWindowForm = this.generateStatWindow();
+
+			// There should be a stat-window div in our HTML to append to
+			// Otherwise create it
+			if (statsWindowExists) {
+				statsWindowJquery.append(statWindowForm);
+			} else {
+				console.log('No preset stat window div found, building it..');
+				var statWindow = this.doc.createElement('div');
+				statWindow.setAttribute('class', 'dialog');
+				statWindow.setAttribute('id', _STATS_WINDOW_ID);
+				statWindow.appendChild(statWindowForm);
+
+				return statWindow;
+			}
+
+		}
+
+	}
+
+	buildView () {
+		this.buildStatsWindow();
+		//console.log('Built stats window DOM element:');
+		//console.log(jquery('#'+_STATS_WINDOW_ID)[0]);
+	}
+
 }
 
 export { PageCharacterDetailsView };
