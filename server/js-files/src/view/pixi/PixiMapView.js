@@ -197,7 +197,7 @@ export default class PixiMapView {
 
 	// Creates a character sprite on-the-fly to represent another character
 	//	gridX, gridY are character positions on the map
-	// TODO subscribe to new Players added to the MapModel instead
+	// TODO subscribe to new Players added  / Adjustments to the MapModel instead
 	async newPlayerOnMap (username, charactername, gridX, gridY) {
 		if (!this.mapModel.isPositionInMap(gridX, gridY)) {
 			throw new RangeError('Invalid position for MapCharacter! (must be a valid global map co-ord): ' + gridX + ',' + gridY);

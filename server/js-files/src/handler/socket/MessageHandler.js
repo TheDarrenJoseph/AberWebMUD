@@ -64,7 +64,7 @@ class MessageHandler {
 		let mapSizeX = json[MessageHandler.MAPSIZE_X_JSON_NAME];
 		let mapSizeY = json[MessageHandler.MAPSIZE_Y_JSON_NAME];
 
-
+		// TODO Parse tiles and update MapModel
 	}
 }
 

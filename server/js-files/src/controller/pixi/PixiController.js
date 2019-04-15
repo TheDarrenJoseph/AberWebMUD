@@ -173,7 +173,7 @@ class PixiController {
 		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_CHARACTERS);
 
 		console.log('WARNING - PixiController multi-asset loading unimplemented!');
-		// TODO
+		// TODO Potentially pre-load all assets
 		// 1. Pass the 3 atlasses into AtlasHelper
 		// 2. pass assetsLoaded in as a callback
 		// 		this.assetsLoaded.apply(this);
