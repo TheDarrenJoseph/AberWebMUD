@@ -12,6 +12,7 @@ import 'test/helper/SpriteHelperTests.js';
 
 import 'test/model/MapModelTests.js';
 
+import 'test/view/page/PageChatViewTests.js'
 import 'test/view/pixi/PixiMapViewTests.js'
 
 

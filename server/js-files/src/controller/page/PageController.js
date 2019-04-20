@@ -72,7 +72,7 @@ export default class PageController {
 	}
 
 	bindEvents () {
-		this.bindMessageInputPurpose(true);
+		this.pageView.bindMessageButton(this.messageFieldKeyupTrigger);
 
 		// Setup binding response for detail saving
 		this.pageCharacterDetailsView.on(pageStatsEvents.SAVE_STATS, (data) => {
@@ -110,17 +110,6 @@ export default class PageController {
 			this.pageChatView.buildView();
 		}
 
-	}
-
-	// boolean switch for message / password sending
-	bindMessageInputPurpose (messageInput) {
-		if (messageInput === true) {
-			this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
-		}
-
-		if (messageInput === false) {
-			this.pageChatView.bindMessageButton(this.passwordFieldKeyupTrigger);
-		}
 	}
 
 	handlePlayerLoginError (data) {
@@ -196,7 +185,7 @@ export default class PageController {
 			this.SOCKET_HANDLER.sendAuthentication(username, passwordInput);
 			this.pageChatView.endPasswordSubmission();
 			//	Set the send button behavior back to normal (isText)
-			this.bindMessageInputPurpose(true);
+			this.pageView.bindMessageButton(this.messageFieldKeyupTrigger);
 			
 		} else {
 			this.pageChatView.updateMessageLog(INVALID_LOGIN_MESSAGE, 'client');
@@ -217,7 +206,7 @@ export default class PageController {
 			this.pageChatView.setMessageLog('Please enter your password: ');
 		}
 
-		this.bindMessageInputPurpose(false); //	Set the send message behaviour to password sending
+		this.pageView.bindMessageButton(this.passwordFieldKeyupTrigger()); //	Set the send message behaviour to password sending
 	}
 
 	messageFieldKeyupTrigger (evnt) {

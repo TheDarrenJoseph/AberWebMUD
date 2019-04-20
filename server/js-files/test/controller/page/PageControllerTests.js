@@ -84,21 +84,6 @@ QUnit.test(TEST_TAG + 'setupUI', function (assert) {
 	assert.equal(pageView.getMainWindowJquery().length, 1, 'Check main window exists');
 });
 
-QUnit.test(TEST_TAG + 'bindMessageInputPurpose', function (assert) {
-	// True for message sending
-	pageController.bindMessageInputPurpose(true);
-	//var messageInputEvents = jquery._data(pageChatView.getMessageInputField(), 'events');
-	var messageInputEvents = jQueryUtils.getEventsForElement(pageChatView.getMessageInputField());
-	assert.equal(messageInputEvents['keyup'][0].handler, pageController.messageFieldKeyupTrigger, 'Check message field sending on key-up is bound.');
-
-	// False for password sending
-	pageController.bindMessageInputPurpose(false);
-	//messageInputEvents = jquery._data(pageChatView.getMessageInputField(), 'events');
-	messageInputEvents = jQueryUtils.getEventsForElement(pageChatView.getMessageInputField());
-
-	assert.equal(messageInputEvents['keyup'][0].handler, pageController.passwordFieldKeyupTrigger, 'Check password field sending on key-up is bound.');
-});
-
 QUnit.test(TEST_TAG + 'checkCharacterDetails_noCharacter', function (assert) {
 
 	// Reset the character details
