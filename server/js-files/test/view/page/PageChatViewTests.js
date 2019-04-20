@@ -1,3 +1,4 @@
+import { jQueryUtils } from 'test/utils/jQueryUtils.js';
 import { Page } from 'src/model/page/Page.js';
 import { PageView } from 'src/view/page/PageView.js';
 import PageChatView from 'src/view/page/PageChatView.js';

@@ -5,7 +5,13 @@ var MOVEMENT_UPDATE_ATTRIBS = ['username', 'old_x', 'old_y', 'pos_x', 'pos_y'];
  * Static data validation helper methods
  */
 export default class ValidationHandler {
-	
+
+	/**
+	 *
+	 * @param data the JSON data to check
+	 * @param attributeNamesArray an array of the attributes to check data for
+	 * @returns {boolean}
+	 */
 	static checkDataAttributes(data, attributeNamesArray) {
 		var dataDefined = ValidationHandler.notUndefOrNull(data);
 		var attribsDefined = ValidationHandler.notUndefOrNull(attributeNamesArray);

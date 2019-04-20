@@ -11,6 +11,8 @@ import { Session } from 'src/model/Session.js';
 //	We're going to call out to the SocketHandler from here for now
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 
+import ValidationHandler from 'src/handler/ValidationHandler.js';
+
 const ENTER_KEY_EVENT_CODE = 13;
 
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
@@ -113,7 +115,7 @@ export default class PageController {
 	}
 
 	handlePlayerLoginError (data) {
-		if (data['playerExists']) {
+		if (ValidationHandler.checkDataAttributes(data, 'playerExists')) {
 			this.pageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PWD, 'server');
 		} else {
 			this.pageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PLAYER, 'server');
