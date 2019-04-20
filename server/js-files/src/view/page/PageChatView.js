@@ -20,14 +20,47 @@ export default class PageChatView extends EventMapping {
 	//		<input type='submit' id='send-message-button' value='Send'>
 	//	</div>
 
-	constructor (pageModel) {
-		super();
+	constructor (pageView) {
+		super()
 
-		if (pageModel.doc !== undefined) {
-			this.doc = pageModel.doc;
+		// Try to extract the Document context
+		let doc = pageView.pageModel.doc;
+		if (doc !== undefined) {
+			this.doc = doc;
 		} else {
 			throw new RangeError("Bad constructor arguments: " + JSON.stringify(arguments));
 		}
+	}
+
+	buildMessageWindow() {
+		// Parent div
+		var messageWindow = this.doc.createElement('div');
+		messageWindow.setAttribute('id', _MESSAGE_WINDOW_ID);
+
+		var messageLog = this.doc.createElement('textarea');
+		messageLog.setAttribute('id', _MESSAGE_LOG_ID);
+		// read-only message log
+		messageLog.setAttribute('disabled', true);
+
+		var messageInput = this.doc.createElement('input');
+		messageInput.setAttribute('id', _MESSAGE_INPUT_ID);
+		messageInput.setAttribute('type', 'text');
+
+		var pwdInput = this.doc.createElement('input');
+		pwdInput.setAttribute('id', _PWD_INPUT_ID);
+		pwdInput.setAttribute('type', 'password');
+
+		var submitButton = this.doc.createElement('input');
+		submitButton.setAttribute('type', 'submit');
+		submitButton.setAttribute('id', _SEND_MESSAGE_BUTTON_ID);
+		submitButton.setAttribute('value', 'Send');
+
+		messageWindow.append(messageLog);
+		messageWindow.append(messageInput);
+		messageWindow.append(pwdInput);
+		messageWindow.append(submitButton);
+
+		return messageWindow;
 	}
 
 	// Creates the HTML for this view if needed
@@ -36,34 +69,7 @@ export default class PageChatView extends EventMapping {
 		var messageWindowExists = messageWindowJquery.length > 0;
 		
 		if (!messageWindowExists) {
-			// Parent div
-			var messageWindow = this.doc.createElement('div');
-			messageWindow.setAttribute('id', _MESSAGE_WINDOW_ID);
-			
-			var messageLog = this.doc.createElement('textarea');
-			messageLog.setAttribute('id', _MESSAGE_LOG_ID);
-			// read-only message log
-			messageLog.setAttribute('disabled', true);
-						
-			var messageInput = this.doc.createElement('input');
-			messageInput.setAttribute('id', _MESSAGE_INPUT_ID);
-			messageInput.setAttribute('type', 'text');
-			
-			var pwdInput = this.doc.createElement('input');
-			pwdInput.setAttribute('id', _PWD_INPUT_ID);
-			pwdInput.setAttribute('type', 'password');
-
-			var submitButton = this.doc.createElement('input');
-			submitButton.setAttribute('type', 'submit');
-			submitButton.setAttribute('id', _SEND_MESSAGE_BUTTON_ID);
-			submitButton.setAttribute('value', 'Send');
-
-			messageWindow.append(messageLog);
-			messageWindow.append(messageInput);
-			messageWindow.append(pwdInput);
-			messageWindow.append(submitButton);
-
-			return messageWindow;
+			let messageWindow = this.buildMessageWindow();
 		}
 		
 		//console.log('Built chat view DOM element:');

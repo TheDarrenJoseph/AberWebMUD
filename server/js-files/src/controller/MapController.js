@@ -33,9 +33,9 @@ export default class MapController {
 	}
 
 	// Async setup
-	async initialise() {
-		await this.pixiMapView.initialise();
-	}
+	//async initialise() {
+	//	await this.pixiMapView.initialise();
+	//}
 
 	getPositionHelper () {
 		return this.mapPositionHelper;

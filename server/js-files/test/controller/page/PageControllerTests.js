@@ -59,11 +59,10 @@ function beforeEachTest (assert) {
 
 
 	pageCharacterDetailsView = new PageCharacterDetailsView(pageView, new CharacterDetails());
-	pageChatView = new PageChatView(pageModel);
+	pageChatView = new PageChatView(pageView);
 
 	pageController = new PageController(TEST_DOCUMENT, pageView, pageCharacterDetailsView, pageChatView);
 	// Perform Document based (HTML Elements, etc) setup
-
 	pageController.setupUI();
 
 	serverContextTag = pageChatView.getContextTagString('server')

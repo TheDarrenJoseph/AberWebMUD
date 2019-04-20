@@ -65,7 +65,7 @@ export default class PageController {
 		}
 
 		if (pageChatView == undefined) {
-			this.pageChatView = new PageChatView(this.pageModel);
+			this.pageChatView = new PageChatView(this.pageView);
 		} else {
 			this.pageChatView = pageChatView;
 		}
@@ -106,11 +106,8 @@ export default class PageController {
 			// Ensure our HTML DOM content is built
 			this.pageView.buildView();
 
-			// Build each view and append to this doc
-			let statsUI = this.pageCharacterDetailsView.buildView();
-			this.pageView.appendToMainWindow(statsUI);
-			let chatUI = this.pageChatView.buildView();
-			this.pageView.appendToMainWindow(chatUI);
+			this.pageCharacterDetailsView.buildView();
+			this.pageChatView.buildView();
 		}
 
 	}

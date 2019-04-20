@@ -30,7 +30,7 @@ QUnit.test(MAPCONTROLLER_TEST_TAG + 'showMapPosition-valid', function (assert) {
 
 	// PixiMapView construction can be a little slow
 	assert.timeout(MAX_TIMEOUT);
-	mapController.initialise();
+	//mapController.initialise();
 
 	// 1.	Smallest global position valid
 	mapController.showMapPosition(0, 0);
