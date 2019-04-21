@@ -1,6 +1,5 @@
 var MOVEMENT_UPDATE_ATTRIBS = ['username', 'old_x', 'old_y', 'pos_x', 'pos_y'];
 
-
 /**
  * Static data validation helper methods
  */
@@ -13,8 +12,12 @@ export default class ValidationHandler {
 	 * @returns {boolean}
 	 */
 	static checkDataAttributes(data, attributeNamesArray) {
-		var dataDefined = ValidationHandler.notUndefOrNull(data);
-		var attribsDefined = ValidationHandler.notUndefOrNull(attributeNamesArray);
+		var dataDefined = (ValidationHandler.notUndefOrNull(data) &&
+		data.constructor == Object &&
+		Object.keys(data).length > 0);
+		var attribsDefined = (ValidationHandler.notUndefOrNull(attributeNamesArray) &&
+		attributeNamesArray instanceof Array &&
+		attributeNamesArray.length > 0);
 
 		if (dataDefined && attribsDefined) {
 			var allValid = true;
@@ -23,7 +26,7 @@ export default class ValidationHandler {
 
 				let attribDefined = ValidationHandler.notUndefOrNull(data[attributeName]);
 				if (!attribDefined) {
-					// console.log('Expected data attribute not defined: (' + attributeName + ') Data: ' + JSON.stringify(data));
+					console.log('Expected data attribute not defined: (' + attributeName + ') Data: ' + JSON.stringify(data));
 					allValid = false;
 				}
 			}
@@ -39,7 +42,12 @@ export default class ValidationHandler {
 		return (data !== null && data !== undefined);
 	}
 
-	//	Checks for the presence of data for each of the movement update fields
+	/**
+	 * Checks for the presence of data for each of the movement update fields
+	 * TODO Move this to some messaging model
+	 * @param updateJSON
+	 * @returns {boolean}
+	 */
 	static isValidMovementUpdateData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
 			return (ValidationHandler.checkDataAttributes(updateJSON, MOVEMENT_UPDATE_ATTRIBS));

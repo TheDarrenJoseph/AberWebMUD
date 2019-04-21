@@ -51,7 +51,6 @@ export default class MapController {
 
 
 	//	Handles a character movement
-	// 'movement-update', {'username':message['username'],'oldX':oldX, 'oldY':oldY,'pos_x':pos_x,'pos_y':pos_y}
 	handleMovementUpdate (updateJSON) {
 		var username = updateJSON['username'];
 		// var oldX = updateJSON['old_x'];

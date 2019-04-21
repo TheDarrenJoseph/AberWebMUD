@@ -107,15 +107,19 @@ export default class PageController {
 		if (!this.isSetup) {
 			// Ensure our HTML DOM content is built
 			this.pageView.buildView();
-
 			this.pageCharacterDetailsView.buildView();
 			this.pageChatView.buildView();
 		}
 
 	}
 
+	/**
+	 * Checks the data for indicators of the failure tyype and updates the message log accordingly
+	 * @param data
+	 */
 	handlePlayerLoginError (data) {
-		if (ValidationHandler.checkDataAttributes(data, 'playerExists')) {
+		let playerExistsAttrib = 'playerExists';
+		if (ValidationHandler.checkDataAttributes(data, playerExistsAttrib) && data[playerExistsAttrib] === true) {
 			this.pageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PWD, 'server');
 		} else {
 			this.pageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PLAYER, 'server');

@@ -21,7 +21,9 @@ export default class PageChatView extends EventMapping {
 	//	</div>
 
 	constructor (pageView) {
-		super()
+		super();
+
+		this.pageView = pageView;
 
 		// Try to extract the Document context
 		let doc = pageView.pageModel.doc;
@@ -32,6 +34,10 @@ export default class PageChatView extends EventMapping {
 		}
 	}
 
+	/**
+	 * Simply constructs a message window element
+	 * @returns HTMLElement for messageWindow
+	 */
 	buildMessageWindow() {
 		// Parent div
 		var messageWindow = this.doc.createElement('div');
@@ -63,28 +69,47 @@ export default class PageChatView extends EventMapping {
 		return messageWindow;
 	}
 
-	// Creates the HTML for this view if needed
-	buildView () {
-		var messageWindowJquery = jquery('#'+_MESSAGE_WINDOW_ID, this.doc);
+	/**
+	 * Idempotently generates the message window and adds it to the document
+	 */
+	generateMessageWindow(){
+		var messageWindowJquery = this.getMessageWindowJquery();
 		var messageWindowExists = messageWindowJquery.length > 0;
-		
+
 		if (!messageWindowExists) {
 			let messageWindow = this.buildMessageWindow();
+			this.pageView.appendToMainWindow(messageWindow);
 		}
-		
-		//console.log('Built chat view DOM element:');
-		//console.log(jquery('#'+_MESSAGE_WINDOW_ID, this.doc)[0]);
+	}
+
+
+	// Creates the HTML for this view if needed
+	buildView () {
+		this.generateMessageWindow();
 	}	
 	
 	updateInputField (character) {
-		var inputField;
-		inputField = jquery('#'+_MESSAGE_INPUT_ID, this.doc);
-		if (inputField.val.length === 0) {
+		var inputFieldJquery = this.getMessageInputFieldJquery();
+		if (inputFieldJquery.val.length === 0) {
 			return inputField.append('<p class=\'user-input\'>' + character.data + '</p>');
 		} else {
 			return jquery('#'+_MESSAGE_INPUT_ID+'.user-input', this.doc).append(character.data);
 		}
 	};
+
+
+	getMessageWindowJquery() {
+		return jquery('#'+_MESSAGE_WINDOW_ID, this.doc);
+	}
+
+	getMessageWindow () {
+		let elements = this.getMessageWindowJquery();
+		if (elements.length >= 1) {
+			return elements.get(0);
+		} else {
+			throw new Error("Message window not present.");
+		}
+	}
 
 	getSendMessageButtonJquery() {
 		return jquery('#'+_SEND_MESSAGE_BUTTON_ID, this.doc);
@@ -94,10 +119,14 @@ export default class PageChatView extends EventMapping {
 		return jquery('#'+_MESSAGE_INPUT_ID, this.doc)
 	}
 
-
 	// Return a single matching DOM element
 	getMessageInputField () {
-		return this.getMessageInputFieldJquery().get(0);
+		let elements = this.getMessageInputFieldJquery();
+		if (elements.length >= 1) {
+			return elements.get(0);
+		} else {
+			throw new Error("Message input field not present.");
+		}
 	}
 
 	getMessageInput () {
@@ -127,11 +156,11 @@ export default class PageChatView extends EventMapping {
 	}
 
 	getMessageLogValue () {
-		return this.getMessageLogJquery ().val();
+		return this.getMessageLogJquery().val();
 	};
 
 	clearMessageLog () {
-		this.getMessageLogJquery ().val('');
+		this.getMessageLogJquery().val('');
 	}
 
 	setMessageLog (text) {
@@ -156,10 +185,17 @@ export default class PageChatView extends EventMapping {
 	}
 
 	//	Updates the input field using the message and username strings
+
+	/**
+	 * Appends a message to the message log
+	 * @param msg
+	 * @param username
+	 */
 	updateMessageLog (msg, username) {
 		var logVal = this.getMessageLogValue();
 		if (username != null && username !== undefined) msg = this.getContextTagString(username) + msg; //	Add a user tag to the message
-		this.setMessageLog(logVal + msg + '\n');
+		let logMsg = logVal + msg + '\n';
+		this.setMessageLog(logMsg);
 	};
 
 	clearMessageInputField () {

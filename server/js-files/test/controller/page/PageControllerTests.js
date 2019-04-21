@@ -57,7 +57,6 @@ function beforeEachTest (assert) {
 	var pageModel = new Page(TEST_DOCUMENT);
 	pageView = new PageView(pageModel);
 
-
 	pageCharacterDetailsView = new PageCharacterDetailsView(pageView, new CharacterDetails());
 	pageChatView = new PageChatView(pageView);
 
@@ -76,11 +75,8 @@ QUnit.module('PageContollerTests', { before: beforeAll, beforeEach: beforeEachTe
 
 QUnit.test(TEST_TAG + 'setupUI', function (assert) {
 	pageView.destroyView();
-
 	assert.equal(pageView.getMainWindowJquery().length, 0, 'Check main window does not exist');
-
 	pageController.setupUI();
-	pageView.buildView();
 	assert.equal(pageView.getMainWindowJquery().length, 1, 'Check main window exists');
 });
 
@@ -133,20 +129,21 @@ QUnit.test(TEST_TAG + 'checkCharacterDetails_characterSet', function (assert) {
 	assert.ok(callbacked, 'Ensure the character details confirmed callback is called.');
 });
 
-QUnit.test(TEST_TAG + 'handlePlayerLoginError', function (assert) {
+QUnit.test(TEST_TAG + 'handlePlayerLoginError_blankData', function (assert) {
 	// Make sure the message log is blank to begin with
 	pageChatView.clearMessageLog();
-
 	// Blank data will assume the player does not exist
 	let serverData = {};
 	let expectedMessage = serverContextTag + LOGIN_FAILURE_MESSAGE_PLAYER + '\n';
 	pageController.handlePlayerLoginError(serverData);
 	assert.equal(pageChatView.getMessageLogValue(), expectedMessage);
+});
 
+QUnit.test(TEST_TAG + 'handlePlayerLoginError_badPassword', function (assert) {
 	// Otherwise you'll get a password error
 	pageChatView.clearMessageLog();
-	serverData['playerExists'] = true;
-	expectedMessage = serverContextTag + LOGIN_FAILURE_MESSAGE_PWD + '\n';
+	let serverData = { 'playerExists' : true };
+	let expectedMessage = serverContextTag + LOGIN_FAILURE_MESSAGE_PWD + '\n';
 	pageController.handlePlayerLoginError(serverData);
 	assert.equal(pageChatView.getMessageLogValue(), expectedMessage);
 });

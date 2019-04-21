@@ -190,22 +190,20 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	}
 
 	/**
-	 * Generates the stats window parent element for this view
-	 * @returns {HTMLElement | any | ActiveX.IXMLDOMElement}
+	 * Idempotently generates the stats window parent element for this view and add it to the document
 	 */
 	generateStatsWindow () {
 		try {
 			this.getStatsWindow();
 		} catch (err) {
-			console.log('No preset stat window div found, building it..');
 			let statsWindow = this.buildStatsWindow();
 			this.pageView.appendToMainWindow(statsWindow);
 		}
 	}
 
 	/**
-	 * Idempotently generates the stats form for inside the stats window
-	 * @returns {HTMLElement | any | ActiveX.IXMLDOMElement}
+	 * Idempotently generates the stats form for inside the stats window and adds it the statsWindow, creating the window
+	 * if needed
 	 */
 	generateStatsForm () {
 		// First try to grab the main window
@@ -381,8 +379,6 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	 * @returns {HTMLElement | any | ActiveX.IXMLDOMElement}
 	 */
 	buildView () {
-		console.log(' Building stat window..');
-
 		// Build the window itself if needed
 		this.generateStatsWindow();
 		this.generateStatsForm();

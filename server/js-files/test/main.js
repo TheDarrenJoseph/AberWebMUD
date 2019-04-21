@@ -4,6 +4,8 @@ import 'test/controller/GameControllerTests.js';
 import 'test/controller/MapControllerTests.js';
 import 'test/controller/SessionTests.js';
 
+import 'test/handler/ValidationHandlerTests.js';
+
 import 'test/helper/ArrayHelperTests.js';
 import 'test/helper/AtlasHelperTests.js';
 import 'test/helper/EventMappingTests.js';
