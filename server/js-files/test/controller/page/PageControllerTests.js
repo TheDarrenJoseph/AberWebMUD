@@ -129,14 +129,12 @@ QUnit.test(TEST_TAG + 'checkCharacterDetails_characterSet', function (assert) {
 	assert.ok(callbacked, 'Ensure the character details confirmed callback is called.');
 });
 
-QUnit.test(TEST_TAG + 'handlePlayerLoginError_blankData', function (assert) {
-	// Make sure the message log is blank to begin with
-	pageChatView.clearMessageLog();
-	// Blank data will assume the player does not exist
-	let serverData = {};
-	let expectedMessage = serverContextTag + LOGIN_FAILURE_MESSAGE_PLAYER + '\n';
-	pageController.handlePlayerLoginError(serverData);
-	assert.equal(pageChatView.getMessageLogValue(), expectedMessage);
+QUnit.test(TEST_TAG + 'handlePlayerLoginError_blankJSON', function (assert) {
+	assert.throws ( () => {
+		pageController.handlePlayerLoginError({});
+	},
+	RangeError,
+	'Check blank server data JSON throws a validation RangeError');
 });
 
 QUnit.test(TEST_TAG + 'handlePlayerLoginError_badPassword', function (assert) {
@@ -148,19 +146,11 @@ QUnit.test(TEST_TAG + 'handlePlayerLoginError_badPassword', function (assert) {
 	assert.equal(pageChatView.getMessageLogValue(), expectedMessage);
 });
 
-QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_noData', function (assert) {
-	let messageData = {};
-	let expectedMessage = '';
-
-	// 1. No data
-	let badDataError = new RangeError(INVALID_JSON_CHARACTER_UPDATE);
-	try {
-		pageController.handleCharacterUpdateResponse(messageData);
-	} catch (err) {
-		assert.deepEqual(err, badDataError, 'Ensure the correct RangeError is thrown if no character update data is returned.');
-	}
-
-	assert.expect(2);
+QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_blankJSON', function (assert) {
+	assert.throws( () => {
+		pageController.handleCharacterUpdateResponse({});
+	}, RangeError,
+	'Ensure a RangeError is thrown if no character update data is returned.');
 });
 
 QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_failed', function (assert) {

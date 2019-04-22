@@ -93,7 +93,7 @@ export default class CharacterDetails extends EventMapping {
 	// "scores": {"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}};
 	static isValidCharacterData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
-			let coreDataExists = ValidationHandler.checkDataAttributes(updateJSON, updateJSON['free_points','scores']);
+			let coreDataExists = ValidationHandler.checkDataAttributes(updateJSON, ['free_points','scores']);
 			let statsExist = CharacterDetails.isValidStats(updateJSON['scores']);
 			return coreDataExists && statsExist;
 		} else {
@@ -131,15 +131,6 @@ export default class CharacterDetails extends EventMapping {
 			this.characterStats = charStats;
 			this.emit(EVENTS.SET_STATS, this.characterStats);
 		}
-	}
-
-	//	Checks that the player's character details are set
-	//	and asks them to set them if false
-	/**
-	 *
-	 */
-	checkCharacterDetails () {
-
 	}
 
 	static isValidCharacterUpdateData (updateJSON) {

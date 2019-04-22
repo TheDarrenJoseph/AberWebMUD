@@ -119,7 +119,7 @@ export default class PageController {
 	 */
 	handlePlayerLoginError (data) {
 		let playerExistsAttrib = 'playerExists';
-		if (ValidationHandler.checkDataAttributes(data, playerExistsAttrib) && data[playerExistsAttrib] === true) {
+		if (ValidationHandler.checkDataAttributes(data, [playerExistsAttrib]) && data[playerExistsAttrib] === true) {
 			this.pageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PWD, 'server');
 		} else {
 			this.pageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PLAYER, 'server');

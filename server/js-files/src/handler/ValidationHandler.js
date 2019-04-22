@@ -26,7 +26,7 @@ export default class ValidationHandler {
 
 				let attribDefined = ValidationHandler.notUndefOrNull(data[attributeName]);
 				if (!attribDefined) {
-					console.log('Expected data attribute not defined: (' + attributeName + ') Data: ' + JSON.stringify(data));
+					console.log('Expected data attribute not defined: (' + attributeName + ') in data: ' + JSON.stringify(data));
 					allValid = false;
 				}
 			}
@@ -34,7 +34,8 @@ export default class ValidationHandler {
 			return allValid;
 		}
 		
-		throw new RangeError('Bad arguements for validation. Data / Attributes to validate undefined.');
+		throw new RangeError('Bad arguments for validation. Data / Attributes to validate invalid.\n args: ' + JSON.stringify(arguments));
+
 		return false;
 	}
 	
