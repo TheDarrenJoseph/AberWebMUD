@@ -68,31 +68,41 @@ export default class CharacterDetails extends EventMapping {
 
 	/**
 	 * Validates character stats (STR, DEX, CON, etc)
-	 * @param charStats
+	 * @param charStats JSON e.g { A : 1, B : 2}
 	 * @returns {boolean}
 	 */
 	static isValidStats(charStats) {
-		let failed = false;
+		let valid = false;
 
 		if (charStats !== undefined) {
-			Object.keys(DEFAULT_ATTRIBUTES).forEach( attribName => {
-				let theAttrib = charStats[attribName];
-				let attribDefined = theAttrib != undefined && theAttrib != null;
-				let attribValid = (theAttrib >= MIN_ATTRIB_VAL && theAttrib <= MAX_ATTRIB_VAL);
 
-				// Definitely log invalid values
-				if (attribDefined && !attribValid) {
-					console.log('Char Stats: ' + charStats + ' value for attribute invalid: ' + attribName);
-					failed = true;
-				} else {
-					// console.log('Char Stats: ' + charStats + ' missing an attribute value for: ' + attribName);
-					failed = true;
-				}
+			let attribCount = Object.keys(charStats).length;
+			if (attribCount > 0) {
+				let validAttribCount = 0;
+				Object.keys(DEFAULT_ATTRIBUTES).forEach(attribName => {
+					let theAttrib = charStats[attribName];
+					let attribDefined = theAttrib != undefined && theAttrib != null;
+					let attribValid = (theAttrib >= MIN_ATTRIB_VAL && theAttrib <= MAX_ATTRIB_VAL);
 
-			});
+					// Definitely log invalid values
+					if (attribDefined && !attribValid) {
+						console.log('Char Stats: ' + charStats + ' value for attribute invalid: ' + attribName);
+						return false;
+					} else if (!attribDefined || !attribValid) {
+						console.log('Char Stats: ' + charStats + ' attribute or value invalid: ' + attribName + ' : ' + theAttrib);
+						return false;
+					} else {
+						validAttribCount++;
+					}
+
+				});
+
+				// Check we validated each attrib
+				valid = (validAttribCount === attribCount);
+			}
 		}
 
-		return failed;
+		return valid;
 	}
 
 

@@ -189,15 +189,11 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_success', function (assert)
 });
 
 QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
-	var expectedStats = {'charname': TEST_CHARDATA.charname,
-		'charclass': TEST_CHARDATA.charclass,
-		'attributes': TEST_CHARDATA.attributes};
-
 	// 1. Valid update
 	pageCharacterDetailsView.clearStatsInfoField();
 	assert.ok(pageController.saveCharacterData(TEST_CHARDATA), 'Ensure we can save our test char data.');
 	let stats = pageCharacterDetailsView.characterDetails.getCharacterDetailsJson();
-	assert.deepEqual(stats, expectedStats, 'Check our stats are set as expected');
+	assert.deepEqual(stats, TEST_CHARDATA, 'Check our stats are set as expected');
 
 	// 2. Bad data
 	// Copy the original and modify

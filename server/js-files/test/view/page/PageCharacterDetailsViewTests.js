@@ -91,8 +91,8 @@ QUnit.test(TEST_TAG + 'Setting Character Details Emitting', function (assert) {
 	// This async callback proves the stats are being submitted
 	let submissionCallback = assert.async(1);
 	function statsSubmitted(data) {
-		assert.ok(pageCharacterDetailsView.characterDetails.isValidStats(data), 'Double-check the data returned is valid with the underlying model.');
-		console.log('Test details submitted: ' + data);
+		assert.ok(CharacterDetails.isValidCharacterData(data), 'Double-check the data returned is valid with the underlying model.');
+		console.log('Test details submitted: ' + JSON.stringify(data));
 		submissionCallback();
 	}
 
