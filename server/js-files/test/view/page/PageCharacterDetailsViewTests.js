@@ -26,43 +26,36 @@ import { CharacterDetails, DEFAULT_JSON } from 'src/model/page/CharacterDetails.
 var TEST_TAG = '|PAGE CHARACTER-DETAILS VIEW|';
 
 var pageView;
-var pageController;
 var pageCharacterDetailsView;
-var pageChatView;
-
-var serverContextTag;
 
 var TEST_DOCUMENT = document;
 
 // Unmodified char details for reference
 var DEFAULT_CHARACTERDETAILS = new CharacterDetails();
 
+// View based events can be a little sluggish
+// These should take < 10s realistically but view init seems slow
+let MAX_TIMEOUT = 10000;
+
 // Setup / assertions before any test runs
 function beforeAll (assert) {
-	// Create an independent document to work on
-	//TEST_DOCUMENT = document.implementation.createHTMLDocument('PageView');
-
-	// Build our view in the independent document
-	// to avoid clashing with the test window content
-	//pageView = PageView;
-
-	//pageView.buildView();
+	var pageModel = new Page(TEST_DOCUMENT);
+	pageView = new PageView(pageModel);
 }
 
 // Setup / assertions before each test
 function beforeEachTest (assert) {
-	// Make sure we have a fresh controller every time
-	// To prevent knock-on state changes
-	var pageModel = new Page(TEST_DOCUMENT);
-	pageView = new PageView(pageModel);
-
 	pageCharacterDetailsView = new PageCharacterDetailsView(pageView, new CharacterDetails());
 	assert.ok(pageCharacterDetailsView instanceof PageCharacterDetailsView, 'Ensure the character details view is instanciated.');
+	pageView.buildView();
+	pageCharacterDetailsView.buildView();
+	pageCharacterDetailsView.bindEvents();
 }
 
 function afterEachTest (assert) {
 	// Be sure the view is destroyed
 	pageCharacterDetailsView.destroyView();
+	pageView.destroyView();
 }
 
 // Hookup before each test setup / assertion
@@ -93,47 +86,49 @@ QUnit.test(TEST_TAG + 'buildView', function (assert) {
  * And this should contain valid stat data
  */
 QUnit.test(TEST_TAG + 'Setting Character Details Emitting', function (assert) {
-	// This can be a little slow so it's best to allow a long wait
-	assert.timeout(10000);
+	assert.timeout(MAX_TIMEOUT);
 
+	// This async callback proves the stats are being submitted
 	let submissionCallback = assert.async(1);
-	function submitStats(data) {
+	function statsSubmitted(data) {
 		assert.ok(pageCharacterDetailsView.characterDetails.isValidStats(data), 'Double-check the data returned is valid with the underlying model.');
 		console.log('Test details submitted: ' + data);
 		submissionCallback();
 	}
 
-
 	// Ensure we have some valid data in the view fields
 	pageCharacterDetailsView.setStatsFromJsonResponse(TEST_CHARDATA);
 
 	// Bind to the testing func
-	pageCharacterDetailsView.on(pageStatsEvents.SUBMIT_STATS, submitStats);
+	pageCharacterDetailsView.on(pageStatsEvents.SUBMIT_STATS, statsSubmitted);
 
 	// Enable emitting
 	pageCharacterDetailsView.setupEmitting();
-	pageCharacterDetailsView.getSaveStatsButton().click();
+	pageCharacterDetailsView.getSaveStatsButtonJquery().trigger('click');
 });
 
 /**
  * Given that the character details view is bound to it's model
- * When the CharacterDetails are set
- * Then we should show these values in our view
+ * When the CharacterDetails model is set
+ * Then view should automatically update to show these values
  */
 QUnit.test(TEST_TAG + 'Setting Character Details View Update', function (assert) {
+	assert.timeout(MAX_TIMEOUT);
+
 	let currentStats = pageCharacterDetailsView.characterDetails.getCharacterDetailsJson();
 	assert.deepEqual(currentStats, DEFAULT_JSON, 'Check character details are their defaults in the view.')
 
-	pageCharacterDetailsView.on(pageStatsEvents.STATS_SET, statsSet)
-
-	// Perform the update of the underlying model
-	pageCharacterDetailsView.characterDetails.setCharacterDetails(TEST_CHARDATA);
-
 	let statsSetCallback = assert.async(1);
-	function statsSet() {
+	function checkStats() {
 		currentStats = pageCharacterDetailsView.characterDetails.getCharacterDetailsJson();
 		assert.deepEqual(currentStats, TEST_CHARDATA, 'Check character details are updated in the view.');
 		console.log('Test stats set in view.');
 		statsSetCallback();
 	}
+
+	// Add an extra binding for when the set event is emitted
+	pageCharacterDetailsView.on(pageStatsEvents.STATS_SET, checkStats)
+
+	// Perform the update of the underlying model
+	pageCharacterDetailsView.characterDetails.setCharacterDetails(TEST_CHARDATA);
 });

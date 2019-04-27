@@ -19,11 +19,14 @@ const _CHAR_CLASS_SELECTION_ID = 'class-selection';
 
 export var SET_CHARDETAILS_PROMPT_MESSAGE = 'You need to set your character details.';
 
+// To enable debug logging for quick event checking
+const DEBUG = false;
+
 export const EVENTS = {
 	// For submitting some values for confirmation
-	SUBMIT_STATS : 'submit_stats',
+	SUBMIT_STATS : 'submit-stats',
 	// This means the view has been updated
-	STATS_SET : 'stats_set'
+	STATS_SET : 'stats-set'
 };
 
 // DOM View for the Character Stats dialog window
@@ -56,8 +59,8 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	setupEmitting () {
 		try {
 			// When trying to save stats, ensure we submit them
-			let statsButtonJquery = this.getSaveStatsButton();
-			statsButtonJquery.click(this.submitStats);
+			let statsButtonJquery = this.getSaveStatsButtonJquery();
+			statsButtonJquery.click(() => { this.submitStats() });
 		} catch (err) {
 			throw new Error("Could not bind to save-stats button: " + err);
 		}
@@ -76,7 +79,16 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	 */
 	bindEvents () {
 		// Ensure we update our view whenever the model is updated
-		this.characterDetails.on(characterDetailsEvents.SET_STATS, this.setStatsFromJsonResponse(this.characterDetails.getCharacterDetailsJson()))
+		this.characterDetails.on(characterDetailsEvents.SET_DETAILS, () => {
+			if (DEBUG) console.log('Updating character details view..')
+			this.setStatsFromJsonResponse(this.characterDetails.getCharacterDetailsJson())
+		});
+
+		// Ensure we update our view whenever the model is updated
+		this.characterDetails.on(characterDetailsEvents.SET_ATTRIBS, () => {
+			if (DEBUG) console.log('Updating character details view stats..')
+			this.setAttributes(this.characterDetails.getAttributes())
+		});
 	}
 
 	getStatsWindow() {
@@ -343,8 +355,6 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		return jquery('#' + _CHAR_CLASS_SELECTION_ID, this.doc).val();
 	}
 
-
-
 	getClassOptionIndex (optionId) {
 		return CLASS_OPTIONS.findIndex(obj => { return obj.id == optionId } );
 	}
@@ -393,8 +403,6 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	 * @param attrValuesJSON JSON mapping of attribute names to integer values
 	 */
 	setAttributes (attrValuesJSON) {
-		console.log('Displaying stats:'+JSON.stringify(attrValuesJSON));
-
 		for (var i = 0; i < ATTRIB_INPUT_IDS.length; i++) {
 			var statId = '#' + ATTRIB_INPUT_IDS[i];
 			var inputVal = attrValuesJSON[ATTRIB_NAMES[i]];
@@ -408,10 +416,11 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	 * @param statsValuesJson
 	 */
 	setStatsFromJsonResponse (statsValuesJson) {
-		console.log('Saving stats:'+JSON.stringify(statsValuesJson));
+		if (DEBUG) console.log('Displaying stats:'+JSON.stringify(statsValuesJson));
 		this.setStatsCharacterName(statsValuesJson['charname']);
-		this.setStatsCharacterClass(this.getClassOptionIndex(statsValuesJson['charclass']));
-		this.setAttributes(statsValuesJson['scores']);
+		let classOption = this.getClassOptionIndex(statsValuesJson['charclass']);
+		this.setStatsCharacterClass(classOption);
+		this.setAttributes(statsValuesJson['attributes']);
 
 
 		// TODO Assign free points to something as we don't have a field yet

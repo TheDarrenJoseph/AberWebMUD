@@ -40,6 +40,18 @@ TEST_TAG + 'testMapping_noData', function (assert) {
 	assert.ok(helloDone, 'Ensure the callback was performed.');
 });
 
+
+QUnit.test(
+TEST_TAG + 'testMapping_noData_multiple', function (assert) {
+
+	let helloDone = assert.async(1);
+	let helloDone2 = assert.async(1);
+
+	eventTester.on(TEST_EVENT_NAME,helloDone);
+	eventTester.on(TEST_EVENT_NAME,helloDone2);
+	eventTester.emit(TEST_EVENT_NAME);
+});
+
 QUnit.test(
 TEST_TAG + 'testMapping_data', function (assert) {
 

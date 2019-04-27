@@ -57,7 +57,8 @@ function beforeEachTest (assert) {
 	var pageModel = new Page(TEST_DOCUMENT);
 	pageView = new PageView(pageModel);
 
-	pageCharacterDetailsView = new PageCharacterDetailsView(pageView, new CharacterDetails());
+	var charDets = new CharacterDetails();
+	pageCharacterDetailsView = new PageCharacterDetailsView(pageView, charDets);
 	pageChatView = new PageChatView(pageView);
 
 	pageController = new PageController(TEST_DOCUMENT, pageView, pageCharacterDetailsView, pageChatView);
@@ -190,7 +191,7 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_success', function (assert)
 QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 	var expectedStats = {'charname': TEST_CHARDATA.charname,
 		'charclass': TEST_CHARDATA.charclass,
-		'attributes': TEST_CHARDATA.scores};
+		'attributes': TEST_CHARDATA.attributes};
 
 	// 1. Valid update
 	pageCharacterDetailsView.clearStatsInfoField();
@@ -200,7 +201,7 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 
 	// 2. Bad data
 	// Copy the original and modify
-	var badResponse = {'charname': 'roo', 'pos_x': 10, 'pos_y': 10, 'health': 100, 'charclass': 'fighter', 'free_points': 5, 'scores': {}};
+	var badResponse = {'charname': 'roo', 'pos_x': 10, 'pos_y': 10, 'health': 100, 'charclass': 'fighter', 'free_points': 5, 'attributes': {}};
 	try {
 		assert.notOk(pageController.saveCharacterData(badResponse), 'Ensure we fail to save our bad data.');
 	} catch (err) {

@@ -4,7 +4,7 @@ import { EventMapping } from 'src/helper/EventMapping.js';
 import jquery from 'jquery'
 
 export var CHARACTER_UPDATE_ATTRIBS = ['success','username','char-data','sessionId'];
-export var CHARACTER_DATA_ATTRIBS = ['charname', 'pos_x','pos_y', 'health', 'charclass', 'free_points', 'scores'];
+export var CHARACTER_DATA_ATTRIBS = ['charname', 'pos_x','pos_y', 'health', 'charclass', 'free_points', 'attributes'];
 
 //	2 arrays of the same length to allow looping for creating each line of the table
 // Fortitude, Intellect, Awareness, Arcana, Agility
@@ -31,7 +31,7 @@ export const DEFAULT_JSON = {
 	'charname' : '',
 	'charclass' : CLASS_OPTIONS[0],
 	// TODO make this name attributes through the stack
-	'scores' : DEFAULT_ATTRIBUTES,
+	'attributes' : DEFAULT_ATTRIBUTES,
 	'pos_x' : 0,
 	'pos_y' : 0,
 	'health' : MAX_ATTRIB_VAL,
@@ -100,11 +100,11 @@ export default class CharacterDetails extends EventMapping {
 	//	Example JSON
 	//{"charname":"roo","pos_x":10,"pos_y":10,"health":100,
 	// "charclass":"fighter","free_points":5,
-	// "scores": {"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}};
+	// "attributes": {"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}};
 	static isValidCharacterData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
-			let coreDataExists = ValidationHandler.checkDataAttributes(updateJSON, ['free_points','scores']);
-			let statsExist = CharacterDetails.isValidStats(updateJSON['scores']);
+			let coreDataExists = ValidationHandler.checkDataAttributes(updateJSON, ['free_points','attributes']);
+			let statsExist = CharacterDetails.isValidStats(updateJSON['attributes']);
 			return coreDataExists && statsExist;
 		} else {
 			console.log('Missing character update data.');
@@ -122,10 +122,10 @@ export default class CharacterDetails extends EventMapping {
 			this.free_points = data['free_points'];
 
 			// Copy each of the stat attribs over
-			let scores = data['scores'];
-			for (let statName in Object.keys(DEFAULT_ATTRIBUTES)){
-				this.attributes.statName = scores[statName];
-			}
+			let attributes = data['attributes'];
+			Object.keys(DEFAULT_ATTRIBUTES).forEach( attribName => {
+				this.attributes[attribName] = attributes[attribName];
+			});
 
 			this.emit(EVENTS.SET_DETAILS);
 
@@ -155,7 +155,7 @@ export default class CharacterDetails extends EventMapping {
 			'pos_y' : this.pos_y,
 			'health' : this.health,
 			'free_points' : this.free_points,
-			'scores': this.attributes
+			'attributes': this.attributes
 		};
 	}
 
