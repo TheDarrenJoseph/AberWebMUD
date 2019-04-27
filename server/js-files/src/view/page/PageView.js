@@ -131,7 +131,7 @@ export class PageView extends EventMapping {
 		}
 	}
 
-	bindStageClick (enabled, clickedFunction) {
+	bindStageClick (clickedFunction) {
 		let mainWindow = jquery(this.htmlWindows[this._MAIN_WINDOW_ID]);
 		mainWindow.on('click', clickedFunction);
 	}

@@ -18,8 +18,8 @@ import { PageController, LOGIN_FAILURE_MESSAGE_PWD,
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { Session } from 'src/model/Session.js';
 import { Page } from 'src/model/page/Page.js';
-import { EVENTS as pageStatsEvents, SET_CHARDETAILS_PROMPT_MESSAGE, PageCharacterDetailsView} from 'src/view/page/PageCharacterDetailsView.js';
-import PageChatView from 'src/view/page/PageChatView.js';
+import { EVENTS as pageStatsEvents, SET_CHARDETAILS_PROMPT_MESSAGE, PageCharacterDetailsView } from 'src/view/page/PageCharacterDetailsView.js';
+import { EVENTS as pageChatEvents, PageChatView } from 'src/view/page/PageChatView.js';
 import { CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { CharacterDetails } from 'src/model/page/CharacterDetails.js'
@@ -188,7 +188,6 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_success', function (assert)
 });
 
 QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
-	// var stats = pageCharacterDetailsView.getStats ();
 	var expectedStats = {'charname': TEST_CHARDATA.charname,
 		'charclass': TEST_CHARDATA.charclass,
 		'attributes': TEST_CHARDATA.scores};
@@ -196,7 +195,7 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 	// 1. Valid update
 	pageCharacterDetailsView.clearStatsInfoField();
 	assert.ok(pageController.saveCharacterData(TEST_CHARDATA), 'Ensure we can save our test char data.');
-	let stats = pageCharacterDetailsView.getStats();
+	let stats = pageCharacterDetailsView.characterDetails.getCharacterDetailsJson();
 	assert.deepEqual(stats, expectedStats, 'Check our stats are set as expected');
 
 	// 2. Bad data
@@ -261,17 +260,17 @@ QUnit.skip(TEST_TAG + 'submitPassword', function (assert) {
 });
 
 QUnit.test(TEST_TAG + 'requestUserPassword', function (assert) {
+	pageController.enableUI();
+	assert.ok(pageController.uiEnabled, 'UI Should be enabled before requesting user password.');
+
 	// 1. Username is given
 	pageController.requestUserPassword(true);
 	assert.ok(jquery(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
 
 	assert.ok(pageChatView.getMessageLogValue().startsWith('Creating a new user, please enter a password for it: '), 'Check pwd request message.');
 
-	// Check we're set to send a password on keyup
-	//let messageInputEvents = jquery._data(pageChatView.getMessageInputField(), 'events');
 	let keyupBinding = jQueryUtils.extractFirstJqueryBinding(pageChatView.getMessageInputField(), 'keyup');
-	//assert.equal(messageInputEvents['keyup'][0].handler, pageController.passwordFieldKeyupTrigger, 'Check password sending on key-up is bound.');
-	assert.equal(keyupBinding, pageController.passwordFieldKeyupTrigger, 'Check password sending on key-up is bound.');
+	assert.ok(keyupBinding instanceof Function, 'Check message input keyup is bound to a Function');
 
 	// 2. No username passed
 	pageController.requestUserPassword();
@@ -286,50 +285,53 @@ QUnit.skip(TEST_TAG + 'passwordFieldKeyupTrigger', function (assert) {
 	// Util, do not test
 });
 
-QUnit.test(TEST_TAG + 'bindStageClick', function (assert) {
-	var expectedBinding = PixiController.stageClicked;
-	var mainWindowDomElem = pageView.getMainWindowJquery()[0];
-
-	// Enabled / Bind
-	pageController.bindStageClick(true);
-	var clickBinding = jQueryUtils.extractFirstJqueryBinding(mainWindowDomElem, 'click');
-	assert.equal(clickBinding, expectedBinding, 'Check when binding our expected function is bound for stage click.');
-
-	// Disabled / Unbind
-	pageController.bindStageClick(false);
-	var clickBinding = jQueryUtils.extractFirstJqueryBinding(mainWindowDomElem, 'click');
-	assert.equal(undefined, clickBinding, 'Check unbinding clears the click handler.');
-});
-
 QUnit.test(TEST_TAG + 'disableUI', function (assert) {
 	pageController.enableUI();
 	assert.ok(pageController.uiEnabled, 'UI Should be enabled before attempting disable.');
 	pageController.disableUI();
 
 	// Check page click has been unbound
-	pageController.bindStageClick(false);
+	//pageController.bindStageClick(false);
 	var mainWindowDomElem = pageView.getMainWindowJquery()[0];
 	var clickBinding = jQueryUtils.extractFirstJqueryBinding(mainWindowDomElem, 'click');
-	assert.equal(undefined, clickBinding, 'Check unbinding clears the click handler.');
+	assert.equal(undefined, clickBinding, 'Check this clears the click handler.');
 	
 	assert.notOk(pageController.uiEnabled, 'UI Should be disabled now.');
 });
 
-QUnit.test(TEST_TAG + 'enableUI', function (assert) {
+/**
+ * Test individual UI Elements get constructed / setup
+ */
+QUnit.skip(TEST_TAG + 'enableUI_setup', function (assert) {
 	assert.notOk(pageController.isUIEnabled(), 'UI Should be disabled before attempting enable.');
 	pageController.enableUI();
 	assert.ok(pageController.isUIEnabled(), 'UI Should be enabled now.');
 
-	// Check page click has been bound
-	//var expectedBinding = PixiController.stageClicked;
-	//var mainWindowDomElem = pageView.getMainWindowJquery()[0];
-	//pageController.bindStageClick(true, expectedBinding);
+	assert.ok(pageController.pageView instanceof PageView, 'Check PageView is instanciated.');
+	assert.ok(pageController.pageCharacterDetailsView instanceof PageCharacterDetailsView, 'Check PageCharacterDetailsView is instanciated.');
+	assert.ok(pageController.pageChatView instanceof PageChatView, 'Check PageChatView is instanciated.');
+});
 
+
+QUnit.test(TEST_TAG + 'enableUI_bindings', function (assert) {
+	assert.notOk(pageController.isUIEnabled(), 'UI Should be disabled before attempting enable.');
+	pageController.enableUI();
+	assert.ok(pageController.isUIEnabled(), 'UI Should be enabled now.');
+
+	let sendMessageMappings = pageController.pageChatView.getMappings(pageChatEvents.SEND_MESSAGE);
+	assert.deepEqual(sendMessageMappings, pageController.messageFieldKeyupTrigger, 'Check the correct function is bound to chat view SEND_MESSAGE');
+
+	let setStatsMappings = pageController.pageCharacterDetailsView.getMappings(pageStatsEvents.SET_STATS);
+	assert.deepEqual(setStatsMappings, pageCharacterDetailsView.setAttributes, 'Check the correct function is bound to stats view SET_STATS');
+
+
+	/**
 	// Using undocumented jQuery _data for events
 	// to check first click handler
 	var saveStatsButton = pageCharacterDetailsView.getSaveStatsButton();
+	assert.ok(saveStatsButton instanceof Element, 'Check the grabbed save stats button is a DOM Element.');
 
-	//let mappings = pageCharacterDetailsView.getMappings(pageStatsEvents.SAVE_STATS);
+	//let mappings = pageCharacterDetailsView.getMappings(pageStatsEvents.SUBMIT_STATS);
 
 	var saveClickBinding = jQueryUtils.extractFirstJqueryBinding(saveStatsButton, 'click');
 	assert.equal(saveClickBinding, pageController.sendCharDetails, 'Check our sendCharDetails func is bound to the button.');
@@ -342,5 +344,6 @@ QUnit.test(TEST_TAG + 'enableUI', function (assert) {
 	var messageInputField = pageChatView.getMessageInputField();
 	var messageInputEvents = jquery._data(messageInputField, 'events');
 	assert.equal(messageInputEvents['keyup'][0].handler, pageController.messageFieldKeyupTrigger, 'Check message field sending on key-up is bound.');
-	
+	 **/
+
 });

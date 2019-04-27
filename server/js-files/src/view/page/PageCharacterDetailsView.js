@@ -3,7 +3,7 @@ import jquery from 'jquery';
 //import EventMapping from 'src/helper/EventMapping.js';
 
 //import $ from 'libs/jquery.js';
-import { EVENTS as characterDetailsEvents, CLASS_OPTIONS, DEFAULT_STATS, ATTRIB_NAMES, ATTRIB_INPUT_IDS, MIN_ATTRIB_VAL, MAX_ATTRIB_VAL } from 'src/model/page/CharacterDetails.js';
+import { EVENTS as characterDetailsEvents, CLASS_OPTIONS, DEFAULT_ATTRIBUTES, ATTRIB_NAMES, ATTRIB_INPUT_IDS, MIN_ATTRIB_VAL, MAX_ATTRIB_VAL } from 'src/model/page/CharacterDetails.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { EventMapping } from 'src/helper/EventMapping.js';
 
@@ -19,7 +19,12 @@ const _CHAR_CLASS_SELECTION_ID = 'class-selection';
 
 export var SET_CHARDETAILS_PROMPT_MESSAGE = 'You need to set your character details.';
 
-export const EVENTS = { SAVE_STATS : 'save_stats' };
+export const EVENTS = {
+	// For submitting some values for confirmation
+	SUBMIT_STATS : 'submit_stats',
+	// This means the view has been updated
+	STATS_SET : 'stats_set'
+};
 
 // DOM View for the Character Stats dialog window
 export default class PageCharacterDetailsView  extends EventMapping {
@@ -48,17 +53,30 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		this.characterDetails = characterDetails;
 	}
 
+	setupEmitting () {
+		try {
+			// When trying to save stats, ensure we submit them
+			let statsButtonJquery = this.getSaveStatsButton();
+			statsButtonJquery.click(this.submitStats);
+		} catch (err) {
+			throw new Error("Could not bind to save-stats button: " + err);
+		}
+	}
+
+	/**
+	 * Emits the data for this view.
+	 */
+	submitStats() {
+		let statsData = this.characterDetails.getCharacterDetailsJson();
+		this.emit(EVENTS.SUBMIT_STATS, statsData);
+	}
+
+	/**
+	 * Binds to any events this view needs to react to w/o emitting
+	 */
 	bindEvents () {
-			// Ensure we update our view whenever the model is updated
-			this.characterDetails.on(characterDetailsEvents.SET_STATS, this.setStatsAttributeValues);
-			let statsButtonJquery = this.getSaveStatsButtonJquery();
-
-			if (statsButtonJquery.length >= 1) {
-				statsButtonJquery[0].click(this.emit(EVENTS.SAVE_STATS));
-			} else {
-				throw new Error("Cannot bind to non-existent save stats button");
-			}
-
+		// Ensure we update our view whenever the model is updated
+		this.characterDetails.on(characterDetailsEvents.SET_STATS, this.setStatsFromJsonResponse(this.characterDetails.getCharacterDetailsJson()))
 	}
 
 	getStatsWindow() {
@@ -100,6 +118,25 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		return jquery('#' + _SAVE_STATS_BUTTON_ID, this.doc);
 	}
 
+	getCharclassSelection() {
+		let elements = this.getCharclassSelectionJquery();
+		if (elements.length >= 1) {
+			return elements.get(0);
+		} else {
+			throw new Error("Charclass selection field not present.");
+		}
+	}
+
+	setCharclassSelection(value) {
+		this.getCharclassSelectionJquery().val(value);
+	}
+
+
+	getCharclassSelectionJquery() {
+		return jquery('#'+_CHAR_CLASS_SELECTION_ID, this.doc);
+	}
+
+
 	clearStatsInfoField() {
 		this.getStatsInfoFieldJquery().val('');
 	};
@@ -131,7 +168,7 @@ export default class PageCharacterDetailsView  extends EventMapping {
 
 	//	Generates the attribute rows and appends them to the given table element
 	createTableRows (statsTable) {
-		let ATTRIB_NAMES = Object.keys(DEFAULT_STATS);
+		let ATTRIB_NAMES = Object.keys(DEFAULT_ATTRIBUTES);
 
 		for (var i = 0; i < ATTRIB_NAMES.length; i++) {
 
@@ -254,8 +291,8 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		classLabel.append(this.doc.createTextNode('Character Class'));
 		//	Dropdown for class type
 		var classSelector = this.doc.createElement('select');
-		classSelector.setAttribute('id', 'class-selection');
-		classSelector.setAttribute('disabled', true);
+		classSelector.setAttribute('id', _CHAR_CLASS_SELECTION_ID);
+		classSelector.setAttribute('disabled', false);
 
 		CLASS_OPTIONS.forEach(classOption => {
 			classSelector.append(this.createSelectorOption(classOption.id, classOption.text));
@@ -306,6 +343,8 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		return jquery('#' + _CHAR_CLASS_SELECTION_ID, this.doc).val();
 	}
 
+
+
 	getClassOptionIndex (optionId) {
 		return CLASS_OPTIONS.findIndex(obj => { return obj.id == optionId } );
 	}
@@ -313,45 +352,47 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	// Set the stats charClass choice to a given selection number
 	// As this will be a procedurally generated option selection
 	setStatsCharacterClass (selectionNo) {
-		var options = jquery('#'+_CHAR_CLASS_SELECTION_ID, this.doc).find('option');
-		if (selectionNo > 0 && selectionNo < options.length) {
-			var optionChoice = options[selectionNo].value;
-			jquery('#'+_CHAR_CLASS_SELECTION_ID, this.doc).val(optionChoice); //	Set the value
+		// Check the field exists by grabbing it
+		this.getCharclassSelection();
+
+		var options = this.getCharclassSelectionJquery().find('option');
+		if (options.length > 0) {
+			if (selectionNo > 0 && selectionNo < options.length) {
+				var optionChoice = options[selectionNo].value;
+				this.setCharclassSelection(optionChoice);
+			} else {
+				throw new RangeError('Invalid character class selection option: ' + selectionNo);
+			}
 		} else {
-			throw new RangeError('Invalid character class selection option: '+ selectionNo);
+			throw new Error('Charclass options not available: ' + options);
 		}
 	}
 	
 	clearAll() {
 		this.setStatsCharacterName('');
 		this.setStatsCharacterClass(0);
-		this.setStatsAttributeValues(defaultStats);
+		this.setAttributes(this.characterDetails.getAttributes());
 	}
 
-	getStatsAttributeValues () {
-		var output = {};
-
-		for (var i = 0; i < ATTRIB_INPUT_IDS.length; i++) {
-			var statId = '#' + ATTRIB_INPUT_IDS[i];
-			// Extract the value of the first match to statId
-			var statValue = parseInt(jquery(statId, this.doc).val());
-			output[ATTRIB_NAMES[i]] = statValue;
-		}
-
-		return output;
-	}
-
-	//	Grabs Character Name, Class, and Attribute values
-	getStats () {
+	/**
+	 * Gets the current stats being displayed
+	 * @returns {{charclass: *, attributes: *, charname: *}}
+	 */
+	getViewStats () {
 		return {
 			'charname': this.getStatsCharacterNameVal(),
 			'charclass': this.getStatsCharacterClass(),
-			'attributes': this.getStatsAttributeValues()
+			'attributes': this.getAttributes()
 		};
 	}
 
 	//	Takes a JSON object of form: {'STR':1,'DEX':2,...} and sets the value fields to match
-	setStatsAttributeValues (attrValuesJSON) {
+
+	/**
+	 * Displays a series of stats for the character details
+	 * @param attrValuesJSON JSON mapping of attribute names to integer values
+	 */
+	setAttributes (attrValuesJSON) {
 		console.log('Displaying stats:'+JSON.stringify(attrValuesJSON));
 
 		for (var i = 0; i < ATTRIB_INPUT_IDS.length; i++) {
@@ -362,16 +403,21 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		}
 	}
 
+	/**
+	 * Displays the values from a JSON Response, without adjusting the underlying data model
+	 * @param statsValuesJson
+	 */
 	setStatsFromJsonResponse (statsValuesJson) {
 		console.log('Saving stats:'+JSON.stringify(statsValuesJson));
 		this.setStatsCharacterName(statsValuesJson['charname']);
 		this.setStatsCharacterClass(this.getClassOptionIndex(statsValuesJson['charclass']));
-		
-		// TODO Assign free points to something
-		// var freePoints = statsValuesJson['free_points'];
-		
-		// Extract just the attribute fields
-		this.setStatsAttributeValues(statsValuesJson['scores']);
+		this.setAttributes(statsValuesJson['scores']);
+
+
+		// TODO Assign free points to something as we don't have a field yet
+		// var freePoints = statsValuesJson['free_points']
+
+		this.emit(EVENTS.STATS_SET);
 	}
 
 	/**
@@ -383,6 +429,24 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		this.generateStatsWindow();
 		this.generateStatsForm();
 	}
+
+	destroyView () {
+		this.destroyStatsWindow();
+	}
+
+	/**
+	 * Removes the main window div
+	 */
+	destroyStatsWindow () {
+		try {
+			let statsWindow = this.getStatsWindow();
+			//jquery(this.getStatsWindowJquery()).remove();
+			jquery(statsWindow).remove();
+		} catch (err) {
+			// Stats window didn't exist anyway
+		}
+	}
+
 
 }
 

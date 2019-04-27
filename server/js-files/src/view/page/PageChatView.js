@@ -10,6 +10,8 @@ const _PWD_INPUT_ID = 'password-input';
 const _MESSAGE_LOG_ID = 'message-log';
 const _SEND_MESSAGE_BUTTON_ID = 'send-message-button';
 
+export const EVENTS = { SEND_MESSAGE : 'send_message' };
+
 // DOM view for the chat
 export default class PageChatView extends EventMapping {
 
@@ -115,6 +117,15 @@ export default class PageChatView extends EventMapping {
 		return jquery('#'+_SEND_MESSAGE_BUTTON_ID, this.doc);
 	}
 
+	getSendMessageButton() {
+		let elements = this.getSendMessageButtonJquery();
+		if (elements.length >= 1) {
+			return elements.get(0);
+		} else {
+			throw new Error("Message input field not present.");
+		}
+	}
+
 	getMessageInputFieldJquery() {
 		return jquery('#'+_MESSAGE_INPUT_ID, this.doc)
 	}
@@ -210,6 +221,21 @@ export default class PageChatView extends EventMapping {
 		this.getPasswordInputFieldJquery().hide();
 	}
 
+	/**
+	 * Setup emitting of events for this view
+	 */
+	setupEmitting () {
+		this.getSendMessageButton().click(() => { this.emit(EVENTS.SEND_MESSAGE) });
+		this.bindEnterKeyUp(() => { this.emit(EVENTS.SEND_MESSAGE) });
+	}
+
+	/**
+	 * Binds to any events this view needs to react to w/o emitting
+	 */
+	bindEvents () {
+		//Bind to any events we need to react to
+	}
+
 	//	Binds 'Enter' to send message behavior
 	bindEnterKeyUp (method) {
 		//	grab the fields
@@ -223,12 +249,14 @@ export default class PageChatView extends EventMapping {
 		messageField.on('keyup', method);
 		passwordField.on('keyup', method);
 	}
-	
-	//	Switches the 'Send' message behavior from message to password sending
-	bindMessageButton (keyUpMethod) {
-		var thisButton = this.getSendMessageButtonJquery();
-		thisButton.unbind('click');
-		this.bindEnterKeyUp(keyUpMethod); //	Bind the enter key too
-		thisButton.click(keyUpMethod);
-	}
+
+	// Emit instead
+	//bindMessageButton (keyUpMethod) {
+	//	var thisButton = this.getSendMessageButtonJquery();
+	//	thisButton.unbind('click');
+	//	this.bindEnterKeyUp(keyUpMethod); //	Bind the enter key too
+	//	thisButton.click(keyUpMethod);
+	//}
 }
+
+export { PageChatView };

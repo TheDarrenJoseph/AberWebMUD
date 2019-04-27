@@ -1,4 +1,4 @@
-import PageChatView from 'src/view/page/PageChatView.js';
+import { EVENTS as pageChatEvents, PageChatView} from 'src/view/page/PageChatView.js';
 import { EVENTS as pageStatsEvents, PageCharacterDetailsView} from 'src/view/page/PageCharacterDetailsView.js';
 
 import { Page } from 'src/model/page/Page.js';
@@ -42,7 +42,6 @@ export default class PageController {
 
 		this.SOCKET_HANDLER = SocketHandler.getInstance();
 
-		// BIND ME this.characterConfirmedCallback = characterConfirmedCallback;
 		this.characterDetails = new CharacterDetails();
 
 		// Use the base document if we've not provided one
@@ -73,18 +72,41 @@ export default class PageController {
 		}
 	}
 
-	bindEvents () {
-		this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
+	/**
+	 * Bind to chat view events
+	 */
+	bindPageChatView () {
+		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.messageFieldKeyupTrigger);
+	}
 
-		// Setup binding response for detail saving
-		this.pageCharacterDetailsView.on(pageStatsEvents.SAVE_STATS, (data) => {
+	/**
+	 * Bind to character details view events
+	 */
+	bindPageCharacterDetailsView () {
+		// Bind to events this view may emit
+		this.pageCharacterDetailsView.on(pageStatsEvents.SUBMIT_STATS, (data) => {
 			this.sendCharDetails(data);
-			this.characterDetails.setStatsAttributeValues(data);
 		});
 
-		// Setup emitting
+		// Setup emitting for the above binding(s)
 		this.pageCharacterDetailsView.bindEvents();
+	}
 
+	/**
+	 * Binds all views vents for each view
+	 */
+	bindEvents () {
+		//this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
+		this.bindPageChatView();
+		this.bindPageCharacterDetailsView();
+	}
+
+	/**
+	 * Setups up event emitting for each view
+	 */
+	setupEmitting () {
+		this.pageChatView.setupEmitting();
+		this.pageCharacterDetailsView.setupEmitting();
 	}
 
 	/**
@@ -94,7 +116,7 @@ export default class PageController {
 	checkCharacterDetails (onConfirmedCb) {
 		// If details are not confirmed, hookup our callback
 		if (!this.characterDetails.characterDetailsExist()) {
-			this.characterDetails.on(characterDetailsEvents.DETAILS_CONFIRMED, onConfirmedCb);
+			this.characterDetails.on(characterDetailsEvents.SET_DETAILS, onConfirmedCb);
 			this.pageCharacterDetailsView.requestCharacterDetails();
 		} else {
 			// Otherwise callback straight away
@@ -114,7 +136,7 @@ export default class PageController {
 	}
 
 	/**
-	 * Checks the data for indicators of the failure tyype and updates the message log accordingly
+	 * Checks the data for indicators of the failure type and updates the message log accordingly
 	 * @param data
 	 */
 	handlePlayerLoginError (data) {
@@ -151,7 +173,8 @@ export default class PageController {
 	 */
 	saveCharacterData (characterData) {
 		if (CharacterDetails.isValidCharacterData(characterData)) {
-			this.pageCharacterDetailsView.setStatsFromJsonResponse(characterData);
+			// Set the underlying view model so the view reacts
+			this.pageCharacterDetailsView.characterDetails.setCharacterDetails(characterData);
 			return true;
 		} else {
 			throw new RangeError(INVALID_JSON_CHARACTER_DATA);
@@ -162,9 +185,8 @@ export default class PageController {
 	/**
 	 * Submit character details to the server
 	 */
-	sendCharDetails () {
-		let attribs = this.pageCharacterDetailsView.getStats();
-		this.SOCKET_HANDLER.sendCharacterDetails(attribs);
+	sendCharDetails (data) {
+		this.SOCKET_HANDLER.sendCharacterDetails(data);
 		this.pageCharacterDetailsView.updateStatsInfoLog('Character details submitted (unsaved).', 'client');
 	}
 
@@ -191,7 +213,8 @@ export default class PageController {
 			this.SOCKET_HANDLER.sendAuthentication(username, passwordInput);
 			this.pageChatView.endPasswordSubmission();
 			//	Set the send button behavior back to normal (isText)
-			this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
+			this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.messageFieldKeyupTrigger);
+			//this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
 			
 		} else {
 			this.pageChatView.updateMessageLog(INVALID_LOGIN_MESSAGE, 'client');
@@ -212,7 +235,8 @@ export default class PageController {
 			this.pageChatView.setMessageLog('Please enter your password: ');
 		}
 
-		this.pageChatView.bindMessageButton(this.passwordFieldKeyupTrigger); //	Set the send message behaviour to password sending
+		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.passwordFieldKeyupTrigger);
+		//this.pageChatView.bindMessageButton(this.passwordFieldKeyupTrigger); //	Set the send message behaviour to password sending
 	}
 
 	messageFieldKeyupTrigger (evnt) {
@@ -229,20 +253,9 @@ export default class PageController {
 		}
 	}
 
-	bindStageClick (callback) {
-		//this.pageView.bindStageClick(enabled, this.pixiController.stageClicked);
-		this.pageView.bindStageClick(callback);
-	}
-	
-	unbindStageClick () {
-		//this.pageView.bindStageClick(enabled, this.pixiController.stageClicked);
-		this.pageView.bindStageClick();
-	}
-
-
 	disableUI () {
 		if (this.uiEnabled) {
-			this.bindStageClick(false); //	Turns off stage-click input
+			this.pageView.unbindStageClick();
 			this.uiEnabled = false;
 		}
 	}
@@ -251,11 +264,11 @@ export default class PageController {
 	enableUI () {
 		if (!this.uiEnabled) {
 			this.setupUI();
-			//this.bindStageClick(true); //	Activate movement click input
 			this.uiEnabled = true;
 			
 			//	Hookup message sending and other controls
-			this.bindEvents(); 
+			this.bindEvents();
+			this.setupEmitting();
 		}
 	}
 	

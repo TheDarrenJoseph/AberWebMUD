@@ -25,6 +25,7 @@ function beforeEachTest (assert) {
 // Hookup before each test setup / assertion
 QUnit.module('PageChatViewTests', { before: beforeAll, beforeEach: beforeEachTest });
 
+/**
 QUnit.test(TEST_TAG + 'bindMessageButton', function (assert) {
 	var callbackDone = assert.async(1);
 
@@ -36,4 +37,4 @@ QUnit.test(TEST_TAG + 'bindMessageButton', function (assert) {
 	var messageInputEvents = jQueryUtils.getEventsForElement(pageChatView.getMessageInputField());
 	assert.equal(messageInputEvents['keyup'][0].handler, testCallback, 'Check key-up on message button is bound.');
 });
-
+**/

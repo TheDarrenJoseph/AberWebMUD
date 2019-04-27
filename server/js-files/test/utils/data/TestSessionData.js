@@ -7,7 +7,7 @@ export var TEST_SESSIONID = 12345678;
 export var TEST_SCORES = {'FOR':8, 'INT':8, 'AWR' : 8, 'ARC': 8 , 'AGL' : 8};
 export var TEST_CHARDATA = {
 	'charname': 'FooBar',
-	'charclass': CLASS_OPTIONS[1].id, //Non-default charclass
+	'charclass': 'spellcaster', //Non-default charclass
 	'pos_x': 4,
 	'pos_y': 4,
 	'health': 100,

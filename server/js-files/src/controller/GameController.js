@@ -46,18 +46,19 @@ export class GameControllerClass {
 	}
 
 	bindComponents () {
-		this.pageController.bindStageClick(this.pixiController.stageClicked);
+		this.pageController.pageView.bindStageClick(this.pixiController.stageClicked);
 
 		// EventMappings
-		this.pageController.pageCharacterDetailsView.on('save-details')
-		this.pageController.characterDetails.on(characterDetailsEvents.DETAILS_CONFIRMED, this.characterDetailsConfirmed);
+		// Once the character details are set, confirm that we have some
+		this.pageController.characterDetails.on(characterDetailsEvents.SET_STATS, this.characterDetailsConfirmed);
 
 		this.bindChat();
 		this.bindStatsUpdates();
 	}
 
-	
-	//	Continues the login process after a user inputs their character details
+	/**
+	 * Continues the login process once we've set/retrieved character details
+	 */
 	characterDetailsConfirmed () {
 		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.clientSession);
 		//	Hide the stats window
