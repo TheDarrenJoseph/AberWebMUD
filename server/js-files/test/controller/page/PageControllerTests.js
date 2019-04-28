@@ -81,36 +81,16 @@ QUnit.test(TEST_TAG + 'setupUI', function (assert) {
 	assert.equal(pageView.getMainWindowJquery().length, 1, 'Check main window exists');
 });
 
-QUnit.test(TEST_TAG + 'checkCharacterDetails_noCharacter', function (assert) {
-
-	// Reset the character details
-	pageController.characterDetails = new CharacterDetails();
-	var characterDetails = pageController.characterDetails;
-	var callbacked = false;
-	assert.deepEqual(DEFAULT_CHARACTERDETAILS, characterDetails, 'Check character details have not been set for the Session.');
-
-	// Create a new instance to assert the callback
-	let characterDetailsConfirmedCallback = function () {
-		callbacked = true;
-	};
-
-	// Try calling with our character details set.
-	pageController = new PageController();
-	pageController.checkCharacterDetails(characterDetailsConfirmedCallback);
-
-	var statsInfoFieldVal = pageCharacterDetailsView.getStatsInfoFieldValue();
-	let expectedMessageThere = (statsInfoFieldVal.indexOf(SET_CHARDETAILS_PROMPT_MESSAGE) !== -1);
-	assert.notOk(callbacked, 'Ensure the character details confirmed callback is not called.');
-	assert.ok(expectedMessageThere, 'Check we prompt for character details if they are not set');
-});
-
-QUnit.test(TEST_TAG + 'checkCharacterDetails_characterSet', function (assert) {
+QUnit.test(TEST_TAG + 'onceCharacterDetailsSet', function (assert) {
 	// Clear the session character
 	pageController.characterDetails = new CharacterDetails();
 	var characterDetails = pageController.characterDetails;
-	assert.deepEqual(DEFAULT_CHARACTERDETAILS, characterDetails, 'Check character details have not been set for the Session.');
+	assert.deepEqual(DEFAULT_CHARACTERDETAILS, characterDetails, 'Check character details are their default values.');
 
-	// Set some Sesstion data
+	// this must be called for this test to pass
+	let onConfirmCb = assert.async(1);
+	pageController.onceCharacterDetailsSet(onConfirmCb);
+
 	pageController.characterDetails.setCharacterDetails(TEST_CHARDATA);
 	characterDetails = pageController.characterDetails;
 	assert.ok((characterDetails !== undefined && characterDetails !== null && characterDetails !== {}), 'Check some character details are set.');
@@ -118,16 +98,6 @@ QUnit.test(TEST_TAG + 'checkCharacterDetails_characterSet', function (assert) {
 	// Ask the character details model if all details exist
   let characterDetailsExist = pageController.characterDetails.characterDetailsExist();
 	assert.ok(characterDetailsExist, 'Check all character details have been set for the Session.');
-
-	var callbacked = false;
-	// Create a new instance to assert the callback
-	let characterDetailsConfirmedCallback = function () {
-		callbacked = true;
-	};
-
-	// Try calling with our character details set.
-	pageController.checkCharacterDetails(characterDetailsConfirmedCallback);
-	assert.ok(callbacked, 'Ensure the character details confirmed callback is called.');
 });
 
 QUnit.test(TEST_TAG + 'handlePlayerLoginError_blankJSON', function (assert) {
@@ -174,10 +144,16 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_failed', function (assert) 
 	messageData.success = false;
 	expectedMessage = serverContextTag + CHARACTER_UPDATE_FAILURE_MESSAGE + '\n';
 	pageController.handleCharacterUpdateResponse(messageData);
-	assert.equal(pageCharacterDetailsView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update failed if the response says so.');
+
+	//assert.equal(pageCharacterDetailsView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update failed if the response says so.');
+	var statsInfoFieldVal = pageCharacterDetailsView.getStatsInfoFieldValue();
+	let failureMessageThere = (statsInfoFieldVal.indexOf(expectedMessage) !== -1);
+	let promptMessageThere = (statsInfoFieldVal.indexOf(SET_CHARDETAILS_PROMPT_MESSAGE) !== -1);
+	assert.ok(failureMessageThere, 'Check we alert the user that the details have failed to submit.');
+	assert.ok(promptMessageThere, 'Check we prompt for character details on a failure.');
 
 	// +1 expectation for this assertion
-	assert.expect(3);
+	assert.expect(4);
 });
 
 

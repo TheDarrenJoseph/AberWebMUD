@@ -111,23 +111,16 @@ export default class PageController {
 		this.pageCharacterDetailsView.setupEmitting();
 	}
 
-	/**
-	 * Checks for character details and calls-back or prompts for them
-	 * @param onConfirmedCb callback for if details exist
-	 */
-	checkCharacterDetails (onConfirmedCb) {
-		// If details are not confirmed, hookup our callback
-		if (!this.charDetailsConfirmed) {
-			// Single-shot mapping for setting of the details to something
-			this.characterDetails.once(characterDetailsEvents.SET_DETAILS, () => {
-				this.charDetailsConfirmed = true;
-				onConfirmedCb();
-			});
-			this.pageCharacterDetailsView.requestCharacterDetails();
-		} else {
-			// Otherwise callback straight away
+	onceCharacterDetailsSet (onConfirmedCb) {
+		// Single-shot mapping for setting of the details to something
+		this.characterDetails.once(characterDetailsEvents.SET_DETAILS, () => {
+			this.charDetailsConfirmed = true;
 			onConfirmedCb();
-		}
+		});
+	}
+
+	isCharacterDetailsConfirmed() {
+		return this.charDetailsConfirmed;
 	}
 
 	// Builds UI Components
@@ -165,13 +158,16 @@ export default class PageController {
 
 			if (success === true) {
 				// Try to save the returned character details
-				let charData = data['char-data'];
+				let charData = data['c' +
+				'har-data'];
 				if (this.saveCharacterData(charData)) {
 					Session.updateClientSessionData(data);
 					this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
 				}
-			} else { 
+			} else {
+				// Set a failure message and re-prompt the player
 				this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_FAILURE_MESSAGE, 'server');
+				this.pageCharacterDetailsView.requestCharacterDetails();
 			}
 			
 		} else {

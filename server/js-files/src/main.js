@@ -10,7 +10,7 @@ function main() {
 	GameController.enableUI();
 	GameController.connect();
 
-	// GameController.pageController.checkCharacterDetails();
+	// GameController.pageController.onceCharacterDetailsSet();
 }
 
 //	Initialises the client setup once the HTML page loads

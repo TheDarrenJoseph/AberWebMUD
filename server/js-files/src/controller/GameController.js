@@ -116,8 +116,7 @@ export class GameControllerClass {
 	handlePlayerLogin (data) {
 		// Save this data for our session
 		Session.updateClientSessionData(data);
-
-		this.pageController.checkCharacterDetails( () => { this.characterDetailsConfirmed() });
+		this.pageController.onceCharacterDetailsSet(this.characterDetailsConfirmed);
 	}
 
 
