@@ -185,7 +185,7 @@ export default class PixiMapView {
 		var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
 		// Promise the loading of the subtexture
 		var spritePromise = SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileType], DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
-		return characterSprite;
+		return spritePromise;
 	}
 
 	promiseSpriteForPlayer (localX, localY) {
@@ -265,7 +265,7 @@ export default class PixiMapView {
 	 *
 	 * @returns a Promise for as many Sprites as we've needed to create
 	 */
-	drawMapTiles() {
+	async drawMapTiles() {
 		let spritePromises = new Array();
 
 		// Clear the map display container first
@@ -289,23 +289,12 @@ export default class PixiMapView {
 							this.mapContainer.addChild(tileSprite);
 						} else {
 							// Otherwise try to create a Sprite for this tile
-							try {
-								// Only draw bits of the map we can actually seee
-								if (this.mapModel.isPositionInMap(globalX, globalY)) {
-									var tileSpritePromise = this.promiseSpriteForTile(tileType, x, y);
-
-									// Then perform the mapContainer update asynchronously
-									tileSpritePromise.then(tileSprite => {
-										this.mapContainer.addChild(tileSprite);
-									}).catch(err => {
-										console.log('Sprite promise failed when building a tile Sprite: ' + err);
-									});
-
-								}
-							} catch (err) {
-								// Local / Global conversion failure isn't an issue here.
-								continue;
+							// Only draw bits of the map we can actually seee
+							if (this.mapModel.isPositionInMap(globalX, globalY)) {
+								let tileSprite = await this.promiseSpriteForTile(tileType, x, y);
+								this.mapContainer.addChild(tileSprite);
 							}
+
 						}
 				}
 			}
