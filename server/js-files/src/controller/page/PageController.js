@@ -90,7 +90,7 @@ export default class PageController {
 	 * Bind to chat view events
 	 */
 	bindPageChatView () {
-		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.messageFieldKeyupTrigger);
+		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.messageFieldKeyupTrigger() });
 	}
 
 	/**
@@ -98,7 +98,7 @@ export default class PageController {
 	 */
 	bindPageCharacterDetailsView () {
 		// Bind to events this view may emit
-		this.pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, this.sendCharDetails);
+		this.pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, () => {  this.sendCharDetails() });
 
 		// Setup emitting for the above binding(s)
 		this.pageCharacterDetailsView.bindEvents();
