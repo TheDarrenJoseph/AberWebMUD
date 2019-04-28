@@ -296,8 +296,4 @@ QUnit.test(TEST_TAG + 'enableUI_bindings', function (assert) {
 
 	let submitStatsMappings = pageController.pageCharacterDetailsView.getMappings(pageCharacterDetailsViewEvents.SUBMIT_STATS);
 	assert.ok(submitStatsMappings.includes(pageController.sendCharDetails), 'Check the correct function is bound to stats view SUBMIT_STATS');
-
-	// When view stats are set
-	let setStatsMappings = pageController.pageCharacterDetailsView.getMappings(pageCharacterDetailsViewEvents.VIEW_STATS_SET);
-	assert.ok(setStatsMappings.includes(pageCharacterDetailsView.setAttributes), 'Check the correct function is bound to stats view SET_STATS');
 });
