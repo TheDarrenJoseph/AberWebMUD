@@ -1,7 +1,6 @@
 // Helper class for creating PixiJS sprites
-import * as PIXI from 'libs/pixi.min.js';
+import PIXI from 'libs/pixi.min.js';
 import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
-import { DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
 
 export default class SpriteHelper {
 	static async promisePixiTexture (tileAtlasPath, subtileName, tileHeight, tileWidth) {
@@ -15,7 +14,7 @@ export default class SpriteHelper {
 	}
 
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
-	static async makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight = DEFAULT_TILE_SIZE, tileWidth = DEFAULT_TILE_SIZE, pixiPoint, interactive) {
+	static async makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight, tileWidth, pixiPoint, interactive) {
 		// Wrap the subtexture promise to make a Sprite and return that
 		// Otherwise bubble up the error
 		return new Promise((resolve, reject) => {
@@ -58,7 +57,7 @@ export default class SpriteHelper {
 	// function deleteMapCharacter(global_x, global_y) {
 	//  //Converting global pos to local relative to view
 	//  var localOldPos = globalTilePosToLocal(global_x, global_y);
-	//  var old_sprite = mapCharacterArray[localOldPos[0]][localOldPos[1]];
+	//  var old_sprite = mapPlayerArray[localOldPos[0]][localOldPos[1]];
 
 	//  if (old_sprite != null) {
 	//    characterContainer.removeChild(old_sprite); //Ask pixiJS to remove this sprite from our container
@@ -82,7 +81,7 @@ export default class SpriteHelper {
 	// 				//var localNewPos = globalTilePosToLocal(new_x_global, new_y_global);
 	// 				console.log('Moving '+charname+'!');
 	//
-	// 				newCharacterOnMap (charname, new_x_global, new_y_global);
+	// 				newPlayerOnMap (charname, new_x_global, new_y_global);
 	//
 	// 			} else {
 	// 				console.log(charname+' walked out of view!'); //Moved out of screen
@@ -91,7 +90,7 @@ export default class SpriteHelper {
 	//       deleteMapCharacter(old_x_global,old_y_global); //Delete the old sprite
 	//
 	// 		} else if (isGlobalPositionInMapView(new_x_global, new_y_global)) { //Moved into screen from
-	// 			newCharacterOnMap (charname, new_x_global, new_y_global); //Create a sprite to show them!
+	// 			newPlayerOnMap (charname, new_x_global, new_y_global); //Create a sprite to show them!
 	// 			console.log(charname+' has walked into view!');
 	// 		}
 	// 	}

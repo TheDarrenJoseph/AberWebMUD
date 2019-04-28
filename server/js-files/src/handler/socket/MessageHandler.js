@@ -1,4 +1,4 @@
-import SessionController from 'src/controller/SessionController.js';
+import { Session } from 'src/model/Session.js';
 
 //	Export vars we may want to unpack
 export var SESSION_JSON_NAME = 'sessionJson';
@@ -26,7 +26,7 @@ class MessageHandler {
 	}
 
 	static attachSessionJson (message) {
-		var sessionJson = SessionController.getSessionInfoJSON();
+		var sessionJson = Session.ActiveSession.getSessionInfoJSON();
 		if (MessageHandler.isSessionInfoValid(sessionJson)) {
 			message.SESSION_JSON_NAME = sessionJson;
 		}
@@ -50,12 +50,6 @@ class MessageHandler {
 		message = MessageHandler.attachSessionJson(message);
 		console.log(message);
 		return message;
-	}
-
-	static updateMapFromResponse (map, json) {
-		map.mapTiles = JSON.parse(json[MessageHandler.DATA_JSON_NAME]);
-		map.mapSizeX = json[MessageHandler.MAPSIZE_X_JSON_NAME];
-		map.mapSizeY = json[MessageHandler.MAPSIZE_Y_JSON_NAME];
 	}
 }
 

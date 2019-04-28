@@ -1,16 +1,17 @@
-import PageChatView from 'src/view/page/PageChatView.js';
-import PageStatsDialogView from 'src/view/page/PageStatsDialogView.js';
-import ValidationHandler from 'src/handler/ValidationHandler.js';
+import { EVENTS as pageChatEvents, PageChatView} from 'src/view/page/PageChatView.js';
+import { EVENTS as pageCharacterDetailsViewEvents, PageCharacterDetailsView} from 'src/view/page/PageCharacterDetailsView.js';
 
+import { Page } from 'src/model/page/Page.js';
+import { EVENTS as characterDetailsEvents, CharacterDetails } from 'src/model/page/CharacterDetails.js';
 import { PageView } from 'src/view/page/PageView.js';
-import { PixiController } from 'src/controller/pixi/PixiController.js';
-import SessionController from 'src/controller/SessionController.js';
 
 //	Hooking up to a bunch of other controllers for now
 import { Session } from 'src/model/Session.js';
 
 //	We're going to call out to the SocketHandler from here for now
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
+
+import ValidationHandler from 'src/handler/ValidationHandler.js';
 
 const ENTER_KEY_EVENT_CODE = 13;
 
@@ -24,102 +25,158 @@ export var CHARACTER_UPDATE_FAILURE_MESSAGE = 'Invalid character details/update 
 export var MOVEMENT_FAILURE_MESSAGE = 'You cannot move there!';
 export var INVALID_LOGIN_MESSAGE = 'Invalid username/password.';
 
-// Static helper class
 //	Very loose controller for the Page
-//	Binding to click / key events using jQuery and controlling the overall UI elements
+// 	Accepting events from the PageView
 export default class PageController {
-	
-	constructor(characterConfirmedCallback, pageView, pageStatsDialogView, pageChatView) {
-		// Only perform setup once
-		this.isSetup   = false;
+
+	/**
+	 *
+	 * @param doc to allow overriding the default Document interface
+	 * @param pageView
+	 * @param pageCharacterDetailsView
+	 * @param pageChatView
+	 */
+	constructor(doc, pageView, pageCharacterDetailsView, pageChatView) {
+
 		this.uiEnabled = false;
-		this.characterConfirmedCallback = characterConfirmedCallback;
+		// This is for
+		this.charDetailsConfirmed = false;
+
+		this.SOCKET_HANDLER = SocketHandler.getInstance();
+
+		this.characterDetails = new CharacterDetails();
+
+		// Use the base document if we've not provided one
+		if (doc == undefined) {
+			this.doc = document;
+		} else {
+			this.doc = doc;
+		}
+
+		this.pageModel = new Page(this.doc);
 
 		if (pageView == undefined) {
-			this.pageView = new PageView();
+			this.pageView = new PageView(this.pageModel);
 		} else {
 			this.pageView = pageView;
 		}
 
-		if (pageStatsDialogView == undefined) {
-			this.pageStatsDialogView = new PageStatsDialogView(this.pageView);
+		if (pageCharacterDetailsView == undefined) {
+			this.pageCharacterDetailsView = new PageCharacterDetailsView(this.pageView, this.characterDetails);
 		} else {
-			this.pageStatsDialogView = pageStatsDialogView;
+			this.pageCharacterDetailsView = pageCharacterDetailsView;
 		}
-
 
 		if (pageChatView == undefined) {
 			this.pageChatView = new PageChatView(this.pageView);
 		} else {
-			this.pageChatView = pageChatViews;
+			this.pageChatView = pageChatView;
 		}
-
 	}
-	
+
+	getPageView() {
+		return this.pageView;
+	}
+
+	getPageCharacterDetailsView() {
+		return this.pageCharacterDetailsView;
+	}
+
+	getPageChatView () {
+		return this.pageChatView;s
+	}
+
+	/**
+	 * Bind to chat view events
+	 */
+	bindPageChatView () {
+		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.messageFieldKeyupTrigger() });
+	}
+
+	/**
+	 * Bind to character details view events
+	 */
+	bindPageCharacterDetailsView () {
+		// Bind to events this view may emit
+		this.pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, () => {  this.sendCharDetails() });
+
+		// Setup emitting for the above binding(s)
+		this.pageCharacterDetailsView.bindEvents();
+	}
+
+	/**
+	 * Binds all views vents for each view
+	 */
+	bindEvents () {
+		//this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
+		this.bindPageChatView();
+		this.bindPageCharacterDetailsView();
+	}
+
+	/**
+	 * Setups up event emitting for each view
+	 */
+	setupEmitting () {
+		this.pageChatView.setupEmitting();
+		this.pageCharacterDetailsView.setupEmitting();
+	}
+
+	onceCharacterDetailsSet (onConfirmedCb) {
+		// Single-shot mapping for setting of the details to something
+		this.characterDetails.once(characterDetailsEvents.SET_DETAILS, () => {
+			this.charDetailsConfirmed = true;
+			onConfirmedCb();
+		});
+	}
+
+	isCharacterDetailsConfirmed() {
+		return this.charDetailsConfirmed;
+	}
+
 	// Builds UI Components
 	setupUI () {
 		if (!this.isSetup) {
 			// Ensure our HTML DOM content is built
 			this.pageView.buildView();
-			this.pageStatsDialogView.buildView();
+			this.pageCharacterDetailsView.buildView();
 			this.pageChatView.buildView();
 		}
-
 	}
 
-	// boolean switch for message / password sending
-	bindMessageInputPurpose (messageInput) {
-		if (messageInput === true) {
-			this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
-		}
-
-		if (messageInput === false) {
-			this.pageChatView.bindMessageButton(this.passwordFieldKeyupTrigger);
-		}
-	}
-
-	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
-	handlePlayerLogin (data) {
-		// Save this data for our session
-		SessionController.updateClientSessionData(data);
-		//	Check/Prompt for character details
-		this.checkCharacterDetails(); 
-	}
-	
-	//	Checks that the player's character details are set
-	//	and asks them to set them if false
-	checkCharacterDetails () {
-		if (!SessionController.characterDetailsExist()) {
-			this.pageStatsDialogView.requestCharacterDetails();
-		} else {
-			this.characterConfirmedCallback();
-		}
-	}
-	
+	/**
+	 * Checks the data for indicators of the failure type and updates the message log accordingly
+	 * @param data
+	 */
 	handlePlayerLoginError (data) {
-		if (data['playerExists']) {
+		let playerExistsAttrib = 'playerExists';
+		if (ValidationHandler.checkDataAttributes(data, [playerExistsAttrib]) && data[playerExistsAttrib] === true) {
 			this.pageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PWD, 'server');
 		} else {
 			this.pageChatView.updateMessageLog(LOGIN_FAILURE_MESSAGE_PLAYER, 'server');
 		}
 	}
 
+	/**
+	 * Parses the charcter update response
+	 * Extracts and sets the char details on success
+	 * Also displays a message relevant to this
+	 * @param data JSON character update data
+	 */
 	handleCharacterUpdateResponse (data) {
-		if (ValidationHandler.isValidCharacterUpdateData(data)) {
-			if (data['success'] === true) {
-				
-				let charData = data['char-data'];
-				this.saveCharacterData(charData);
+		if (CharacterDetails.isValidCharacterUpdateData(data)) {
+			let success = data['success'];
 
-				SessionController.updateClientSessionData(data);
-				this.pageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
-								
-				//	If this is our first update, trigger the UI startup
-				if (!SessionController.characterDetailsExist()) {
-					this.characterConfirmedCallback();
+			if (success === true) {
+				// Try to save the returned character details
+				let charData = data['char-data'];
+				if (this.saveCharacterData(charData)) {
+					Session.ActiveSession.updateClientSessionData(data);
+					this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
 				}
-			} else { 
-				this.pageStatsDialogView.updateStatsInfoLog(CHARACTER_UPDATE_FAILURE_MESSAGE, 'server');
+			} else {
+				// Set a failure message and re-prompt the player
+				this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_FAILURE_MESSAGE, 'server');
+				this.pageCharacterDetailsView.requestCharacterDetails();
 			}
 			
 		} else {
@@ -127,9 +184,15 @@ export default class PageController {
 		}
 	}
 
+	/**
+	 * External setter for char stats from the server
+	 * @param characterData
+	 * @returns {boolean}
+	 */
 	saveCharacterData (characterData) {
-		if (ValidationHandler.isValidCharacterData(characterData)) {
-			this.pageStatsDialogView.setStatsFromJsonResponse(characterData);
+		if (CharacterDetails.isValidCharacterData(characterData)) {
+			// Set the underlying view model so the view reacts
+			this.pageCharacterDetailsView.characterDetails.setCharacterDetails(characterData);
 			return true;
 		} else {
 			throw new RangeError(INVALID_JSON_CHARACTER_DATA);
@@ -137,16 +200,12 @@ export default class PageController {
 		}
 	}
 
-	bindEvents () {
-		this.bindMessageInputPurpose(true);
-		this.pageStatsDialogView.bindSaveCharacterDetails(this.sendCharDetails);
-	}
-
-	sendCharDetails () {
-		let attribs = this.pageStatsDialogView.getStats();
-		SocketHandler.sendCharacterDetails(attribs);
-		console.log('Character details sent for saving..');
-		this.pageStatsDialogView.updateStatsInfoLog('Character details submitted (unsaved).', 'client');
+	/**
+	 * Submit character details to the server
+	 */
+	sendCharDetails (data) {
+		this.SOCKET_HANDLER.sendCharacterDetails(data);
+		this.pageCharacterDetailsView.updateStatsInfoLog('Character details submitted (unsaved).', 'client');
 	}
 
 	//	Handles a movement response (success/fail) for this client's move action
@@ -160,19 +219,20 @@ export default class PageController {
 	}
 
 	submitChatMessage () {
-		SocketHandler.sendNewChatMessage(this.pageChatView.getMessageInput());
+		this.SOCKET_HANDLER.sendNewChatMessage(this.pageChatView.getMessageInput());
 		this.pageChatView.clearMessageInputField();
 	}
 
 	submitPassword () {
-		var username = SessionController.getSessionInfoJSON().username;
+		var username = Session.ActiveSession.getSessionInfoJSON().username;
 		var passwordInput = this.pageChatView.getPasswordInput();
 
 		if (username !== null && passwordInput !== '') {
-			SocketHandler.sendAuthentication(username, passwordInput);
+			this.SOCKET_HANDLER.sendAuthentication(username, passwordInput);
 			this.pageChatView.endPasswordSubmission();
 			//	Set the send button behavior back to normal (isText)
-			this.bindMessageInputPurpose(true);
+			this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.messageFieldKeyupTrigger);
+			//this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
 			
 		} else {
 			this.pageChatView.updateMessageLog(INVALID_LOGIN_MESSAGE, 'client');
@@ -193,7 +253,8 @@ export default class PageController {
 			this.pageChatView.setMessageLog('Please enter your password: ');
 		}
 
-		this.bindMessageInputPurpose(false); //	Set the send message behaviour to password sending
+		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.passwordFieldKeyupTrigger);
+		//this.pageChatView.bindMessageButton(this.passwordFieldKeyupTrigger); //	Set the send message behaviour to password sending
 	}
 
 	messageFieldKeyupTrigger (evnt) {
@@ -210,13 +271,9 @@ export default class PageController {
 		}
 	}
 
-	bindStageClick (enabled) {
-		this.pageView.bindStageClick(enabled, PixiController.stageClicked);
-	}
-
 	disableUI () {
 		if (this.uiEnabled) {
-			this.bindStageClick(false); //	Turns off stage-click input
+			this.pageView.unbindStageClick();
 			this.uiEnabled = false;
 		}
 	}
@@ -225,11 +282,11 @@ export default class PageController {
 	enableUI () {
 		if (!this.uiEnabled) {
 			this.setupUI();
-			this.bindStageClick(true); //	Activate movement click input
 			this.uiEnabled = true;
 			
 			//	Hookup message sending and other controls
-			this.bindEvents(); 
+			this.bindEvents();
+			this.setupEmitting();
 		}
 	}
 	

@@ -1,7 +1,7 @@
 // Helper class for working with texture PixiJS atlasses / atlass
 // Use PixiJS's premade resource loader
 //	PIXI.loaders.Loader
-import * as PIXI from 'libs/pixi.min.js';
+import PIXI from 'libs/pixi.min.js';
 // We keep our own queue of what's been sent to the loader
 // So we can queue up stuff for the next .load() batch
 // var loaderQueue = [];

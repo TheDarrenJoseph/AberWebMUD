@@ -1,14 +1,23 @@
-//	Static helper class
-
 var MOVEMENT_UPDATE_ATTRIBS = ['username', 'old_x', 'old_y', 'pos_x', 'pos_y'];
-var CHARACTER_UPDATE_ATTRIBS = ['success','username','char-data','sessionId'];
-var CHARACTER_DATA_ATTRIBS = ['charname', 'pos_x','pos_y', 'health', 'charclass', 'free_points', 'scores'];
 
+/**
+ * Static data validation helper methods
+ */
 export default class ValidationHandler {
-	
+
+	/**
+	 *
+	 * @param data the JSON data to check
+	 * @param attributeNamesArray an array of the attributes to check data for
+	 * @returns {boolean}
+	 */
 	static checkDataAttributes(data, attributeNamesArray) {
-		var dataDefined = ValidationHandler.notUndefOrNull(data);
-		var attribsDefined = ValidationHandler.notUndefOrNull(attributeNamesArray);
+		var dataDefined = (ValidationHandler.notUndefOrNull(data) &&
+		data.constructor == Object &&
+		Object.keys(data).length > 0);
+		var attribsDefined = (ValidationHandler.notUndefOrNull(attributeNamesArray) &&
+		attributeNamesArray instanceof Array &&
+		attributeNamesArray.length > 0);
 
 		if (dataDefined && attribsDefined) {
 			var allValid = true;
@@ -17,7 +26,7 @@ export default class ValidationHandler {
 
 				let attribDefined = ValidationHandler.notUndefOrNull(data[attributeName]);
 				if (!attribDefined) {
-					// console.log('Expected data attribute not defined: (' + attributeName + ') Data: ' + JSON.stringify(data));
+					console.log('Expected data attribute not defined: (' + attributeName + ') in data: ' + JSON.stringify(data));
 					allValid = false;
 				}
 			}
@@ -25,7 +34,8 @@ export default class ValidationHandler {
 			return allValid;
 		}
 		
-		throw new RangeError('Bad arguements for validation. Data / Attributes to validate undefined.');
+		throw new RangeError('Bad arguments for validation. Data / Attributes to validate invalid.\n args: ' + JSON.stringify(arguments));
+
 		return false;
 	}
 	
@@ -33,7 +43,12 @@ export default class ValidationHandler {
 		return (data !== null && data !== undefined);
 	}
 
-	//	Checks for the presence of data for each of the movement update fields
+	/**
+	 * Checks for the presence of data for each of the movement update fields
+	 * TODO Move this to some messaging model
+	 * @param updateJSON
+	 * @returns {boolean}
+	 */
 	static isValidMovementUpdateData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
 			return (ValidationHandler.checkDataAttributes(updateJSON, MOVEMENT_UPDATE_ATTRIBS));
@@ -41,34 +56,5 @@ export default class ValidationHandler {
 		
 		return false;
 	}
-	
-	static isValidCharacterUpdateData (updateJSON) {
-		if (ValidationHandler.notUndefOrNull(updateJSON)) {
-			let bodyValid = ValidationHandler.checkDataAttributes(updateJSON,
-				CHARACTER_UPDATE_ATTRIBS);
-			if (bodyValid) {
-				let contentValid = ValidationHandler.isValidCharacterData(updateJSON['char-data']);
-				return bodyValid && contentValid;
-			} 
-		}
-		
-		return false;
-	}
-	
-	// Checks for the presence of data for character update
-	//	Example JSON
-	//{"charname":"roo","pos_x":10,"pos_y":10,"health":100,
-	// "charclass":"fighter","free_points":5,
-	// "scores": {"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}};
-	static isValidCharacterData (updateJSON) {
-		
-		if (ValidationHandler.notUndefOrNull(updateJSON)) {
-			let coreDataExists = ValidationHandler.checkDataAttributes(updateJSON, updateJSON['free_points','scores']);
-			let attributesExist = ValidationHandler.checkDataAttributes(updateJSON['scores'], ['STR','DEX','CON','INT','WIS','CHA']);
-			return coreDataExists && attributesExist;
-		} else {
-			console.log('Missing character update data.');
-			return false;
-		}
-	}
+
 }

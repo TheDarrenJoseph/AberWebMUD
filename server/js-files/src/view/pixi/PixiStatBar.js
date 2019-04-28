@@ -1,4 +1,4 @@
-import * as PIXI from 'libs/pixi.min.js';
+import PIXI from 'libs/pixi.min.js';
 
 class PixiStatBar {
 	constructor (name, posX, posY, thirdMapWindowSize, tileSize) {
@@ -14,11 +14,11 @@ class PixiStatBar {
 		this.value = 100;
 	}
 
-	drawBackgroundBar (thirdMapWindowSize, tileSize) {
+	drawBackgroundBar (pixelWidth, pixelHeight) {
 		this.backgroundBar.beginFill(0x000000);
 		this.backgroundBar.lineStyle(2, 0xFFFFFF, 1);
 
-		this.backgroundBar = this.backgroundBar.drawRoundedRect(this.posX, this.posY, thirdMapWindowSize, tileSize / 2, 4);
+		this.backgroundBar = this.backgroundBar.drawRoundedRect(this.posX, this.posY, pixelWidth, pixelHeight / 2, 4);
 		this.backgroundBar.endFill();
 	}
 

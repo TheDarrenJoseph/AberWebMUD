@@ -30,22 +30,18 @@ Check the LICENSE file for the project's license
 ![Main Example Screenshot](example.png)
 
 ## Building the project
-The frontend is build using Webpack, you will need it/npm installed to build it 
 
 ### Frontend
-
-To build both client and test code:
+To build and test the frontent client:
 1. Change terminal directory to `server/js-files`
-2. run `npm run build` 
+2. Run 'npm run test' to build the src/test code and execute Karma Runner testing
 
-Testing:
-* If you've already built the client and test code, you can then run the JS tests with 'npx karma start' to test what parts of the client have been covered.
-* Otherwise you can just use `npm test` to build and run just the test code (and any included/tested client code)
+Other options:
+* To just generate the JS Bundles for src/test code, run `npm run build` 
 
-Output:
-Webpack will create:
+Building will create the following:
 * static/main.js -- Main Client code bundle (served up as part of the main application webpage from Flask)
-* static/tests.js -- Test Code, currently just ran using.
+* static/tests.js -- Test Code, QUnit tests used by Karma or can be ran manually using the /test route
 * *.js.map files  -- Source Maps for the client/test code to facilitate debugging in-browser.
 
 ## Backend / Running the server

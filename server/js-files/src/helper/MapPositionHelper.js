@@ -1,10 +1,12 @@
-// Helper class for Map position calculation and verification
+/* Helper class for Map position calculation and verification
+	* Handles co-ordinate conversion and position calculations between the map model and Pixi Map View
+ */
 
 export var POS_TILE_TO_PIXI_INVALID_TILE_ERROR = 'Tile-to-Pixi conversion, tile position invalid!';
 export var POS_TILE_TO_PIXI_INVALID_PIXI_ERROR = 'Tile-to-Pixi conversion, pixi position invalid!';
 
 // A slightly crappy way of building checkable exception messages for now
-export var POS_LOCAL_TO_GLOBAL_LOCAL_INVALID_START = 'Local tile pos not in the local map view. local: ';
+export var POS_LOCAL_TO_GLOBAL_LOCAL_INVALID_START = 'Local tile pos not in the local map view: ';
 export function POS_LOCAL_TO_GLOBAL_LOCAL_INVALID (localX, localY) {
 	return new RangeError(POS_LOCAL_TO_GLOBAL_LOCAL_INVALID_START + 'local: ' + ': ' + localX + ',' + localY);
 }
@@ -21,13 +23,19 @@ export function POS_GLOBAL_TO_LOCAL_NOT_IN_VIEW (globalX, globalY) {
 	throw new RangeError(POS_GLOBAL_TO_LOCAL_NOT_IN_VIEW_START + ': ' + globalX + ',' + globalY);
 }
 
+/**
+ * Helper functions for the major position types:
+ * local  - 0-tileCount (Integer index of a local view tile)
+ * global - o-globalTileCount (Integer index of a global map tile)
+ * pixi   - Pixel-based co-ordinates
+ */
 export class MapPositionHelper {
 	constructor (pixiMapView) {
 		this.pixiMapView = pixiMapView;
 	}
 
 	//	We only view the map through our view window,
-	//	This static adjusts a local position 0-tileCount (window co-ord), to a real position on the map
+	//	This adjusts a local position 0-tileCount (window co-ord), to a real position on the map
 	localTilePosToGlobal (localX, localY) {
 		//	Ensure these are view tile co-ordinates
 		if (this.pixiMapView.isPositionRelativeToView(localX, localY)) {
@@ -47,7 +55,7 @@ export class MapPositionHelper {
 	}
 
 	//	We only view the map through our view window,
-	//	This static adjusts the global position (with relative offset) to a value relative to the grid view
+	//	This adjusts the global position (with relative offset) to a value relative to the grid view
 	globalTilePosToLocal (globalX, globalY) {
 		var mapViewStartX = this.pixiMapView.mapViewStartX;
 		var mapViewStartY = this.pixiMapView.mapViewStartY;

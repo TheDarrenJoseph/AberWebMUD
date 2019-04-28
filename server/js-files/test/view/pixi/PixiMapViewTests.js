@@ -1,16 +1,23 @@
-import * as PIXI from 'libs/pixi.min.js';
+import PIXI from 'libs/pixi.min.js';
 
-import Map from 'src/model/Map.js';
-import MapCharacter from 'src/model/pixi/MapCharacter.js';
-import { PixiMapView, DEFAULT_TILE_SIZE } from 'src/view/pixi/PixiMapView.js';
+import MapModel from 'src/model/pixi/map/MapModel.js';
+import MapCharacter from 'src/model/pixi/map/MapCharacter.js';
+import Player from 'src/model/Player.js';
 
+import { PixiMapView,  } from 'src/view/pixi/PixiMapView.js';
+import { DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
+import { PageController } from 'src/controller/page/PageController.js';
 import { PixiController, ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
 
-let renderer = PixiController.pixiView.getRenderer();
+let pageController = new PageController(() => {}, undefined, undefined, undefined);
+
+let pixiController = new PixiController(undefined, pageController);
+let renderer = pixiController.pixiView.getRenderer();
 let TEST_TAG = '|PIXI-MAP-VIEW|';
 // Enough pixels for 20 tiles
 const TEST_TILECOUNT = 20;
 const TEST_WINDOW_SIZE = DEFAULT_TILE_SIZE * TEST_TILECOUNT;
+
 // Start / end positions for our 20 tile view
 const MAPVIEW_START_POS = [0, 0];
 const MAPVIEW_END_POS = [19, 19];
@@ -35,8 +42,8 @@ function beforeAll (assert) {
 // Setup / assertions before each test
 function beforeEachTest (assert) {
 	// Re-initialise our classes
-	mapModel = new Map(TEST_TILECOUNT);
-	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, ASSET_PATHS);
+	mapModel = new MapModel(TEST_TILECOUNT);
+	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, DEFAULT_TILE_SIZE, ASSET_PATHS);
 }
 
 // Hookup before each test setup / assertion
@@ -48,13 +55,15 @@ QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 	// Give us 15s to sort our shit out
 	assert.timeout(MAX_TIMEOUT);
 
-	assert.notEqual(undefined, PixiController.pixiView, 'Make sure the PixiController PixiView is not undefined.');
-	let testPixiMapView = new PixiMapView(new Map(TEST_TILECOUNT), PixiController.pixiView.getRenderer(), DEFAULT_TILE_SIZE * 20, ASSET_PATHS);
+	let testPixiController = new PixiController(undefined, pageController);
+	assert.notEqual(undefined, testPixiController.pixiView, 'Make sure the PixiController PixiView is not undefined.');
+
+	let testPixiMapView = new PixiMapView(mapModel, testPixiController.pixiView.getRenderer(), TEST_WINDOW_SIZE, DEFAULT_TILE_SIZE, ASSET_PATHS);
 	var initDone = assert.async(1);
 
 	// Let it block us while it sets up
-	testPixiMapView.initialise().then( () => {
-		assert.ok(testPixiMapView.mapModel instanceof Map, 'Check the constructor sets it\'s Map model the one provided.');
+	//testPixiMapView.initialise().then( () => {
+		assert.ok(testPixiMapView.mapModel instanceof MapModel, 'Check the constructor sets it\'s Map model the one provided.');
 
 		assert.ok(testPixiMapView.renderer instanceof PIXI.WebGLRenderer ||
 		testPixiMapView.renderer instanceof PIXI.CanvasRenderer, 'Check PixiMapView renderer is set.');
@@ -81,17 +90,15 @@ QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 		// Lowest valid map start position is minus half of the map
 		// This allows an edge of the map to be in the middle of the screen
 		assert.equal(testPixiMapView.lowestViewPosition, -9, 'Check lowest mapview position is calculated correctly.');
-		assert.equal(testPixiMapView.highestViewPosition, 9, 'Check highest mapview position is calculated correctly.');
+		assert.equal(testPixiMapView.highestViewPosition, 11, 'Check highest mapview position is calculated correctly.');
 		assert.deepEqual(testPixiMapView.mapViewMinPosition, [-9, -9], 'Check mapview min position is calculated correctly.');
-		assert.deepEqual(testPixiMapView.mapViewMaxPosition, [9, 9], 'Check mapview max position is calculated correctly.');
+		assert.deepEqual(testPixiMapView.mapViewMaxPosition, [11, 11], 'Check mapview max position is calculated correctly.');
 
 		// Iter
 		// 2D Array of TEST_TILECOUNT size
-		let tileSpriteArray = testPixiMapView.tileSpriteArray;
-		assert.ok(tileSpriteArray instanceof Array, 'Check tileSpriteArray is actually an array');
-		assert.equal(tileSpriteArray.length, TEST_TILECOUNT, 'Check tileSpriteArray 1d size.');
-
-		//HERE
+		let mapTileArray = mapModel.getTiles();
+		assert.ok(mapTileArray instanceof Array, 'Check mapTileArray is actually an array');
+		assert.equal(mapTileArray.length, TEST_TILECOUNT, 'Check mapTileArray 1d size.');
 
 		// Check Pixi JS Container objects
 		// Top level container for all children
@@ -102,48 +109,53 @@ QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 		assert.ok(parentContainer.getChildByName('characterContainer') instanceof PIXI.particles.ParticleContainer, 'Check ParticleContainer characterContainer exists under parentContainer.');
 
 		initDone();
-	}).catch(rejection => {
-		assert.ok(false, 'Initialisation Promise rejected with: ' + rejection);
-	});
+	//}).catch(rejection => {
+	//	assert.ok(false, 'Initialisation Promise rejected with: ' + JSON.stringify(rejection));
+	///	console.log('Iinitialisation promise rejected with: ');
+	//	console.log(rejection);
+	//});
 
 }
 );
 
 QUnit.test(
-TEST_TAG + 'newCharacterOnMap', function (assert) {
+TEST_TAG + 'newPlayerOnMap', function (assert) {
 	assert.timeout(MAX_TIMEOUT);
 
 	let characterAtlasPath = null;
+	let username = 'timmy'
 	let characterName = 'TIMMY TEST';
 	let gridX = 2;
 	let gridY = 2;
-	let asyncDone = assert.async(1);
 	// Wait for the map character to build and return
 
-	let mapCharPromise = pixiMapView.newCharacterOnMap(characterName, gridX, gridY);
+	var mapPlayerPromise = pixiMapView.newPlayerOnMap(username, characterName, gridX, gridY);
 
-	mapCharPromise.then( (mapChar) => {
-		assert.ok(mapChar instanceof MapCharacter, 'Check we created a MapCharacter for this position.');
-		asyncDone();
+	var mapPlayerDone = assert.async(1);
+	mapPlayerPromise.then( (player) => {
+		assert.ok(player instanceof Player, 'Check we created a Player for this position.');
+		assert.ok(player.getCharacter() instanceof MapCharacter, 'Check the Player has a MapCharacter');
+		mapPlayerDone();
 	}, rejection => {
-		assert.ok(false, 'new Character on Map Promise rejected with: ' + rejection);
+		assert.ok(false, 'new Player on Map Promise rejected with: ' + rejection);
+		throw(rejection);
 	});
 
-	assert.expect(1);
+
 }
 );
 
-// drawMapToGrid
+// drawMapTiles
 QUnit.test(
-TEST_TAG + 'drawMapToGrid', function (assert) {
+TEST_TAG + 'drawMapTiles', function (assert) {
 	// Wait a max of 2 seconds for any async
 	assert.timeout(MAX_TIMEOUT);
 
 	let asyncDrawDone = assert.async(1);
 	// Wait to intialise the full capabilities
-	pixiMapView.initialise().then( () => {
+	//pixiMapView.initialise().then( () => {
 		// Returns a promise for when all the sprites are updated
-		let mapDrawPromise = pixiMapView.drawMapToGrid();
+		let mapDrawPromise = pixiMapView.drawMapTiles();
 
 		mapDrawPromise.then(() => {
 			let totalTileArea = TEST_TILECOUNT * TEST_TILECOUNT;
@@ -156,7 +168,7 @@ TEST_TAG + 'drawMapToGrid', function (assert) {
 		}).catch(rejection => {
 			assert.ok(false, 'Map drawing Promise rejected with: ' + rejection);
 		});
-	});
+	//});
 	assert.expect(3);
 }
 );

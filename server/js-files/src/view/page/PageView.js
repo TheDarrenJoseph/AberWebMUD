@@ -1,73 +1,138 @@
-import $ from 'libs/jquery.js';
+import jquery from 'jquery';
 
-import { _STATS_WINDOW_ID } from 'src/view/page/PageStatsDialogView.js';
+//import $ from 'libs/jquery.js';
+import { EventMapping } from 'src/helper/EventMapping.js';
 
-// Class ID mappings
-var htmlWindows = { mainWindowId: '#main-window', messageWindowId: '#message-window', statWindowId: '#'+_STATS_WINDOW_ID, inventoryWindowId: '#inventory-window' };
-const _MAIN_WINDOW_ID = 'main-window';
+//export var this.doc = document;
+//export var this.doc = document.implementation.createHTMLDocument('PageView');
 
-//export var this.DOCUMENT = document;
-//export var this.DOCUMENT = document.implementation.createHTMLDocument('PageView');
+var EVENTS = {};
 
 //	General UI Page View
 // This is the main page view and builds the parent div for all others
-export class PageView {
-	constructor(doc) {
-		// Use the base document if we've not provided one
-		if (doc == undefined) {
-			doc = document;
+//	Binding to click / key events using jQuery and controlling the overall UI elements
+export class PageView extends EventMapping {
+
+	constructor(pageModel) {
+		super(EVENTS);
+
+		// Class ID mappings
+		this.htmlWindows = { mainWindowId: '#main-window', messageWindowId: '#message-window', inventoryWindowId: '#inventory-window' };
+		this._MAIN_WINDOW_ID = 'main-window';
+
+		if (pageModel == undefined ) {
+			throw new RangeError('Page Model undefined.');
 		}
 
-		this.DOCUMENT = doc;
-		//console.log(this)
+		if (pageModel.doc == undefined) {
+			throw new RangeError('Page Model Document undefined.');
+		}
+
+		this.pageModel = pageModel;
+		this.doc = this.pageModel.doc;
 	}
 
-	// Creates the HTML for this view if needed
-	buildView () {
-		var mainWindowJquery = $('#'+_MAIN_WINDOW_ID, this.DOCUMENT);
-		var mainWindowExists = mainWindowJquery.length > 0;
-		
-		if (!mainWindowExists) {
-			var mainWindow = this.DOCUMENT.createElement('div');
-			mainWindow.setAttribute('id',_MAIN_WINDOW_ID);
-
-			this.DOCUMENT.body.appendChild(mainWindow);
+	/**
+	 * Append a DOM Element to the document body of this view
+	 * @throws an Error if the main window does not exist
+	 */
+	appendToMainWindow(domElement) {
+		if (this.getMainWindow() !== null) {
+			if (domElement instanceof Element) {
+				console.log('Appending element to the main window: ' + domElement.id);
+				this.getMainWindowJquery().append(domElement);
+			} else {
+				console.log('Wrapping main window element in a new div');
+				let newDiv = this.doc.createElement('div');
+				newDiv.append(domElement);
+				this.getMainWindowJquery().append(domElement);
+			}
+		} else {
+			throw new Error("Cannot append to non-existent main window DOM Element.");
 		}
 	}
-	
-	destroyView() {
-		var mainWindowJquery = this.getMainWindowJquery();
-		var mainWindowExists = mainWindowJquery.length > 0;
-		if (mainWindowExists) {
+
+	/**
+	 * Append a DOM Element to the document body of this view
+	 */
+	appendToDocumentBody(element) {
+		this.doc.body.appendChild(element);
+	}
+
+	/**
+	 * Builds the main window div
+	 */
+	buildMainWindow() {
+		if (this.getMainWindow() == null) {
+			var mainWindow = this.doc.createElement('div');
+			mainWindow.setAttribute('id',this._MAIN_WINDOW_ID);
+			this.appendToDocumentBody(mainWindow);
+		}
+	}
+
+	/**
+	 * Removes the main window div
+	 */
+	destroyMainWindow() {
+		if (this.getMainWindow() !== null) {
+			let mainWindowJquery = this.getMainWindowJquery();
 			// Remove all that match from the DOM
-			$(mainWindowJquery).remove();
+			jquery(mainWindowJquery).remove();
 		}
+	}
+
+	/**
+	 * Builds any needed DOM Elements
+	 */
+	buildView () {
+		this.buildMainWindow();
+	}
+
+	/**
+	 * Deconstructs any DOM Elements this view creates
+	 */
+	destroyView() {
+		this.destroyMainWindow();
 	}
 	
 	getMainWindowJquery() {
-		return $('#'+_MAIN_WINDOW_ID, this.DOCUMENT);
+		return jquery('#'+this._MAIN_WINDOW_ID, this.doc);
 	}
-	
+
+	/**
+	 * Returns the first DOM Element for the main window jQuery selector
+	 */
+	getMainWindow() {
+		let mainWindowJquery = this.getMainWindowJquery();
+		let mainWindowExists = mainWindowJquery.length > 0;
+
+		if (mainWindowExists) {
+			return mainWindowJquery[0];
+		} else {
+			return null;
+		}
+	}
+
 	showWindow (dialog) {
-		$(htmlWindows[dialog], this.DOCUMENT).show();
+		jquery(this.htmlWindows[dialog], this.doc).show();
 	}
 
 	hideWindow (dialog) {
-		$(htmlWindows[dialog], this.DOCUMENT).hide();
+		jquery(this.htmlWindows[dialog], this.doc).hide();
 	}
 
 	hideWindows () {
-		for (var windowId in htmlWindows) {
+		for (var windowId in this.htmlWindows) {
 			this.hideWindow(windowId);
 		}
 	}
 
 	toggleWindow (dialog) {
-		var thisWindow = $(htmlWindows[dialog]);
+		var thisWindow = jquery(this.htmlWindows[dialog]);
 		//	Check if the dialog is visible to begin with
 		var toHide = thisWindow.is(':visible');
 
-		$('.dialog:visible', this.DOCUMENT).hide();
+		//jquery('.dialog:visible', this.doc).hide();
 
 		if (toHide) {
 			thisWindow.hide();
@@ -76,14 +141,16 @@ export class PageView {
 		}
 	}
 
-	bindStageClick (enabled, clickedFunction) {
-		var mainWindow = $(htmlWindows['mainWindowId']);
-		if (enabled) {
-			mainWindow.on('click', clickedFunction);
-		} else {
-			mainWindow.unbind('click');
-		}
+	bindStageClick (clickedFunction) {
+		let mainWindow = jquery(this.htmlWindows[this._MAIN_WINDOW_ID]);
+		mainWindow.on('click', clickedFunction);
 	}
+	
+	unbindStageClick () {
+		let mainWindow = jquery(this.htmlWindows[this._MAIN_WINDOW_ID]);
+		mainWindow.unbind('click');
+	}
+	
 	toggleStatWinVisibility () {
 		this.toggleWindow('statWindowId');
 	}
@@ -97,11 +164,7 @@ export class PageView {
 	}
 
 	appendToConsoleButtonClass (contextButtons) {
-		$('#console-button', this.DOCUMENT).append(contextButtons);
-	}
-
-	appendToMainWindow (content) {
-		$('#main-window', this.DOCUMENT).append(content);
+		jquery('#console-button', this.doc).append(contextButtons);
 	}
 
 	static getWindowDimensions () {

@@ -1,5 +1,5 @@
 import ArrayHelper from 'src/helper/ArrayHelper.js';
-import MapTile from 'src/model/MapTile.js';
+import MapTile from 'src/model/pixi/map/MapTile.js';
 
 var TEST_TAG = '|ATLAS-HELPER|';
 var TEST_TILECOUNT = 20;

@@ -1,21 +1,28 @@
 {
 	"private": true,
 	"scripts": {
-		"build-src": "npx webpack --config webpack.config.js",
-		"build-test": "npx webpack --config webpack.test.js",
-		"build": "npm run build-src && npm run build-test",
-		"test": "npm run build-test && npx karma start"
+		"build": "gulp",
+		"test": "npm run build && npx karma start"
 	},
 	"dependencies": {
-		"webpack": "^4.25.1",
+		"jquery": "^3.3.1",
 		"socket.io-client": "^2.0.2"
 	},
 	"devDependencies": {
-		"source-map-loader": ">=0.2.4",
+		"delete": "1.1.0",
+		"gulp": "^4.0.0",
 		"karma": ">=3.1.1",
 		"karma-firefox-launcher": ">=1.1.0",
 		"karma-qunit": ">=2.1.0",
 		"karma-sourcemap-loader": ">=0.3",
-		"qunit": "^2.8.0"
+		"qunit": "^2.8.0",
+		"rollup": "^1.4.0",
+		"rollup-plugin-alias": "^1.5.1",
+		"rollup-plugin-commonjs": "^9.2.1",
+		"rollup-plugin-node-builtins": "^2.1.2",
+		"rollup-plugin-node-globals": "^1.4.0",
+		"rollup-plugin-node-resolve": "^4.0.1",
+		"rollup-plugin-sourcemaps": "^0.4.2",
+		"source-map-loader": ">=0.2.4"
 	}
 }
