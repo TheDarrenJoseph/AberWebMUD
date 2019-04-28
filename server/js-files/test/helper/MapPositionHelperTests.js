@@ -38,8 +38,8 @@ function beforeEachTest (assert) {
 	pixiView = new PixiView();
 	renderer = pixiView.getRenderer();
 	mapModel = new MapModel(DEFAULT_MAP_SIZE_XY);
-	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, ASSET_PATHS);
-	mapController = new MapController(renderer, mapModel, TEST_WINDOW_SIZE, pixiMapView, ASSET_PATHS);
+	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, DEFAULT_TILE_SIZE, ASSET_PATHS);
+	mapController = new MapController(renderer, mapModel, TEST_WINDOW_SIZE, DEFAULT_TILE_SIZE, pixiMapView, ASSET_PATHS);
 
 	mapViewTilecount = mapController.getPixiMapView().getTilecount();
 	assert.equal(mapViewTilecount, TEST_TILECOUNT, 'Check Pixi map view tilecount is the test tilecount.');
@@ -100,7 +100,7 @@ QUnit.test(TEST_TAG + 'local-to-global-valid-moving-view', function (assert) {
 
 	// minus 9 or plus 9
 	assert.deepEqual(furthestBackwardViewPos, [-9, -9], 'Check furthest backwards position is as expected.');
-	assert.deepEqual(furthestForwardViewPos, [9, 9], 'Check furthest forward pos is as expected.');
+	assert.deepEqual(furthestForwardViewPos, [11, 11], 'Check furthest forward pos is as expected.');
 
 	// 1. Try moving the map view back as far as possible;
 	// console.log('Checking furthest back map view position: ' + furthestBackwardViewPos);

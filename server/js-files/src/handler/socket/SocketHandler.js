@@ -7,9 +7,6 @@ import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 //import io from 'socket.io-client';
 // var socket = io();
 
-// One instance only
-var SOCKET_HANDLER = null;
-
 //	Static Helper class
 //	A collection of SocketIO management functions
 class SocketHandler {
@@ -74,11 +71,11 @@ class SocketHandler {
 	}
 
 	static getInstance() {
-		if (SOCKET_HANDLER == undefined || SOCKET_HANDLER == null) {
-			SOCKET_HANDLER = new SocketHandler();
+		if (SocketHandler.SOCKET_HANDLER == undefined || SocketHandler.SOCKET_HANDLER == null) {
+			SocketHandler.SOCKET_HANDLER = new SocketHandler();
 		}
 
-		return SOCKET_HANDLER;
+		return SocketHandler.SOCKET_HANDLER;
 	}
 }
 

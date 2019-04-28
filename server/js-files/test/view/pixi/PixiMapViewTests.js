@@ -17,6 +17,7 @@ let TEST_TAG = '|PIXI-MAP-VIEW|';
 // Enough pixels for 20 tiles
 const TEST_TILECOUNT = 20;
 const TEST_WINDOW_SIZE = DEFAULT_TILE_SIZE * TEST_TILECOUNT;
+
 // Start / end positions for our 20 tile view
 const MAPVIEW_START_POS = [0, 0];
 const MAPVIEW_END_POS = [19, 19];
@@ -42,7 +43,7 @@ function beforeAll (assert) {
 function beforeEachTest (assert) {
 	// Re-initialise our classes
 	mapModel = new MapModel(TEST_TILECOUNT);
-	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, ASSET_PATHS);
+	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, DEFAULT_TILE_SIZE, ASSET_PATHS);
 }
 
 // Hookup before each test setup / assertion
@@ -57,7 +58,7 @@ QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 	let testPixiController = new PixiController(undefined, pageController);
 	assert.notEqual(undefined, testPixiController.pixiView, 'Make sure the PixiController PixiView is not undefined.');
 
-	let testPixiMapView = new PixiMapView(mapModel, testPixiController.pixiView.getRenderer(), DEFAULT_TILE_SIZE * 20, ASSET_PATHS);
+	let testPixiMapView = new PixiMapView(mapModel, testPixiController.pixiView.getRenderer(), TEST_WINDOW_SIZE, DEFAULT_TILE_SIZE, ASSET_PATHS);
 	var initDone = assert.async(1);
 
 	// Let it block us while it sets up
@@ -89,9 +90,9 @@ QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 		// Lowest valid map start position is minus half of the map
 		// This allows an edge of the map to be in the middle of the screen
 		assert.equal(testPixiMapView.lowestViewPosition, -9, 'Check lowest mapview position is calculated correctly.');
-		assert.equal(testPixiMapView.highestViewPosition, 9, 'Check highest mapview position is calculated correctly.');
+		assert.equal(testPixiMapView.highestViewPosition, 11, 'Check highest mapview position is calculated correctly.');
 		assert.deepEqual(testPixiMapView.mapViewMinPosition, [-9, -9], 'Check mapview min position is calculated correctly.');
-		assert.deepEqual(testPixiMapView.mapViewMaxPosition, [9, 9], 'Check mapview max position is calculated correctly.');
+		assert.deepEqual(testPixiMapView.mapViewMaxPosition, [11, 11], 'Check mapview max position is calculated correctly.');
 
 		// Iter
 		// 2D Array of TEST_TILECOUNT size

@@ -38,7 +38,15 @@ export class PageView extends EventMapping {
 	 */
 	appendToMainWindow(domElement) {
 		if (this.getMainWindow() !== null) {
-			this.getMainWindowJquery().append(domElement);
+			if (domElement instanceof Element) {
+				console.log('Appending element to the main window: ' + domElement.id);
+				this.getMainWindowJquery().append(domElement);
+			} else {
+				console.log('Wrapping main window element in a new div');
+				let newDiv = this.doc.createElement('div');
+				newDiv.append(domElement);
+				this.getMainWindowJquery().append(domElement);
+			}
 		} else {
 			throw new Error("Cannot append to non-existent main window DOM Element.");
 		}
@@ -124,7 +132,7 @@ export class PageView extends EventMapping {
 		//	Check if the dialog is visible to begin with
 		var toHide = thisWindow.is(':visible');
 
-		jquery('.dialog:visible', this.doc).hide();
+		//jquery('.dialog:visible', this.doc).hide();
 
 		if (toHide) {
 			thisWindow.hide();
@@ -157,10 +165,6 @@ export class PageView extends EventMapping {
 
 	appendToConsoleButtonClass (contextButtons) {
 		jquery('#console-button', this.doc).append(contextButtons);
-	}
-
-	appendToMainWindow (content) {
-		jquery('#main-window', this.doc).append(content);
 	}
 
 	static getWindowDimensions () {

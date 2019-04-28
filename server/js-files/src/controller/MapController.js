@@ -15,7 +15,7 @@ export var POS_NOT_VALID_MAP_VIEW_ERROR = 'Cannot set Map view start position, m
 export default class MapController {
 	// Create a map controller for a specific map view
 	// renderer - the renderer from the main pixi view
-	constructor (renderer, map = new MapModel(), windowSize, pixiMapView, assetPaths) {
+	constructor (renderer, map = new MapModel(), windowSize, tileSize, pixiMapView, assetPaths) {
 
 		// Setup the pixi map view so we have our window dimensions
 		if (map instanceof  MapModel) {
@@ -25,7 +25,7 @@ export default class MapController {
 		}
 
 		if (pixiMapView === undefined) {
-			this.pixiMapView = new PixiMapView(this.mapModel, renderer, windowSize, assetPaths);
+			this.pixiMapView = new PixiMapView(this.mapModel, renderer, windowSize, tileSize, assetPaths);
 		} else {
 			this.pixiMapView = pixiMapView;
 		}
@@ -89,7 +89,9 @@ export default class MapController {
 			//	Adjusting the start values for drawing the map
 			this.pixiMapView.setMapViewPosition(startX, startY);
 		} else {
-			throw new RangeError(POS_NOT_VALID_MAP_VIEW_ERROR + ': ' + startX + ' ' + startY);
+			throw new RangeError(POS_NOT_VALID_MAP_VIEW_ERROR + ': ' + startX + ' ' + startY + '\n'
+			+ 'Lowest valid: ' +  this.pixiMapView.getLowestViewPosition()
+			+ 'Highest valid: ' + this.pixiMapView.getHighestViewPosition());
 		}
 	}
 

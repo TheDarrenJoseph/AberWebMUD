@@ -19,6 +19,8 @@ export default class MapModel {
 		// We can store multiple Players per tile, so initialise as Arrays
 		this.mapPlayerArray = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, Array);
 		this.mapTileArray = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, MapTile);
+
+		console.log('New map, sized: ' + this.mapSizeX + ', ' + this.mapSizeY);_
 	}
 
 	/**

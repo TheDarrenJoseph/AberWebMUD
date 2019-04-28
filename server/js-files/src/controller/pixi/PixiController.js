@@ -13,6 +13,7 @@ import PixiMapView from 'src/view/pixi/PixiMapView.js';
 import { MapController } from 'src/controller/MapController.js';
 import { Session } from 'src/model/Session.js';
 import { PageView } from 'src/view/page/PageView.js';
+import { DEFAULT_TILE_SIZE } from '../../model/pixi/map/MapModel'
 
 // import { ValidationHandler } from 'src/handler/ValidationHandler.js';
 
@@ -52,13 +53,15 @@ class PixiController {
 			this.windowSize = windowSize;
 		}
 
+		this.tileSize = DEFAULT_TILE_SIZE;
+
 		console.log('Pixi - Window Size: ' + this.windowSize + 'px ^ 2');
 
 		this.pageController = pageController;
-		this.pixiView = new PixiView(windowSize);
+		this.pixiView = new PixiView(windowSize, this.tileSize);
 		this.renderer = this.pixiView.getRenderer();
 
-		this.mapController = new MapController(this.renderer, undefined, PageView.getWindowDimensions(), undefined, ASSET_PATHS);
+		this.mapController = new MapController(this.renderer, undefined, PageView.getWindowDimensions(), this.tileSize, undefined, ASSET_PATHS);
 
 		// Ensure we add the sub-container to the parent PIXI.Container
 		let pixiMapContainer = this.mapController.getPixiMapView().getParentContainer();
@@ -130,6 +133,7 @@ class PixiController {
 	enableUI () {
 		if (!this.isSetup) {
 			this.setupUI();
+			this.isSetup = true;
 		}
 		
 		if (!this.uiEnabled) {
@@ -148,9 +152,13 @@ class PixiController {
 	}
 
 	disableUI () {
-		if (this.uiEnabled ) {
+		if (this.uiEnabled) {
 			this.pageController.getPageChatView().clearMessageLog();
 			this.pageController.getPageChatView().hidePasswordInput();
+			//this.pageController.pageView.hideWindows();
+
+			// Show the initial dialog
+			this.pageController.pageView.showDialog();
 
 			this.pixiView.hideStatBars();
 			this.showControls(false);
@@ -171,6 +179,9 @@ class PixiController {
 		this.showLoginControls();
 	}
 
+	/**
+	 * For pre-loading needed assets
+	 */
 	initialiseAssets () {
 		// Ensure our atlasses are loaded
 		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_OVERWORLD);
@@ -182,6 +193,8 @@ class PixiController {
 		// 1. Pass the 3 atlasses into AtlasHelper
 		// 2. pass assetsLoaded in as a callback
 		// 		this.assetsLoaded.apply(this);
+
+		this.assetsLoaded();
 	}
 
 	// Sets the timeout trigger for a double-click
@@ -210,14 +223,30 @@ class PixiController {
 		}
 	}
 
+	// Hide everything if we lose connection
+	checkConnection () {
+		let socketHandler = SocketHandler.getInstance();
+
+		if (!socketHandler.isSocketConnected()) {
+			console.log('Connection lost to server! Hiding view..');
+
+			this.pageController.getPageChatView().updateMessageLog('Connection lost to server!', 'client');
+			this.disableUI();
+		} else {
+			this.enableUI();
+		}
+	}
+
 	// Shows just the controls needed for login
 	// Hiding all other controls
 	showLoginControls () {
-		this.pageController.pageView.hideWindows();
+		//this.pageController.pageView.hideWindows();
 		//	Make the console only visisble
 		this.pageController.pageView.toggleConsoleVisibility();
 		//	Check connection every 5 seconds
-		setTimeout(function () { return this.checkConnection(); }, 5000);
+		setTimeout(() => {
+			this.checkConnection.apply(this)
+		}, 5000);
 	}
 
 	//	Show the main chat view
@@ -233,15 +262,6 @@ class PixiController {
 		this.pixiView.renderAll();
 	}
 
-	// Hide everything if we lose connection
-	checkConnection () {
-		if (!this.SOCKET_HANDLER.isSocketConnected()) {
-			this.pageController.pageView.hideWindows();
-			this.showControls(false);
-			this.pageController.pageView.showDialog();
-			this.pageController.getPageChatView().updateMessageLog('Connection lost to server!', 'client');
-		}
-	}
 }
 
 // Create an instance we can refer to nicely (hide instanciation)

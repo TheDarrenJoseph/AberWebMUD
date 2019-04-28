@@ -22,7 +22,7 @@ export default class PixiMapView {
 	 * @param windowSize square window size Number (pixels)
 	 * @param assetPaths
 	 */
-	constructor (mapModel, renderer, windowSize, assetPaths) {
+	constructor (mapModel, renderer, windowSize, tileSize, assetPaths) {
 
 		if (mapModel !== undefined) {
 			// For map model position validations
@@ -42,10 +42,17 @@ export default class PixiMapView {
 
 		this.assetPaths = assetPaths;
 
-		this.tileSize = DEFAULT_TILE_SIZE;
+		if (tileSize == undefined) {
+			this.tileSize = DEFAULT_TILE_SIZE;
+		} else {
+			this.tileSize = tileSize;
+		}
 
-		if (windowSize !== undefined)
-		this.windowSize = windowSize;
+		if (windowSize !== undefined) {
+			this.windowSize = windowSize;
+		} else {
+			this.windowSize = DEFAULT_WINDOW_SIZE;
+		}
 
 		// tileCount is the number of tiles we can fit into this square area
 		this.tileCount = this.getFittableTiles(windowSize, this.tileSize);
@@ -73,7 +80,7 @@ export default class PixiMapView {
 		// This allows an edge of the map to be in the middle of the screen
 		// The lower bound should always round down, and the upper round up
 		this.lowestViewPosition = -this.halfZeroIndexedTileCountFloored;
-		this.highestViewPosition = this.zeroIndexedTileCount - this.halfZeroIndexedTileCountCeiled;
+		this.highestViewPosition = ((this.mapModel.mapSizeX) - this.halfZeroIndexedTileCountFloored);
 
 		// Allow half under/overhang of the map viewing window
 		this.mapViewMinPosition = [this.lowestViewPosition, this.lowestViewPosition];
@@ -100,6 +107,9 @@ export default class PixiMapView {
 
 		this.mapPositionHelper = new MapPositionHelper(this);
 
+		console.log('New Map View. Sizes: tiles:' + this.tileCount +
+		' size (px) : ' + this.mapWindowSize,
+		' tile size: ' + this.tileSize)
 		// For quick debugging
 		// console.log(this);
 	}
@@ -122,6 +132,10 @@ export default class PixiMapView {
 	renderCharacterContainer () {
 		console.log('PixiMapView - Rendering character container.');
 		this.renderer.render(this.characterContainer);
+	}
+
+	getTileSize () {
+		return this.tileSize;
 	}
 
 	getTileMappings () {
@@ -345,6 +359,23 @@ export default class PixiMapView {
 						startY >= this.lowestViewPosition &&
 						startY <= this.highestViewPosition);
 	}
+
+	/**
+	 *
+	 * @returns {number|*} the lowest possible tile-index position for this view
+	 */
+	getLowestViewPosition() {
+		return this.lowestViewPosition;
+	}
+
+	/**
+	 *
+	 * @returns {number|*} the lowest possible tile-index position for this view
+	 */
+	getHighestViewPosition() {
+		return this.highestViewPosition;
+	}
+
 
 	//	Checks to see if a local (view-based) tile pos 
 	//	Is actually on a map tile

@@ -12,10 +12,11 @@ const RENDERER_CANVAS = 'Canvas';
 const RENDERER_WEBGL = 'WebGL';
 
 export default class PixiView {
-	constructor (windowSize=500) {
+	constructor (windowSize=500, tileSize=80) {
 		// Ask the page view what our available space in the window is
 		this.windowSize = windowSize;
 		this.halfWindowSize = Math.floor(this.windowSize / 2);
+		this.tileSize = tileSize;
 
 		// Top level container for all children
 		this.parentContainer = new PIXI.Container();
@@ -26,8 +27,8 @@ export default class PixiView {
 		this.controlsContainer = new PIXI.Container();
 		this.parentContainer.addChild(this.dialogContainer, this.controlsContainer);
 
-		this.statBars = this.setupStatBars(this.halfWindowSize);
-		this.setupDialogWindow(this.halfWindowSize);
+		this.statBars = this.setupStatBars();
+		this.setupDialogWindow();
 	}
 
 	// Adds containers to the view's parent container
@@ -82,6 +83,8 @@ export default class PixiView {
 	_buildRenderer () {
 		let renderer = PIXI.autoDetectRenderer(this.windowSize, this.windowSize);
 		renderer.autoresize = false;
+		renderer.backgroundColor = 0x000000;
+		renderer.view.id = 'pixi-renderer'
 		return renderer;
 	}
 
@@ -117,9 +120,11 @@ export default class PixiView {
 	setupDialogWindow (halfMapWindowSize) {
 		this.dialogBackground = new PIXI.Graphics();
 
+		let quarterWindowSize = this.halfWindowSize / 2;
+
 		this.dialogBackground.beginFill(0xFFFFFF);
 		this.dialogBackground.lineStyle(2, 0x000000, 1);
-		this.dialogBackground.drawRect(halfMapWindowSize / 2, halfMapWindowSize / 2, halfMapWindowSize, halfMapWindowSize);
+		this.dialogBackground.drawRect(quarterWindowSize, quarterWindowSize, this.halfMapWindowSize, this.halfMapWindowSize);
 		this.dialogBackground.endFill();
 		this.dialogBackground.visible = false; // Hidden until we need it
 
@@ -129,11 +134,12 @@ export default class PixiView {
 
 	//	Creates the needed stat bars
 	//	Returns an array of these statbars for later adjustment
-	setupStatBars (mapWindowSize) {
-		let thirdMapWindowSize = Math.floor(mapWindowSize / 3);
-		let healthBarPosX = mapWindowSize - thirdMapWindowSize - 2;
+	setupStatBars () {
+		let thirdMapWindowSize = Math.floor(this.windowSize / 3);
+		let healthBarPosX = this.windowSize - thirdMapWindowSize - 2;
 		let healthBarPosY = 0;
-		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, thirdMapWindowSize, Map.mapTileSize);
+
+		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, thirdMapWindowSize, this.tileSize);
 	
 		this.controlsContainer.addChild(healthBar.backgroundBar);
 		this.controlsContainer.addChild(healthBar.innerBar);
