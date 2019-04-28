@@ -1,5 +1,5 @@
 import { EVENTS as pageChatEvents, PageChatView} from 'src/view/page/PageChatView.js';
-import { EVENTS as pageStatsEvents, PageCharacterDetailsView} from 'src/view/page/PageCharacterDetailsView.js';
+import { EVENTS as pageCharacterDetailsViewEvents, PageCharacterDetailsView} from 'src/view/page/PageCharacterDetailsView.js';
 
 import { Page } from 'src/model/page/Page.js';
 import { EVENTS as characterDetailsEvents, CharacterDetails } from 'src/model/page/CharacterDetails.js';
@@ -86,9 +86,7 @@ export default class PageController {
 	 */
 	bindPageCharacterDetailsView () {
 		// Bind to events this view may emit
-		this.pageCharacterDetailsView.on(pageStatsEvents.SUBMIT_STATS, (data) => {
-			this.sendCharDetails(data);
-		});
+		this.pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, this.sendCharDetails);
 
 		// Setup emitting for the above binding(s)
 		this.pageCharacterDetailsView.bindEvents();
@@ -158,8 +156,7 @@ export default class PageController {
 
 			if (success === true) {
 				// Try to save the returned character details
-				let charData = data['c' +
-				'har-data'];
+				let charData = data['char-data'];
 				if (this.saveCharacterData(charData)) {
 					Session.updateClientSessionData(data);
 					this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');

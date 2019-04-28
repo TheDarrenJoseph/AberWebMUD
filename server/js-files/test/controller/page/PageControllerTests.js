@@ -18,11 +18,11 @@ import { PageController, LOGIN_FAILURE_MESSAGE_PWD,
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { Session } from 'src/model/Session.js';
 import { Page } from 'src/model/page/Page.js';
-import { EVENTS as pageStatsEvents, SET_CHARDETAILS_PROMPT_MESSAGE, PageCharacterDetailsView } from 'src/view/page/PageCharacterDetailsView.js';
+import { EVENTS as pageCharacterDetailsViewEvents, SET_CHARDETAILS_PROMPT_MESSAGE, PageCharacterDetailsView } from 'src/view/page/PageCharacterDetailsView.js';
 import { EVENTS as pageChatEvents, PageChatView } from 'src/view/page/PageChatView.js';
 import { CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
 import { PageView } from 'src/view/page/PageView.js';
-import { CharacterDetails } from 'src/model/page/CharacterDetails.js'
+import { EVENTS as characterDetailsEvents, CharacterDetails } from 'src/model/page/CharacterDetails.js';
 
 var TEST_TAG = '|PAGE CONTROLLER|';
 
@@ -292,31 +292,12 @@ QUnit.test(TEST_TAG + 'enableUI_bindings', function (assert) {
 	assert.ok(pageController.isUIEnabled(), 'UI Should be enabled now.');
 
 	let sendMessageMappings = pageController.pageChatView.getMappings(pageChatEvents.SEND_MESSAGE);
-	assert.deepEqual(sendMessageMappings, pageController.messageFieldKeyupTrigger, 'Check the correct function is bound to chat view SEND_MESSAGE');
+	assert.ok(sendMessageMappings.includes(pageController.messageFieldKeyupTrigger), 'Check the correct function is bound to chat view SEND_MESSAGE');
 
-	let setStatsMappings = pageController.pageCharacterDetailsView.getMappings(pageStatsEvents.SET_STATS);
-	assert.deepEqual(setStatsMappings, pageCharacterDetailsView.setAttributes, 'Check the correct function is bound to stats view SET_STATS');
+	let submitStatsMappings = pageController.pageCharacterDetailsView.getMappings(pageCharacterDetailsViewEvents.SUBMIT_STATS);
+	assert.ok(submitStatsMappings.includes(pageController.sendCharDetails), 'Check the correct function is bound to stats view SUBMIT_STATS');
 
-
-	/**
-	// Using undocumented jQuery _data for events
-	// to check first click handler
-	var saveStatsButton = pageCharacterDetailsView.getSaveStatsButton();
-	assert.ok(saveStatsButton instanceof Element, 'Check the grabbed save stats button is a DOM Element.');
-
-	//let mappings = pageCharacterDetailsView.getMappings(pageStatsEvents.SUBMIT_STATS);
-
-	var saveClickBinding = jQueryUtils.extractFirstJqueryBinding(saveStatsButton, 'click');
-	assert.equal(saveClickBinding, pageController.sendCharDetails, 'Check our sendCharDetails func is bound to the button.');
-
-	// Extract jQuery events
-	var events = jquery._data(saveStatsButton, 'events');
-	console.log(events);
-	assert.equal(events['click'][0].handler, pageController.sendCharDetails, 'Check our sendCharDetails func is bound to the button.');
-
-	var messageInputField = pageChatView.getMessageInputField();
-	var messageInputEvents = jquery._data(messageInputField, 'events');
-	assert.equal(messageInputEvents['keyup'][0].handler, pageController.messageFieldKeyupTrigger, 'Check message field sending on key-up is bound.');
-	 **/
-
+	// When view stats are set
+	let setStatsMappings = pageController.pageCharacterDetailsView.getMappings(pageCharacterDetailsViewEvents.VIEW_STATS_SET);
+	assert.ok(setStatsMappings.includes(pageCharacterDetailsView.setAttributes), 'Check the correct function is bound to stats view SET_STATS');
 });

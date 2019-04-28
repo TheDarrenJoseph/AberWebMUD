@@ -6,13 +6,15 @@ import { EventMapping } from 'src/helper/EventMapping.js';
 //export var this.doc = document;
 //export var this.doc = document.implementation.createHTMLDocument('PageView');
 
+var EVENTS = {};
+
 //	General UI Page View
 // This is the main page view and builds the parent div for all others
 //	Binding to click / key events using jQuery and controlling the overall UI elements
 export class PageView extends EventMapping {
 
 	constructor(pageModel) {
-		super();
+		super(EVENTS);
 
 		// Class ID mappings
 		this.htmlWindows = { mainWindowId: '#main-window', messageWindowId: '#message-window', inventoryWindowId: '#inventory-window' };

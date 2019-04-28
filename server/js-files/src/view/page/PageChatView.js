@@ -23,7 +23,7 @@ export default class PageChatView extends EventMapping {
 	//	</div>
 
 	constructor (pageView) {
-		super();
+		super(EVENTS);
 
 		this.pageView = pageView;
 

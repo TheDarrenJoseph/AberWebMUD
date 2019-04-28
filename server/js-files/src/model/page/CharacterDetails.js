@@ -40,7 +40,7 @@ export const DEFAULT_JSON = {
 
 export default class CharacterDetails extends EventMapping {
 	constructor (charname="", grid_x=0, grid_y=0) {
-			super();
+			super(EVENTS);
 			// Boolean to check if us/the user has confirmed these to be set correctly
 			this.charname = charname;
 			this.charclass = CLASS_OPTIONS[0];

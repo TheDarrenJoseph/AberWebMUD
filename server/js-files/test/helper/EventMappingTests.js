@@ -6,10 +6,12 @@ var TEST_TILECOUNT = 20;
 var TEST_EVENT_NAME = 'HELLO';
 var TEST_EVENT_DATA = 'World';
 
+var EVENTS = { HELLO : TEST_EVENT_NAME};
+
 var eventTester;
 class EventTester extends EventMapping {
 	constructor (){
-		super();
+		super(EVENTS);
 	}
 }
 
@@ -86,4 +88,20 @@ TEST_TAG + 'testMapping_singleShot', function (assert) {
 	helloDone = false;
 	eventTester.emit(TEST_EVENT_NAME);
 	assert.notOk(helloDone, 'Ensure the callback was not performed a second time.');
+});
+
+QUnit.test(
+TEST_TAG + 'testMapping_on_unsupported_event', function (assert) {
+	assert.throws(() => { eventTester.on('BANANA', () => {}) },
+	RangeError,
+	'Ensure trying to on map to an unsupported event throws a RangeError'
+	);
+});
+
+QUnit.test(
+TEST_TAG + 'testMapping_on_unsupported_event', function (assert) {
+	assert.throws(() => { eventTester.once('BANANA', () => {}) },
+	RangeError,
+	'Ensure trying to once map to an unsupported event throws a RangeError'
+	);
 });

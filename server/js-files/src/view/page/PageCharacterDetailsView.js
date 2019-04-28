@@ -26,7 +26,7 @@ export const EVENTS = {
 	// For submitting some values for confirmation
 	SUBMIT_STATS : 'submit-stats',
 	// This means the view has been updated
-	STATS_SET : 'stats-set'
+	VIEW_STATS_SET : 'stats-set'
 };
 
 // DOM View for the Character Stats dialog window
@@ -38,7 +38,7 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	 * @param characterDetails CharacterDetails model to display
 	 */
 	constructor (pageView, characterDetails) {
-		super();
+		super(EVENTS);
 
 		// We need to be able to make some calls to show/hide windows etc
 		this.pageView = pageView;
@@ -426,7 +426,7 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		// TODO Assign free points to something as we don't have a field yet
 		// var freePoints = statsValuesJson['free_points']
 
-		this.emit(EVENTS.STATS_SET);
+		this.emit(EVENTS.VIEW_STATS_SET);
 	}
 
 	/**

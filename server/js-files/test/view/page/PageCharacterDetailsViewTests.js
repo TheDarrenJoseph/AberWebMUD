@@ -18,7 +18,7 @@ import { PageController, LOGIN_FAILURE_MESSAGE_PWD,
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { Session } from 'src/model/Session.js';
 import { Page } from 'src/model/page/Page.js';
-import { EVENTS as pageStatsEvents, SET_CHARDETAILS_PROMPT_MESSAGE, PageCharacterDetailsView } from 'src/view/page/PageCharacterDetailsView.js';
+import { EVENTS as pageCharacterDetailsViewEvents, SET_CHARDETAILS_PROMPT_MESSAGE, PageCharacterDetailsView } from 'src/view/page/PageCharacterDetailsView.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { CharacterDetails, DEFAULT_JSON } from 'src/model/page/CharacterDetails.js'
 
@@ -100,7 +100,7 @@ QUnit.test(TEST_TAG + 'Setting Character Details Emitting', function (assert) {
 	pageCharacterDetailsView.setStatsFromJsonResponse(TEST_CHARDATA);
 
 	// Bind to the testing func
-	pageCharacterDetailsView.on(pageStatsEvents.SUBMIT_STATS, statsSubmitted);
+	pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, statsSubmitted);
 
 	// Enable emitting
 	pageCharacterDetailsView.setupEmitting();
@@ -127,7 +127,7 @@ QUnit.test(TEST_TAG + 'Setting Character Details View Update', function (assert)
 	}
 
 	// Add an extra binding for when the set event is emitted
-	pageCharacterDetailsView.on(pageStatsEvents.STATS_SET, checkStats)
+	pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.VIEW_STATS_SET, checkStats)
 
 	// Perform the update of the underlying model
 	pageCharacterDetailsView.characterDetails.setCharacterDetails(TEST_CHARDATA);

@@ -6,7 +6,8 @@ var DEBUG = true;
  * Helps with MVC Observer pattern for simple callbacks
  */
 export default class EventMapping {
-	constructor () {
+	constructor (mappableEvents={}) {
+		this.mappableEvents = mappableEvents;
 		this.mappings = {};
 	}
 
@@ -39,12 +40,28 @@ export default class EventMapping {
 		}
 	}
 
+	_validateMapping(eventString, cb) {
+		if (eventString == undefined || eventString == null) {
+			throw new RangeError('Cannot bind to non-existent event: ' + eventString);
+		}
+
+		if (cb == undefined || cb == null) {
+			throw new RangeError('Cannot bind to non-existent callback: ' + cb);
+		}
+
+		let mappableEventNames = Object.values(this.mappableEvents);
+		if (!mappableEventNames.includes(eventString)) {
+			throw new RangeError('Cannot bind to that event: ' + eventString + '. Mappable events are: ' + mappableEventNames);
+		}
+	}
+
 	/**
 	 * Maps the given callback to the event
 	 * @param event Event name (String)
 	 * @param cb Callback function
 	 */
 	on (eventString, cb) {
+		this._validateMapping(eventString, cb);
 		// Check for existing mappings
 		let mappings = this.mappings[eventString];
 
@@ -61,6 +78,7 @@ export default class EventMapping {
 	 * @param cb Callback function
 	 */
 	once(eventString, cb) {
+		this._validateMapping(eventString, cb);
 		// Set a property we can check for at dispatch
 		cb.singleShot = true;
 		this.on(eventString, cb);
@@ -74,7 +92,16 @@ export default class EventMapping {
 	}
 
 	getMappings(eventString) {
-		return this.mappings[eventString];
+		if (eventString == undefined || eventString == null) {
+			throw new RangeError('Cannot get mappings. Event type String not defined.')
+		}
+
+		let mappings = this.mappings[eventString];
+		if (mappings == undefined) {
+			return [];
+		} else {
+			return mappings;
+		}
 	}
 
 	/**
