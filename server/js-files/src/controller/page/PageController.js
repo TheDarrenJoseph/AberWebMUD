@@ -158,7 +158,7 @@ export default class PageController {
 				// Try to save the returned character details
 				let charData = data['char-data'];
 				if (this.saveCharacterData(charData)) {
-					Session.updateClientSessionData(data);
+					Session.ActiveSession.updateClientSessionData(data);
 					this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
 				}
 			} else {
@@ -212,7 +212,7 @@ export default class PageController {
 	}
 
 	submitPassword () {
-		var username = Session.getSessionInfoJSON().username;
+		var username = Session.ActiveSession.getSessionInfoJSON().username;
 		var passwordInput = this.pageChatView.getPasswordInput();
 
 		if (username !== null && passwordInput !== '') {

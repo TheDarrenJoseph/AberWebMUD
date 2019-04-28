@@ -1,4 +1,4 @@
-import { Session } from 'src/model/Session.js';
+import { Session, SessionModel } from 'src/model/Session.js';
 
 var TEST_TAG = '|SESSION CONTROLLER|';
 
@@ -9,58 +9,32 @@ function beforeAll (assert) {
 
 // Setup / assertions before each test
 function beforeEachTest (assert) {
-	// DO SOME STUFF
+	// Re-instanciate Session to clear it
+	Session.ActiveSession = new SessionModel();
 }
 
 // Hookup before each test setup / assertion
 QUnit.module('SessionContollerTests', { before: beforeAll, beforeEach: beforeEachTest })
 
-QUnit.skip(TEST_TAG + 'Session ID Cookie storage', function (assert) {
-	// saveSessionIdCookie
-	// getSessionIdCookie
-	assert.ok(false, 'TODO');
+var TEST_SESSION_ID = "aaa1baa";
+
+QUnit.test(TEST_TAG + 'setSessionId_basic', function (assert) {
+	let sessionId = Session.ActiveSession.getSessionId();
+	assert.equal(sessionId, undefined, 'Check Session ID has not been set');
+
+	Session.ActiveSession.setSessionId(TEST_SESSION_ID);
+	assert.equal(Session.ActiveSession.getSessionId(), TEST_SESSION_ID);
 });
 
-QUnit.skip(TEST_TAG + 'characterDetailsExist', function (assert) {
-	assert.ok(false, 'TODO');
-});
+/**
+ * Given we have set a Session ID on the Session object
+ * When we grab the Session ID Cookie
+ * Then the originally set SessionID should be returned
+ */
+QUnit.test(TEST_TAG + 'Session ID Cookie storage', function (assert) {
+	let sessionId = Session.ActiveSession.getSessionId();
+	assert.equal(sessionId, undefined, 'Check Session ID has not been set');
 
-QUnit.skip(TEST_TAG + 'getClientSessionUsername', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + '', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'getClientSessionId', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'getClientSessionCharacter', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'getSessionInfoJSON', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'updateCharacterDetails', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'linkConnectionToSession', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'setSessionId', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'updateClientSessionData', function (assert) {
-	assert.ok(false, 'TODO');
-});
-
-QUnit.skip(TEST_TAG + 'saveMapUpdate', function (assert) {
-	assert.ok(false, 'TODO');
+	Session.ActiveSession.setSessionId(TEST_SESSION_ID);
+	assert.equal(Session.ActiveSession.getSessionIdCookie(), TEST_SESSION_ID);
 });

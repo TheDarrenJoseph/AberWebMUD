@@ -60,11 +60,13 @@ export class GameControllerClass {
 	 * Continues the login process once we've set/retrieved character details
 	 */
 	characterDetailsConfirmed () {
-		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.clientSession);
+		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.ActiveSession.clientSession);
 		//	Hide the stats window
 		this.pageView.hideWindow('statWindowId');
 		this.enableUI();
-		this.pixiController.getMapController().showMapPosition(Session.clientSession.characterDetails.pos_x, Session.clientSession.characterDetails.pos_y);
+		this.pixiController.getMapController().showMapPosition(
+		Session.ActiveSession.clientSession.characterDetails.pos_x,
+		Session.ActiveSession.clientSession.characterDetails.pos_y);
 
 		//	Creates the new character to represent the player
 		// TODO Add a player and draw them
@@ -72,13 +74,13 @@ export class GameControllerClass {
 	
 	newUser(username) {
 		// Store the username for later
-		Session.setClientSessionUsername(username);
+		Session.ActiveSession.setClientSessionUsername(username);
 		this.pageController.requestUserPassword(true);
 	}
 	
 	handleSessionLinking (data) {
 		// Send the data over to the session controller for linking
-		Session.linkConnectionToSession(data);
+		Session.ActiveSession.linkConnectionToSession(data);
 
 		//	Session start welcome message
 		//	Unpack message data and send it to the message log
@@ -115,7 +117,7 @@ export class GameControllerClass {
 	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 	handlePlayerLogin (data) {
 		// Save this data for our session
-		Session.updateClientSessionData(data);
+		Session.ActiveSession.updateClientSessionData(data);
 		this.pageController.onceCharacterDetailsSet(this.characterDetailsConfirmed);
 	}
 

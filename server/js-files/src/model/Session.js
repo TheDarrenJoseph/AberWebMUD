@@ -39,11 +39,11 @@ class SessionModel {
 
 	saveSessionIdCookie (sessionId) {
 		console.log('Saving sessionId ' + sessionId + ' to cookie');
-		Session.doc.cookie = SESSION_ID_COOKIE_NAME + '=' + sessionId + ';';
+		Session.ActiveSession.doc.cookie = SESSION_ID_COOKIE_NAME + '=' + sessionId + ';';
 	};
 
-	getSessionIdCookie (sessionId) {
-		var decodedCookie = decodeURIComponent(Session.doc.cookie);
+	getSessionIdCookie () {
+		var decodedCookie = decodeURIComponent(Session.ActiveSession.doc.cookie);
 		//	Split on endline, in case we ever store more  than 1 variable
 		var cookiesList = decodedCookie.split(';');
 
@@ -73,14 +73,16 @@ class SessionModel {
 			console.log('Updating session with: '+JSON.stringify(data));
 
 			// Update user details
-			Session.clientSession.player.setUsername(data['username']);
-			Session.clientSession.player.getCharacter().setCharacterDetails(data['char-data']);
+			Session.ActiveSession.clientSession.player.setUsername(data['username']);
+			Session.ActiveSession.clientSession.player.getCharacter().setCharacterDetails(data['char-data']);
 
-			Session.clientSession.sessionId = data['sessionId'];
+			Session.ActiveSession.clientSession.sessionId = data['sessionId'];
 		};
 	};
 
 }
 
-var Session = new SessionModel();
+// Allow re-pointing and modifying the session contained
+var Session = { ActiveSession : new SessionModel() };
+
 export { Session, SessionModel };

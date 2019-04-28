@@ -132,7 +132,7 @@ class PixiController {
 			PageChatView.hidePasswordInput();
 
 			// Set the stat bar values before we render
-			this.pixiView.setHealthBarValue(Session.clientSession.character.health);
+			this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.character.health);
 
 			this.pixiView.showStatBars();
 			this.showControls(true);

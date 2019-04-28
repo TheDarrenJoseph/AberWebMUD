@@ -2,29 +2,26 @@ import {TEST_SESSIONID, TEST_SCORES, TEST_CHARDATA, TEST_CHARUPDATE_DATA} from '
 
 import { GameController } from 'src/controller/GameController.js';
 import { CharacterDetails } from 'src/model/page/CharacterDetails.js'
-import { SessionModel } from 'src/model/Session.js';
-
+import { Session, SessionModel } from 'src/model/Session.js';
 
 var TEST_TAG = '|GAME CONTROLLER|';
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
-	// Reset the client sessio
-	Session = new SessionModel();
 
-	// DO SOME STUFF
 }
 
 // Setup / assertions before each test
 function beforeEachTest (assert) {
-	// DO SOME STUFF
+	// Re-instanciate Session to clear it
+	Session.ActiveSession = new SessionModel();
 }
 
 // Hookup before each test setup / assertion
 QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTest })
 
 QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
-	var sessionInfoJson = Session.getSessionInfoJSON();
+	var sessionInfoJson = Session.ActiveSession.getSessionInfoJSON();
 	var expectedSessionJson = {
 		'sessionId': null,
 		'username': ""
@@ -37,6 +34,6 @@ QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
 
 	GameController.handlePlayerLogin(loginData);
 
-	var resultingJson = Session.getSessionInfoJSON();
+	var resultingJson = Session.ActiveSession.getSessionInfoJSON();
 	assert.deepEqual(resultingJson, { 'sessionId': loginData.sessionId, 'username': loginData.username }, 'Check session info JSON is now set.');
 });

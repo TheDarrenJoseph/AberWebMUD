@@ -60,7 +60,7 @@ export default class MapController {
 
 		if (ValidationHandler.isValidMovementUpdateData(updateJSON)) {
 			//	If it's the player, follow them with the view
-			if (username === Session.getClientSessionUsername()) {
+			if (username === Session.ActiveSession.getClientSessionUsername()) {
 				this.showMapPosition(posX, posY);
 			}
 

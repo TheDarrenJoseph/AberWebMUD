@@ -26,7 +26,7 @@ class MessageHandler {
 	}
 
 	static attachSessionJson (message) {
-		var sessionJson = Session.getSessionInfoJSON();
+		var sessionJson = Session.ActiveSession.getSessionInfoJSON();
 		if (MessageHandler.isSessionInfoValid(sessionJson)) {
 			message.SESSION_JSON_NAME = sessionJson;
 		}
