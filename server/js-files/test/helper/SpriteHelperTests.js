@@ -6,6 +6,7 @@ import { ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
 import { DEFAULT_TILE_MAPPINGS } from 'src/view/pixi/PixiMapView.js';
 
 var TEST_TAG = '|SPRITE-HELPER|';
+let MAX_TIMEOUT = 5000;
 
 function beforeAll (assert) {
 	// DO SOME STUFF
@@ -20,6 +21,7 @@ QUnit.module('SpriteHelperTests', { before: beforeAll, beforeEach: beforeEachTes
 
 QUnit.test(
 TEST_TAG + 'makeSpriteFromAtlas_Player', function (assert) {
+	assert.timeout(MAX_TIMEOUT);
 
   let asyncSprite =	assert.async(1);
 	var pixiPos = new PIXI.Point(1,1);
@@ -37,6 +39,7 @@ TEST_TAG + 'makeSpriteFromAtlas_Player', function (assert) {
 
 QUnit.test(
 TEST_TAG + 'makeSpriteFromAtlas_Tile', function (assert) {
+	assert.timeout(MAX_TIMEOUT);
 
 	let asyncSprite =	assert.async(1);
 	var pixiPos = new PIXI.Point(1,1);

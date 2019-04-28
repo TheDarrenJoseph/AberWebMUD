@@ -198,6 +198,14 @@ export default class PixiMapView {
 	// Creates a character sprite on-the-fly to represent another character
 	//	gridX, gridY are character positions on the map
 	// TODO subscribe to new Players added  / Adjustments to the MapModel instead
+	/**
+	 *
+	 * @param username
+	 * @param charactername
+	 * @param gridX
+	 * @param gridY
+	 * @returns {Promise<*>}
+	 */
 	async newPlayerOnMap (username, charactername, gridX, gridY) {
 		if (!this.mapModel.isPositionInMap(gridX, gridY)) {
 			throw new RangeError('Invalid position for MapCharacter! (must be a valid global map co-ord): ' + gridX + ',' + gridY);
@@ -208,19 +216,15 @@ export default class PixiMapView {
 			var localY = localPos[1];
 			if (this.isPositionRelativeToView(localX, localY)) {
 				// We need to await so we can return this Sprite
-				var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
 				var characterSprite = await this.promiseSpriteForPlayer(localX, localY);
-
 				let mapCharacter = new MapCharacter(charactername, gridX, gridY, characterSprite);
 				let newPlayer = new Player('Person', mapCharacter);
 				this.mapModel.addPlayer(localX, localY, newPlayer);
-
 				return newPlayer;
 			} else {
-				console.log('New player not in our view at this position: ' + gridX + ' ' + gridY);
+				let error = 'New player not in our view at this position: ' + gridX + ' ' + gridY;
+				throw new RangeError(error);
 			}
-
-			return null;
 		}
 	}
 

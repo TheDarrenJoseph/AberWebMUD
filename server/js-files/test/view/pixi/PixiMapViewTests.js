@@ -2,6 +2,8 @@ import PIXI from 'libs/pixi.min.js';
 
 import MapModel from 'src/model/pixi/map/MapModel.js';
 import MapCharacter from 'src/model/pixi/map/MapCharacter.js';
+import Player from 'src/model/Player.js';
+
 import { PixiMapView,  } from 'src/view/pixi/PixiMapView.js';
 import { DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
 import { PageController } from 'src/controller/page/PageController.js';
@@ -124,21 +126,21 @@ TEST_TAG + 'newPlayerOnMap', function (assert) {
 	let characterName = 'TIMMY TEST';
 	let gridX = 2;
 	let gridY = 2;
-	let asyncDone = assert.async(1);
 	// Wait for the map character to build and return
 
-	let mapPlayerPromise = pixiMapView.newPlayerOnMap(username, characterName, gridX, gridY);
+	var mapPlayerPromise = pixiMapView.newPlayerOnMap(username, characterName, gridX, gridY);
 
+	var mapPlayerDone = assert.async(1);
 	mapPlayerPromise.then( (player) => {
 		assert.ok(player instanceof Player, 'Check we created a Player for this position.');
 		assert.ok(player.getCharacter() instanceof MapCharacter, 'Check the Player has a MapCharacter');
-		asyncDone();
+		mapPlayerDone();
 	}, rejection => {
 		assert.ok(false, 'new Player on Map Promise rejected with: ' + rejection);
 		throw(rejection);
 	});
 
-	assert.expect(1);
+
 }
 );
 
