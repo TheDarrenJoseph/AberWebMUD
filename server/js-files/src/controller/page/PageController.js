@@ -39,6 +39,8 @@ export default class PageController {
 	constructor(doc, pageView, pageCharacterDetailsView, pageChatView) {
 
 		this.uiEnabled = false;
+		// This is for
+		this.charDetailsConfirmed = false;
 
 		this.SOCKET_HANDLER = SocketHandler.getInstance();
 
@@ -115,8 +117,12 @@ export default class PageController {
 	 */
 	checkCharacterDetails (onConfirmedCb) {
 		// If details are not confirmed, hookup our callback
-		if (!this.characterDetails.characterDetailsExist()) {
-			this.characterDetails.on(characterDetailsEvents.SET_DETAILS, onConfirmedCb);
+		if (!this.charDetailsConfirmed) {
+			// Single-shot mapping for setting of the details to something
+			this.characterDetails.once(characterDetailsEvents.SET_DETAILS, () => {
+				this.charDetailsConfirmed = true;
+				onConfirmedCb();
+			});
 			this.pageCharacterDetailsView.requestCharacterDetails();
 		} else {
 			// Otherwise callback straight away
@@ -132,7 +138,6 @@ export default class PageController {
 			this.pageCharacterDetailsView.buildView();
 			this.pageChatView.buildView();
 		}
-
 	}
 
 	/**
@@ -148,15 +153,23 @@ export default class PageController {
 		}
 	}
 
+	/**
+	 * Parses the charcter update response
+	 * Extracts and sets the char details on success
+	 * Also displays a message relevant to this
+	 * @param data JSON character update data
+	 */
 	handleCharacterUpdateResponse (data) {
 		if (CharacterDetails.isValidCharacterUpdateData(data)) {
-			if (data['success'] === true) {
-				
-				let charData = data['char-data'];
-				this.saveCharacterData(charData);
+			let success = data['success'];
 
-				Session.updateClientSessionData(data);
-				this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
+			if (success === true) {
+				// Try to save the returned character details
+				let charData = data['char-data'];
+				if (this.saveCharacterData(charData)) {
+					Session.updateClientSessionData(data);
+					this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
+				}
 			} else { 
 				this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_FAILURE_MESSAGE, 'server');
 			}

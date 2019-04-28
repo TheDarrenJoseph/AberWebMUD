@@ -1,3 +1,5 @@
+var DEBUG = true;
+
 /**
  * Meant to be something similar to the Node.js EventEmitter,
  * leveraging EventTargeter for listener support
@@ -13,19 +15,27 @@ export default class EventMapping {
 		let callbacks = this.mappings[dispatchedEvent.type];
 		let data = dispatchedEvent.data;
 
-		// for DEBUG
-		console.log('Dispatching Event: ' + dispatchedEvent.type);
-		for (let i in callbacks) {
-			let callback = callbacks[i];
+		if (callbacks !== undefined && callbacks.length > 0) {
+			for (let i in callbacks) {
+				let callback = callbacks[i];
+				let singleShot = callback.singleShot;
 
-			callback(data);
+				// for DEBUG
+				if (singleShot) {
+					if (DEBUG) console.log('Dispatching Event: ' + dispatchedEvent.type);
+				} else {
+					if (DEBUG) console.log('Dispatching single-shot Event: ' + dispatchedEvent.type);
+				}
 
-			if (callback.singleShot === true) {
-				console.log('Clearing single-shot mapping..');
-				// Splice out the 1 callback function
-				this.mappings[dispatchedEvent.type].splice(i, 1);
+				callback(data);
+
+				// Splice out the 1 callback function if we need to remove it after calling
+				if (singleShot) {
+					if (DEBUG) console.log('Clearing single-shot mapping..');
+					this.mappings[dispatchedEvent.type].splice(i, 1);
+				}
+
 			}
-
 		}
 	}
 

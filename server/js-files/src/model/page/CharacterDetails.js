@@ -138,7 +138,6 @@ export default class CharacterDetails extends EventMapping {
 			});
 
 			this.emit(EVENTS.SET_DETAILS);
-
 		} else {
 			throw new RangeError(INVALID_CHAR_UPDATE_DATA_ERROR + JSON.stringify(data));
 		}
