@@ -281,8 +281,8 @@ QUnit.skip(TEST_TAG + 'enableUI_setup', function (assert) {
 	assert.ok(pageController.isUIEnabled(), 'UI Should be enabled now.');
 
 	assert.ok(pageController.pageView instanceof PageView, 'Check PageView is instanciated.');
-	assert.ok(pageController.pageCharacterDetailsView instanceof PageCharacterDetailsView, 'Check PageCharacterDetailsView is instanciated.');
-	assert.ok(pageController.pageChatView instanceof PageChatView, 'Check PageChatView is instanciated.');
+	assert.ok(pageController.getPageCharacterDetailsView() instanceof PageCharacterDetailsView, 'Check PageCharacterDetailsView is instanciated.');
+	assert.ok(pageController.getPageChatView() instanceof PageChatView, 'Check PageChatView is instanciated.');
 });
 
 
@@ -291,9 +291,9 @@ QUnit.test(TEST_TAG + 'enableUI_bindings', function (assert) {
 	pageController.enableUI();
 	assert.ok(pageController.isUIEnabled(), 'UI Should be enabled now.');
 
-	let sendMessageMappings = pageController.pageChatView.getMappings(pageChatEvents.SEND_MESSAGE);
+	let sendMessageMappings = pageController.getPageChatView().getMappings(pageChatEvents.SEND_MESSAGE);
 	assert.ok(sendMessageMappings.includes(pageController.messageFieldKeyupTrigger), 'Check the correct function is bound to chat view SEND_MESSAGE');
 
-	let submitStatsMappings = pageController.pageCharacterDetailsView.getMappings(pageCharacterDetailsViewEvents.SUBMIT_STATS);
+	let submitStatsMappings = pageController.getPageCharacterDetailsView().getMappings(pageCharacterDetailsViewEvents.SUBMIT_STATS);
 	assert.ok(submitStatsMappings.includes(pageController.sendCharDetails), 'Check the correct function is bound to stats view SUBMIT_STATS');
 });

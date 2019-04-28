@@ -128,11 +128,11 @@ class PixiController {
 		}
 		
 		if (!this.uiEnabled) {
-			PageChatView.clearMessageLog();
-			PageChatView.hidePasswordInput();
+			this.pageController.getPageChatView().clearMessageLog();
+			this.pageController.getPageChatView().hidePasswordInput();
 
 			// Set the stat bar values before we render
-			this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.character.health);
+			this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
 
 			this.pixiView.showStatBars();
 			this.showControls(true);
@@ -144,8 +144,8 @@ class PixiController {
 
 	disableUI () {
 		if (this.uiEnabled ) {
-			PageChatView.clearMessageLog();
-			PageChatView.hidePasswordInput();
+			this.pageController.getPageChatView().clearMessageLog();
+			this.pageController.getPageChatView().hidePasswordInput();
 
 			this.pixiView.hideStatBars();
 			this.showControls(false);
@@ -234,7 +234,7 @@ class PixiController {
 			this.pageController.pageView.hideWindows();
 			this.showControls(false);
 			this.pageController.pageView.showDialog();
-			PageChatView.updateMessageLog('Connection lost to server!', 'client');
+			this.pageController.getPageChatView().updateMessageLog('Connection lost to server!', 'client');
 		}
 	}
 }

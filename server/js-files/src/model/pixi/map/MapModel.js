@@ -1,6 +1,7 @@
 import ArrayHelper from 'src/helper/ArrayHelper.js'
 import MapTile from 'src/model/pixi/map/MapTile.js';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
+import { DATA_JSON_NAME, MAPSIZE_X_JSON_NAME, MAPSIZE_Y_JSON_NAME } from '../../../handler/socket/MessageHandler'
 
 // Default map size in tiles
 export var DEFAULT_MAP_SIZE_XY = 20;
@@ -140,6 +141,17 @@ export default class MapModel {
 				this.getTile(x,y).setSprite(tileSprite);
 			}
 		}
+	}
+
+	updateFromJson(data) {
+		// Unpack the message data
+		let mapTiles = JSON.parse(data[DATA_JSON_NAME]);
+		let mapSizeX = data[MAPSIZE_X_JSON_NAME];
+		let mapSizeY = data[MAPSIZE_Y_JSON_NAME];
+
+		this.mapTileArray = mapTiles;
+		this.mapSizeX = mapSizeX;
+		this.mapSizeY = mapSizeY;
 	}
 
 

@@ -74,6 +74,18 @@ export default class PageController {
 		}
 	}
 
+	getPageView() {
+		return this.pageView;
+	}
+
+	getPageCharacterDetailsView() {
+		return this.pageCharacterDetailsView;
+	}
+
+	getPageChatView () {
+		return this.pageChatView;s
+	}
+
 	/**
 	 * Bind to chat view events
 	 */

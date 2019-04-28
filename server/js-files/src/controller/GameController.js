@@ -2,7 +2,7 @@
 // aka the Controller Controller
 
 // Default imports
-import PageCharacterDetailsView from 'src/view/page/PageCharacterDetailsView.js';
+import { EVENTS as characterDetailsEvents } from 'src/model/page/CharacterDetails.js';
 import PageController from 'src/controller/page/PageController.js';
 
 // Named imports
@@ -10,6 +10,7 @@ import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { Session } from 'src/model/Session.js';
+import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 
 export class GameControllerClass {
 	
@@ -50,7 +51,7 @@ export class GameControllerClass {
 
 		// EventMappings
 		// Once the character details are set, confirm that we have some
-		this.pageController.characterDetails.on(characterDetailsEvents.SET_STATS, this.characterDetailsConfirmed);
+		this.pageController.onceCharacterDetailsSet(this.characterDetailsConfirmed);
 
 		this.bindChat();
 		this.bindStatsUpdates();
@@ -65,8 +66,8 @@ export class GameControllerClass {
 		this.pageView.hideWindow('statWindowId');
 		this.enableUI();
 		this.pixiController.getMapController().showMapPosition(
-		Session.ActiveSession.clientSession.characterDetails.pos_x,
-		Session.ActiveSession.clientSession.characterDetails.pos_y);
+		Session.ActiveSession.clientSession.player.getCharacter().pos_x,
+		Session.ActiveSession.clientSession.player.getCharacter().pos_y);
 
 		//	Creates the new character to represent the player
 		// TODO Add a player and draw them
@@ -84,18 +85,17 @@ export class GameControllerClass {
 
 		//	Session start welcome message
 		//	Unpack message data and send it to the message log
-		this.pageController.pageChatView.setMessageLog(data['messageData']);
+		this.pageController.getPageChatView().setMessageLog(data['messageData']);
 	}
 
 	bindStatsUpdates () {
 		//	Link the Session using the sessionId response
 		this.socketHandler.bind('connection-response', (data) => { this.handleSessionLinking(data) } );
 
-
 		//this.socketHandler.bind('map-data-response', Session.saveMapUpdate);
-		this.socketHandler.bind('map-data-response', (data) => {
-			let mapModel = this.pixiController.getMapController().getMap()
-			MessageHandler.updateMapFromResponse(mapModel, mapJson);
+		this.socketHandler.bind('map-data-response', (mapJson) => {
+			let mapModel = this.pixiController.getMapController().getMap();
+			mapModel.updateFromJson(mapJson);
 		});
 
 
@@ -111,14 +111,13 @@ export class GameControllerClass {
 		var messageData = data['chat-data'];
 		var username = data['username'];
 		console.log('Received: ' + data);
-		this.pageController.pageChatView.updateMessageLog(messageData, username);
+		this.pageController.getPageChatView().updateMessageLog(messageData, username);
 	}
 
 	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
 	handlePlayerLogin (data) {
 		// Save this data for our session
 		Session.ActiveSession.updateClientSessionData(data);
-		this.pageController.onceCharacterDetailsSet(this.characterDetailsConfirmed);
 	}
 
 

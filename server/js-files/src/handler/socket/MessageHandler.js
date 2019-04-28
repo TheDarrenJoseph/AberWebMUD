@@ -51,21 +51,6 @@ class MessageHandler {
 		console.log(message);
 		return message;
 	}
-
-	/**
-	 * THis unpacks a JSON map response from the server and updates the existing map model.
-	 * Not sure where we should unpack JSON just yet, but this seems apt for now
-	 * @param map
-	 * @param json
-	 */
-	static updateMapFromResponse (map, json) {
-		// Unpack the message data
-		let mapTiles = JSON.parse(json[MessageHandler.DATA_JSON_NAME]);
-		let mapSizeX = json[MessageHandler.MAPSIZE_X_JSON_NAME];
-		let mapSizeY = json[MessageHandler.MAPSIZE_Y_JSON_NAME];
-
-		// TODO Parse tiles and update MapModel
-	}
 }
 
 export { MessageHandler };

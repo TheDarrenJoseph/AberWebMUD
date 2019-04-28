@@ -12,9 +12,10 @@ const RENDERER_CANVAS = 'Canvas';
 const RENDERER_WEBGL = 'WebGL';
 
 export default class PixiView {
-	constructor (windowSize) {
+	constructor (windowSize=500) {
 		// Ask the page view what our available space in the window is
 		this.windowSize = windowSize;
+		this.halfWindowSize = Math.floor(this.windowSize / 2);
 
 		// Top level container for all children
 		this.parentContainer = new PIXI.Container();
@@ -22,9 +23,8 @@ export default class PixiView {
 		this.controlsContainer = new PIXI.Container();
 		this.parentContainer.addChild(this.dialogContainer, this.controlsContainer);
 
-		this.statBars = this.setupStatBars();
-
-		this.setupDialogWindow();
+		this.statBars = this.setupStatBars(this.halfWindowSize);
+		this.setupDialogWindow(this.halfWindowSize);
 	}
 
 	// Adds containers to the view's parent container
@@ -144,7 +144,7 @@ export default class PixiView {
 	}
 
 	setHealthBarValue (health) {
-		this.statBars[0].setValue(Session.ActiveSession.clientSession.characterDetails.health);
+		this.statBars[0].setValue(Session.ActiveSession.clientSession.player.getCharacter().health);
 		this.statBars[0].drawInnerBar();
 	}
 

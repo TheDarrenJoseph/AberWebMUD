@@ -58,7 +58,7 @@ class SessionModel {
 
 	//	Save our given session id for later, and display the welcome message
 	linkConnectionToSession (sessionId) {
-		let cookieSid = Session.getSessionIdCookie();
+		let cookieSid = this.getSessionIdCookie();
 		// If we've not stored a cookie this is a new session
 		if (cookieSid == null) {
 			this.setSessionId(sessionId);
