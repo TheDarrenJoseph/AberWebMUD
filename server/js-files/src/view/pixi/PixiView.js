@@ -19,6 +19,9 @@ export default class PixiView {
 
 		// Top level container for all children
 		this.parentContainer = new PIXI.Container();
+		this.parentContainer.height = windowSize;
+		this.parentContainer.width = windowSize;
+
 		this.dialogContainer = new PIXI.Container();
 		this.controlsContainer = new PIXI.Container();
 		this.parentContainer.addChild(this.dialogContainer, this.controlsContainer);
@@ -31,7 +34,7 @@ export default class PixiView {
 	// All containers should end up under this parent
 	addContainers (...pixiContainers) {
 		for (let pixiContainer of pixiContainers) {
-			if (pixiContainer instanceof PIXI.Container()) {
+			if (pixiContainer instanceof PIXI.Container) {
 				//	Add any Container not already added, or log an error.
 				if (this.parentContainer.getChildByName(pixiContainer.name) == null) {
 					this.parentContainer.addChild(pixiContainer);
@@ -78,7 +81,7 @@ export default class PixiView {
 	// Builds the one PixiJS Renderer to rule them all
 	_buildRenderer () {
 		let renderer = PIXI.autoDetectRenderer(this.windowSize, this.windowSize);
-		renderer.autoresize = true;
+		renderer.autoresize = false;
 		return renderer;
 	}
 

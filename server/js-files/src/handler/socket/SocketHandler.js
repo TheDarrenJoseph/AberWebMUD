@@ -74,15 +74,13 @@ class SocketHandler {
 	}
 
 	static getInstance() {
-		if (SOCKET_HANDLER == null) {
+		if (SOCKET_HANDLER == undefined || SOCKET_HANDLER == null) {
 			SOCKET_HANDLER = new SocketHandler();
-		} else {
-			return SOCKET_HANDLER;
 		}
+
+		return SOCKET_HANDLER;
 	}
 }
-
-
 
 export { SocketHandler };
 export default SocketHandler;

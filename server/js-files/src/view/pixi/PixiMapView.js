@@ -81,14 +81,22 @@ export default class PixiMapView {
 
 		// Top level container for all children
 		this.parentContainer = new PIXI.Container();
-		
+		this.parentContainer.width = this.windowSize;
+		this.parentContainer.height = this.windowSize;
+
 		// Using ParticleContainer for large amounts of sprites
 		this.mapContainer = new PIXI.particles.ParticleContainer();
-		this.mapContainer.name = 'mapContainer'
+		this.mapContainer.name = 'mapContainer';
+		this.mapContainer.width = this.windowSize;
+		this.mapContainer.height = this.windowSize;
+
 		this.characterContainer = new PIXI.particles.ParticleContainer();
 		this.characterContainer.name = 'characterContainer';
-		this.parentContainer.addChild(this.mapContainer, this.characterContainer);
+		this.characterContainer.width = this.windowSize;
+		this.characterContainer.height = this.windowSize;
 
+		// Add everything to the parent
+		this.parentContainer.addChild(this.mapContainer, this.characterContainer);
 
 		this.mapPositionHelper = new MapPositionHelper(this);
 

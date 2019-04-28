@@ -98,7 +98,9 @@ export default class PageController {
 	 */
 	bindPageCharacterDetailsView () {
 		// Bind to events this view may emit
-		this.pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, this.sendCharDetails);
+		this.pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, (data) => {
+			this.sendCharDetails(data);
+		});
 
 		// Setup emitting for the above binding(s)
 		this.pageCharacterDetailsView.bindEvents();

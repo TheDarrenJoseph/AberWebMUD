@@ -51,14 +51,19 @@ class PixiController {
 		} else {
 			this.windowSize = windowSize;
 		}
-		
-		this.pageController = pageController;
-		this.pixiView = new PixiView(this.windowSize);
 
+		console.log('Pixi - Window Size: ' + this.windowSize + 'px ^ 2');
+
+		this.pageController = pageController;
+		this.pixiView = new PixiView(windowSize);
 		this.renderer = this.pixiView.getRenderer();
 
 		this.mapController = new MapController(this.renderer, undefined, PageView.getWindowDimensions(), undefined, ASSET_PATHS);
-		
+
+		// Ensure we add the sub-container to the parent PIXI.Container
+		let pixiMapContainer = this.mapController.getPixiMapView().getParentContainer();
+		this.pixiView.addContainers(pixiMapContainer);
+
 		// resolution 1 for now as default (handles element scaling)
 		//	this.renderingOptions = {
 		//	resolution: 1
@@ -225,7 +230,7 @@ class PixiController {
 	}
 
 	renderAll () {
-		// this.pixiView.renderAll();
+		this.pixiView.renderAll();
 	}
 
 	// Hide everything if we lose connection
