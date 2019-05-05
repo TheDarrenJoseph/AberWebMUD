@@ -18,7 +18,6 @@ Other technologies used:
 * [PostgreSQL](https://www.postgresql.org/)
 * [SQLite](https://sqlite.org/)
 * [PonyORM 0.7.1 (Apache License V2.0)](https://docs.ponyorm.com/)
-* [Webpack JavaScript Module Bundler](https://webpack.js.org/)
 * ["Leshy SpriteSheet Tool - Online Sprite Sheet, Texture Atlas Packer"](https://www.leshylabs.com/apps/sstool/)
 
 Check the requirements.txt for dependancy version details
@@ -32,33 +31,39 @@ Check the LICENSE file for the project's license
 ## Building the project
 
 ### Frontend
-To build and test the frontent client:
-1. Change terminal directory to `server/js-files`
-2. Run 'npm run test' to build the src/test code and execute Karma Runner testing
+The frontend code is built using ES6 Classes, with npm for dependancies and task execution.
+**gulp.js** is the main build tool in combination will **rollup.js** for source bundling.
 
-Other options:
-* To just generate the JS Bundles for src/test code, run `npm run build` 
+To build the frontent client without testing:
+1. Change terminal directory to `server/js-files`
+2. Run `npm install` to resolve project dependancies
+3. Run `npm run build` or just `gulp` to bundle the source code.
 
 Building will create the following:
 * static/main.js -- Main Client code bundle (served up as part of the main application webpage from Flask)
 * static/tests.js -- Test Code, QUnit tests used by Karma or can be ran manually using the /test route
 * *.js.map files  -- Source Maps for the client/test code to facilitate debugging in-browser.
 
+Once this is built it will be served by the Python server (Flask) through the HTML pages in `server/templates/*.html`
+
+#### Running JavaScript client tests (QUnit/Karma Runner)
+1. Test code entrypoint is `server/js-files/test/main.js` this is bundled into `server/static/tests.js` with npm/gulp/rollup.
+2. (Main) Run 'npm run test' to build the src/test code and execute Karma Runner testing
+3. (Optional) Client tests are also available once the server is running at 'localhost:5000/test'
+
 ## Backend / Running the server
-1. You first need to satisfy python's dependencies, run 'sudo pip install -r requirements.txt' in the AberWebMUD/root folder
-2. Change your terminal directory to the server folder
+1. You first need to satisfy python's dependencies, run 'sudo pip install -r requirements.txt' in the `AberWebMUD` project root folder
+2. Change your terminal directory to the `server` folder
 5. Run main.py in Python
 6. visit 'localhost:5000' in a browser
+
+### Running Python server tests (unittest)
+1. change directory to 'server'
+2. Run: 'python -m unittest discover' OR 'python -m unittest discover tests "*.py"'
 
 ## Postgres vs SQLite
 The project currently uses an SQLite DB in-memory in order to run locally for development and demonstration.
 The project can also be run with a PostgreSQL database for a scalable DB platform if deployed (adjusted in database.py), if so you must ensure the PostgreSQL database service
 is running (database.py should detail what is expected).
 
-## Running client tests (QUnit)
-1. (Optional) Client tests (files named 'test-....js') are appended into the test.js file using the same build.sh as above
-2. Client tests are available once the server is running (main.py) at 'localhost:5000/test'
 
-## Running server tests (unittest)
-1. change directory to 'server'
-2. Run: 'python -m unittest discover' OR 'python -m unittest discover tests "*.py"'
