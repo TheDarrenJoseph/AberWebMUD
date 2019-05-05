@@ -5,7 +5,7 @@ focus is to be easy to play and available online without the need for
 special clients.
 
 ## Build info, references, and licenses
-Created with Python 3.6.0 and packaged with:
+Created with Python 3.6.0 and JavaScript ES6 and packaged with:
 * [Pixi.js v4.3.5 and  4.3.4 (MIT License)](http://www.pixijs.com/)
 * [SocketIO 1.4.5 (MIT License)](http://socket.io/)
 * [jQuery 3.1.1 (MIT License)](https://jquery.com/)
