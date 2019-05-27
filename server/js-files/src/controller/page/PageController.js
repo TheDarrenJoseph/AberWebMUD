@@ -38,6 +38,7 @@ export default class PageController {
 	 */
 	constructor(doc, pageView, pageCharacterDetailsView, pageChatView) {
 
+		this.isSetup = false;
 		this.uiEnabled = false;
 		// This is for
 		this.charDetailsConfirmed = false;

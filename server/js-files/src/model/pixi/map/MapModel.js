@@ -20,7 +20,7 @@ export default class MapModel {
 		this.mapPlayerArray = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, Array);
 		this.mapTileArray = ArrayHelper.create2dArray(this.mapSizeX, this.mapSizeY, MapTile);
 
-		console.log('New map, sized: ' + this.mapSizeX + ', ' + this.mapSizeY);_
+		// console.log('New map, sized: ' + this.mapSizeX + ', ' + this.mapSizeY);_
 	}
 
 	/**

@@ -1,5 +1,6 @@
 // Top level Pixi View
 //	Holds and generic Pixi View code / or code that's yet to be refactored
+import { EventMapping } from 'src/helper/EventMapping.js';
 import PIXI from 'libs/pixi.min.js';
 
 import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
@@ -7,12 +8,26 @@ import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
 import { Session } from 'src/model/Session.js';
 
+const CONSOLE_BUTTON_NAME = 'consoleButtonSprite';
+const INVENTORY_BUTTON_NAME = 'inventoryButtonSprite';
+const STATS_BUTTON_NAME = 'statsButtonSprite';
+
 // HTML 5 Canvas
 const RENDERER_CANVAS = 'Canvas';
 const RENDERER_WEBGL = 'WebGL';
 
-export default class PixiView {
-	constructor (windowSize=500, tileSize=80) {
+export const EVENTS = { 	CONSOLE_BUTTONCLICK : 'console_buttonclick',
+								INVENTORY_BUTTONCLICK : 'inventory_buttonclick',
+								STATS_BUTTONCLICK : 'stats_buttonclick'
+};
+
+export default class PixiView extends EventMapping {
+	constructor (windowSize=500, tileSize=80, ASSET_PATHS) {
+		super();
+
+		this.assetPaths = ASSET_PATHS;
+		this.objectAssets = this.assetPaths.ASSET_PATH_OBJECTS;
+
 		// Ask the page view what our available space in the window is
 		this.windowSize = windowSize;
 		this.halfWindowSize = Math.floor(this.windowSize / 2);
@@ -40,7 +55,7 @@ export default class PixiView {
 				if (this.parentContainer.getChildByName(pixiContainer.name) == null) {
 					this.parentContainer.addChild(pixiContainer);
 				} else {
-					console.log('Attempt to add duplicate Container to the Pixi Stage. Ignoring.');
+					console.log('Attempt to add duplicate Container ' + pixiContainer.name + ' to the Pixi Stage. Ignoring');
 				}
 			} else {
 				console.log('Attempt to add non-Container to the Pixi Stage! (Expected PIXI.Container).');
@@ -145,6 +160,61 @@ export default class PixiView {
 		this.controlsContainer.addChild(healthBar.innerBar);
 
 		return [healthBar];
+	}
+
+
+	async setupConsoleButton () {
+		if (this.controlsContainer.getChildByName(CONSOLE_BUTTON_NAME) == undefined) {
+			console.log('Creating a console button..');
+			this.consoleButtonSprite  = await SpriteHelper.makeSpriteFromAtlas(this.objectAssets, 'chat-bubble-blank', this.windowSize, this.tileSize);
+
+			this.consoleButtonSprite.name = CONSOLE_BUTTON_NAME;
+			this.controlsContainer.addChild(this.consoleButtonSprite);
+
+			this.consoleButtonSprite.on('click', this.emit(EVENTS.CONSOLE_BUTTONCLICK));
+		}
+	}
+
+	async setupContextButtons () {
+		if (this.controlsContainer.getChildByName(INVENTORY_BUTTON_NAME) == undefined) {
+			console.log('Creating a context button..');
+			this.inventoryButtonSprite = await PixiView.createInventoryButton(this.objectAssets, 'chest-single', this.windowSize, this.tileSize);
+			this.inventoryButtonSprite.name = INVENTORY_BUTTON_NAME;
+			this.controlsContainer.addChild(this.inventoryButtonSprite);
+			this.inventoryButtonSprite.on('click', this.emit(EVENTS.INVENTORY_BUTTONCLICK));
+		}
+
+		if (this.controlsContainer.getChildByName(STATS_BUTTON_NAME) == undefined) {
+			console.log('Creating a inventory button..');
+			this.statsButtonSprite = await PixiView.createStatsButton(this.objectAssets, 'chest-single', this.windowSize, this.tileSize);
+			this.statsButtonSprite.name = STATS_BUTTON_NAME;
+			this.controlsContainer.addChild(this.statsButtonSprite);
+			this.statsButtonSprite.on('click', this.emit(EVENTS.STATS_BUTTONCLICK));
+		}
+	}
+
+	/**
+	 * For pre-loading needed assets later
+	 */
+	initialiseAssets () {
+		// Ensure our atlasses are loaded
+		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_OVERWORLD);
+		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS);
+		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_CHARACTERS);
+
+		console.log('WARNING - Pixi multi-asset pre-loading unimplemented!');
+		// TODO Potentially pre-load all assets
+		// 1. Pass the 3 atlasses into AtlasHelper
+		// 2. pass assetsLoaded in as a callback
+		// 		this.assetsLoaded.apply(this);
+	}
+
+	// UI Building
+	async setupUI () {
+		// Await all setup
+		await this.setupConsoleButton();
+		await this.setupContextButtons();
+		await this.initialiseAssets();
 	}
 
 	setDialogBackgroundVisibility (bool) {

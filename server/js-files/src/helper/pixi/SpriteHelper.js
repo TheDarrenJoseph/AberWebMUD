@@ -45,7 +45,7 @@ export default class SpriteHelper {
 					resolve(thisSprite);
 				}
 			}).catch(err => {
-				reject(err);
+				reject(new Error('Failed to make Sprite from Atals: ' + err));
 			});
 		});
 	}

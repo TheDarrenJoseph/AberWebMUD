@@ -107,9 +107,7 @@ export default class PixiMapView {
 
 		this.mapPositionHelper = new MapPositionHelper(this);
 
-		console.log('New Map View. Sizes: tiles:' + this.tileCount +
-		' size (px) : ' + this.mapWindowSize,
-		' tile size: ' + this.tileSize)
+		//console.log('New Map View. Sizes: tiles:' + this.tileCount + ' size (px) : ' + this.mapWindowSize, ' tile size: ' + this.tileSize)
 		// For quick debugging
 		// console.log(this);
 	}

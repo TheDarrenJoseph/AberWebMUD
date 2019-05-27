@@ -1,36 +1,25 @@
 // Central controller for Pixi Views
-import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 
 // Default imports
-import PageChatView from 'src/view/page/PageChatView.js';
 import SocketHandler from 'src/handler/socket/SocketHandler.js';
-import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
 import MapPositionHelper from 'src/helper/MapPositionHelper.js';
-import PixiView from 'src/view/pixi/PixiView.js';
-import PixiMapView from 'src/view/pixi/PixiMapView.js';
-
 // Named imports
 import { MapController } from 'src/controller/MapController.js';
 import { Session } from 'src/model/Session.js';
 import { PageView } from 'src/view/page/PageView.js';
-import { DEFAULT_TILE_SIZE } from '../../model/pixi/map/MapModel'
+import { DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
+import { PixiView } from 'src/view/pixi/PixiView.js';
 
 // import { ValidationHandler } from 'src/handler/ValidationHandler.js';
 
 // Main Pixi handling point
 //	App Constants
-export const titleText = 'AberWebMUD';
-
 const rootUrl = window.location.origin;
 const assetPathZelda = rootUrl + '/static/assets/gfx/';
 const assetPathOverworld = assetPathZelda + 'overworld-texture-atlas.json';
 const assetPathOverworldGrass = assetPathZelda + 'overworld-grass-texture-atlas.json';
 const assetPathCharacters = assetPathZelda + 'character-texture-atlas.json';
 const assetPathObjects = assetPathZelda + 'zelda-objects-texture-atlas.json';
-
-const CONSOLE_BUTTON_NAME = 'consoleButtonSprite';
-const INVENTORY_BUTTON_NAME = 'inventoryButtonSprite';
-const STATS_BUTTON_NAME = 'statsButtonSprite';
 
 export const ASSET_PATHS = {
 	ASSET_PATH_OVERWORLD: assetPathOverworld,
@@ -41,7 +30,7 @@ export const ASSET_PATHS = {
 
 //	Handles the PixiJS renderer
 class PixiController {
-	constructor (windowSize, pageController) {
+	constructor (windowSize) {
 		this.SOCKET_HANDLER = SocketHandler.getInstance();
 
 		this.isSetup   = false;
@@ -57,8 +46,8 @@ class PixiController {
 
 		console.log('Pixi - Window Size: ' + this.windowSize + 'px ^ 2');
 
-		this.pageController = pageController;
-		this.pixiView = new PixiView(windowSize, this.tileSize);
+		//this.pageController = pageController;
+		this.pixiView = new PixiView(windowSize, this.tileSize, ASSET_PATHS);
 		this.renderer = this.pixiView.getRenderer();
 
 		this.mapController = new MapController(this.renderer, undefined, PageView.getWindowDimensions(), this.tileSize, undefined, ASSET_PATHS);
@@ -77,91 +66,47 @@ class PixiController {
 		return this.mapController;
 	}
 
-	async setupConsoleButton () {
-		if (this.pixiView.controlsContainer.getChildByName('consoleButtonSprite') == undefined) {
-			console.log('Creating a console button..');
-			var mapTileSize = this.mapController.getPixiMapView().tileSize;
-			var consoleButtonSprite = await SpriteHelper.makeSpriteFromAtlas(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chat-bubble-blank');
-			consoleButtonSprite.name = CONSOLE_BUTTON_NAME;
-			this.pixiView.controlsContainer.addChild(consoleButtonSprite);
-			consoleButtonSprite.on('click', this.pageController.pageView.toggleConsoleVisibility);
-		}
-	}
-
-	async setupContextButtons () {
-
-		let contextButtons = [];
-
-		var mapTileSize = this.mapController.getPixiMapView().windowSize;
-
-		let inventoryButtonSprite = this.pixiView.controlsContainer.getChildByName(INVENTORY_BUTTON_NAME);
-		if (inventoryButtonSprite == undefined) {
-			console.log('Creating a context button..');
-			inventoryButtonSprite = await PixiView.createInventoryButton(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
-			inventoryButtonSprite.name = INVENTORY_BUTTON_NAME;
-			this.pixiView.controlsContainer.addChild(inventoryButtonSprite);
-		}
-		contextButtons[0] = inventoryButtonSprite;
-
-		let statsButtonSprite = this.pixiView.controlsContainer.getChildByName(STATS_BUTTON_NAME);
-		if (this.pixiView.controlsContainer.getChildByName('statsButtonSprite') == undefined) {
-			console.log('Creating a inventory button..');
-			statsButtonSprite = await PixiView.createStatsButton(ASSET_PATHS.ASSET_PATH_OBJECTS, 'chest-single', this.windowSize, mapTileSize);
-			inventoryButtonSprite.name = STATS_BUTTON_NAME;
-			this.pixiView.controlsContainer.addChild(statsButtonSprite);
-		}
-		contextButtons[1] = statsButtonSprite;
-
-		return contextButtons;
-	}
-
-	// UI Building
-	async setupUI () {
-		this.setupConsoleButton();
-
-		// Await all setup
-		var contextButtons = await this.setupContextButtons();
-
-		contextButtons[0].on('click', this.pageController.pageView.toggleIventoryWinVisibility);
-		contextButtons[1].on('click', this.pageController.pageView.toggleStatWinVisibility);
-
-		this.pageController.pageView.appendToConsoleButtonClass(contextButtons);
-
-		this.initialiseAssets();
-	}
-
-	enableUI () {
+	async setupUI() {
 		if (!this.isSetup) {
-			this.setupUI();
+			await this.pixiView.setupUI();
+			console.log('Pixi View Setup. Using renderer option: ' + this.pixiView.getRendererType());
+
+			this.showLoginControls();
+
 			this.isSetup = true;
 		}
-		
-		if (!this.uiEnabled) {
-			this.pageController.getPageChatView().clearMessageLog();
-			this.pageController.getPageChatView().hidePasswordInput();
+	}
 
+	/**
+	 * Idempotently creates/enables the UI
+	 * @returns a Promise that should resolve to the Renderer View (HTMLCanvasElement)
+	 */
+	async enableUI () {
+		await this.setupUI();
+		
+		if (!this.uiEnabled) {HTMLCanvasElement
 			// Set the stat bar values before we render
 			this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
 
 			this.pixiView.showStatBars();
-			this.showControls(true);
+			this.pixiView.showControlsContainer(true);
 			this.renderAll();
 
 			this.uiEnabled = true;
 		}
+
+		return this.renderer.view;
 	}
 
 	disableUI () {
 		if (this.uiEnabled) {
-			this.pageController.getPageChatView().clearMessageLog();
-			this.pageController.getPageChatView().hidePasswordInput();
 			//this.pageController.pageView.hideWindows();
 
 			// Show the initial dialog
-			this.pageController.pageView.showDialog();
+			//this.pageController.pageView.showDialog();
 
 			this.pixiView.hideStatBars();
-			this.showControls(false);
+			this.pixiView.showControls(false);
 			this.renderAll();
 
 			this.uiEnabled = false;
@@ -170,31 +115,6 @@ class PixiController {
 	
 	isUIEnabled () {
 		return this.uiEnabled;
-	}
-
-	assetsLoaded () {
-		console.log(this);
-		console.log('Using renderer option: ' + this.pixiView.getRendererType());
-		this.pageController.pageView.appendToMainWindow(this.renderer.view);
-		this.showLoginControls();
-	}
-
-	/**
-	 * For pre-loading needed assets
-	 */
-	initialiseAssets () {
-		// Ensure our atlasses are loaded
-		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_OVERWORLD);
-		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_ZELDA_OBJECTS);
-		// AtlasHelper.loadAtlas(ASSET_PATHS.ASSET_PATH_CHARACTERS);
-
-		console.log('WARNING - PixiController multi-asset loading unimplemented!');
-		// TODO Potentially pre-load all assets
-		// 1. Pass the 3 atlasses into AtlasHelper
-		// 2. pass assetsLoaded in as a callback
-		// 		this.assetsLoaded.apply(this);
-
-		this.assetsLoaded();
 	}
 
 	// Sets the timeout trigger for a double-click
@@ -230,7 +150,7 @@ class PixiController {
 		if (!socketHandler.isSocketConnected()) {
 			console.log('Connection lost to server! Hiding view..');
 
-			this.pageController.getPageChatView().updateMessageLog('Connection lost to server!', 'client');
+			//this.pageController.getPageChatView().updateMessageLog('Connection lost to server!', 'client');
 			this.disableUI();
 		} else {
 			this.enableUI();
@@ -242,7 +162,7 @@ class PixiController {
 	showLoginControls () {
 		//this.pageController.pageView.hideWindows();
 		//	Make the console only visisble
-		this.pageController.pageView.toggleConsoleVisibility();
+		//this.pageController.pageView.toggleConsoleVisibility();
 		//	Check connection every 5 seconds
 		setTimeout(() => {
 			this.checkConnection.apply(this)
@@ -252,10 +172,6 @@ class PixiController {
 	//	Show the main chat view
 	showDialog () {
 		this.pixiView.showDialogContainer(true);
-	}
-
-	showControls (show) {
-		this.pixiView.showControlsContainer(true);
 	}
 
 	renderAll () {

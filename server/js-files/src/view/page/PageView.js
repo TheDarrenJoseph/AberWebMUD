@@ -163,9 +163,10 @@ export class PageView extends EventMapping {
 		this.toggleWindow('messageWindowId');
 	}
 
+	/*
 	appendToConsoleButtonClass (contextButtons) {
 		jquery('#console-button', this.doc).append(contextButtons);
-	}
+	}*/
 
 	static getWindowDimensions () {
 		// Set our mapWindowSize to the smallest of our page dimensions
