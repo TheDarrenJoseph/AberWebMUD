@@ -33,21 +33,16 @@ var pageChatView;
 
 var serverContextTag;
 
-var TEST_DOCUMENT = document;
+var TEST_WINDOW;
+var TEST_DOCUMENT;
 
 // Unmodified char details for reference
-var DEFAULT_CHARACTERDETAILS = new CharacterDetails();
+const DEFAULT_CHARACTERDETAILS = new CharacterDetails();
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
-	// Create an independent document to work on
-	//TEST_DOCUMENT = document.implementation.createHTMLDocument('PageView');
-
-	// Build our view in the independent document
-	// to avoid clashing with the test window content
-	//pageView = PageView;
-
-	//pageView.buildView();
+	TEST_WINDOW = window.open('', TEST_TAG, "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes")
+	TEST_DOCUMENT = TEST_WINDOW.document;
 }
 
 // Setup / assertions before each test
@@ -69,10 +64,12 @@ function beforeEachTest (assert) {
 	assert.ok(pageController instanceof PageController, 'Check controller instance is instanciated.');
 }
 
-
+function tearDown () {
+	TEST_WINDOW.close();
+}
 
 // Hookup before each test setup / assertion
-QUnit.module('PageContollerTests', { before: beforeAll, beforeEach: beforeEachTest });
+QUnit.module('PageContollerTests', { before: beforeAll, beforeEach: beforeEachTest, after: tearDown });
 
 QUnit.test(TEST_TAG + 'setupUI', function (assert) {
 	pageView.destroyView();
@@ -200,14 +197,6 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 	assert.expect(6);
 });
 
-QUnit.skip(TEST_TAG + 'bindEvents', function (assert) {
-	// Already covered
-});
-
-QUnit.skip(TEST_TAG + 'sendCharDetails', function (assert) {
-	// SocketIO, cannot test
-});
-
 QUnit.test(TEST_TAG + 'handleMovementResponse', function (assert) {
 	let responseData = {'success': true};
 	let expectedMessage = serverContextTag + MOVEMENT_FAILURE_MESSAGE + '\n';
@@ -222,14 +211,6 @@ QUnit.test(TEST_TAG + 'handleMovementResponse', function (assert) {
 	pageChatView.clearMessageLog();
 	pageController.handleMovementResponse(responseData);
 	assert.equal(pageChatView.getMessageLogValue(), expectedMessage, 'Check invalid movement response leaves a message.');
-});
-
-QUnit.skip(TEST_TAG + 'submitChatMessage', function (assert) {
-	// SocketIO, cannot test
-});
-
-QUnit.skip(TEST_TAG + 'submitPassword', function (assert) {
-	// SocketIO, cannot test
 });
 
 QUnit.test(TEST_TAG + 'requestUserPassword', function (assert) {
@@ -250,14 +231,6 @@ QUnit.test(TEST_TAG + 'requestUserPassword', function (assert) {
 	assert.equal(pageChatView.getMessageLogValue(), 'Please enter your password: ', 'Check pwd request message.');
 });
 
-QUnit.skip(TEST_TAG + 'messageFieldKeyupTrigger', function (assert) {
-	// Util, do not test
-});
-
-QUnit.skip(TEST_TAG + 'passwordFieldKeyupTrigger', function (assert) {
-	// Util, do not test
-});
-
 QUnit.test(TEST_TAG + 'disableUI', function (assert) {
 	pageController.enableUI();
 	assert.ok(pageController.uiEnabled, 'UI Should be enabled before attempting disable.');
@@ -268,14 +241,14 @@ QUnit.test(TEST_TAG + 'disableUI', function (assert) {
 	var mainWindowDomElem = pageView.getMainWindowJquery()[0];
 	var clickBinding = jQueryUtils.extractFirstJqueryBinding(mainWindowDomElem, 'click');
 	assert.equal(undefined, clickBinding, 'Check this clears the click handler.');
-	
+
 	assert.notOk(pageController.uiEnabled, 'UI Should be disabled now.');
 });
 
 /**
  * Test individual UI Elements get constructed / setup
  */
-QUnit.skip(TEST_TAG + 'enableUI_setup', function (assert) {
+QUnit.test(TEST_TAG + 'enableUI_setup', function (assert) {
 	assert.notOk(pageController.isUIEnabled(), 'UI Should be disabled before attempting enable.');
 	pageController.enableUI();
 	assert.ok(pageController.isUIEnabled(), 'UI Should be enabled now.');

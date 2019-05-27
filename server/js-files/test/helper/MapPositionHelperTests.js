@@ -35,7 +35,7 @@ function beforeAll (assert) {
 // Setup / assertions before each test
 function beforeEachTest (assert) {
 	// Re-initialise our classes
-	pixiView = new PixiView();
+	pixiView = new PixiView(undefined, undefined, ASSET_PATHS);
 	renderer = pixiView.getRenderer();
 	mapModel = new MapModel(DEFAULT_MAP_SIZE_XY);
 	pixiMapView = new PixiMapView(mapModel, renderer, TEST_WINDOW_SIZE, DEFAULT_TILE_SIZE, ASSET_PATHS);

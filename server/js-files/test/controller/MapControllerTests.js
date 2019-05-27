@@ -13,7 +13,7 @@ var TEST_TILESIZE = 80;
 // Window size / tile size.. So 10 tiles displayed
 var TEST_MAPWINDOW_TILECOUNT = 10;
 
-var pixiView = new PixiView();
+var pixiView = new PixiView(undefined, undefined, ASSET_PATHS);
 var mapController;
 
 var MAX_TIMEOUT = 2000;

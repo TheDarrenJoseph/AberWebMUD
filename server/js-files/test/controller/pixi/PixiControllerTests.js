@@ -4,9 +4,14 @@ import { PageView } from 'src/view/page/PageView.js';
 var TEST_TAG = '|PIXI CONTROLLER|';
 
 var pixiController;
+var TEST_WINDOW;
+var TEST_DOCUMENT;
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
+	TEST_WINDOW = window.open('', TEST_TAG, "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes")
+	TEST_DOCUMENT = TEST_WINDOW.document;
+
 	// DO SOME STUFF
 }
 
@@ -18,8 +23,12 @@ function beforeEachTest (assert) {
 	assert.ok(pixiController instanceof PixiController, 'Check controller instance is instanciated.');
 }
 
+function tearDown () {
+	TEST_WINDOW.close();
+}
+
 // Hookup before each test setup / assertion
-QUnit.module('PixiControllerTests', { before: beforeAll, beforeEach: beforeEachTest })
+QUnit.module('PixiControllerTests', { before: beforeAll, beforeEach: beforeEachTest, after: tearDown });
 
 QUnit.skip(TEST_TAG + 'setupConsoleButton', async function (assert) {
 	await pixiController.setupConsoleButton();
