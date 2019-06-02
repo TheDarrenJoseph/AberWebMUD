@@ -17,6 +17,6 @@ import 'test/model/MapModelTests.js';
 import 'test/view/page/PageCharacterDetailsViewTests.js'
 import 'test/view/page/PageChatViewTests.js'
 import 'test/view/pixi/PixiMapViewTests.js'
-
+import 'test/view/pixi/PixiViewTests.js'
 
 // This is how we bundle all of our testfiles

@@ -86,6 +86,7 @@ class PixiController {
 			// Set the stat bar values before we render
 			this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
 
+			this.pixiView.showParentContainer(true);
 			this.pixiView.showStatBars();
 			this.pixiView.showControlsContainer(true);
 			this.renderAll();

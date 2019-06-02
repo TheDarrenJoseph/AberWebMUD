@@ -41,48 +41,18 @@ async function beforeEachTest (assert) {
 }
 
 function afterAll () {
-	//TEST_WINDOW.close();
+	TEST_WINDOW.close();
 }
 
 function afterEachTest () {
 	// Ensure we don't leave the used HTML Canvas on the test window
 	if (TEST_DOCUMENT !== undefined && canvasView !== undefined) {
-		//TEST_DOCUMENT.body.removeChild(canvasView);
+		TEST_DOCUMENT.body.removeChild(canvasView);
 	}
 }
 
 // Hookup before each test setup / assertion
 QUnit.module('PixiControllerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll, afterEach : afterEachTest });
-
-/**
- * Given that the PixiController is setup
- * When the UI is enabled
- * Then there should be a console button Sprite for the chat/input console in the controls container
- */
-QUnit.test(TEST_TAG + 'initialSetupDone_consoleButton', async function (assert) {
-	//There should be a console Button
-	let controlsContainer = pixiController.pixiView.controlsContainer;
-	assert.ok(controlsContainer instanceof PIXI.Container, 'Check the controls container is a PIXI.Container');
-	assert.ok(controlsContainer.visible, 'Check the controls container is visible.');
-	let consoleButton = controlsContainer.getChildByName(CONSOLE_BUTTON_NAME);
-	assert.ok(consoleButton instanceof PIXI.Sprite, 'Check the console button is a Pixi Sprite');
-	assert.ok(consoleButton.visible, 'Check the chat console button is displayed/visible.');
-});
-
-/**
- * Given that the PixiController is setup
- * When the UI is enabled
- * Then there should be a console button Sprite for the chat/input console in the controls container
- */
-QUnit.test(TEST_TAG + 'enableUI_consoleButton', async function (assert) {
-	//There should be a console Button
-	let controlsContainer = pixiController.pixiView.controlsContainer;
-	assert.ok(controlsContainer instanceof PIXI.Container, 'Check the controls container is a PIXI.Container');
-	assert.ok(controlsContainer.visible, 'Check the controls container is visible.');
-	let consoleButton = controlsContainer.getChildByName(CONSOLE_BUTTON_NAME);
-	assert.ok(consoleButton instanceof PIXI.Sprite, 'Check the console button is a Pixi Sprite');
-	assert.ok(consoleButton.visible, 'Check the chat console button is displayed/visible.');
-});
 
 /**
  * Given that the PixiController is setup
@@ -111,7 +81,6 @@ QUnit.test(TEST_TAG + 'enableUI_contextButtons', async function (assert) {
 	assert.ok(expectedStatsButtonPos.equals(statsButton.position));
 });
 
-
 /**
  * Given that the PixiController is setup
  * When the UI is enabled
@@ -123,11 +92,7 @@ QUnit.test(TEST_TAG + 'enableUI_statBars', async function (assert) {
 	assert.ok(statBars.length == 1, 'Check there is 1 item in the stat bars array');
 	assert.ok(statBars[0] instanceof PixiStatBar);
 
-	// Grab it an check it's in the right spot
+	// And it's visible
 	let healthBar = statBars[0];
-	let thirdMapWindowSize = Math.floor(TEST_WINDOW_SIZE / 3);
-	let healthBarPosX =  TEST_WINDOW_SIZE- thirdMapWindowSize - 2;;
-	let healthBarPosY =  0;
-	assert.equal(healthBar.posX, healthBarPosX);
-	assert.equal(healthBar.posY, healthBarPosY);
+	assert.ok(healthBar.isVisible(), 'Check the health bar is visible');
 });

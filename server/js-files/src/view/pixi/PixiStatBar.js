@@ -17,8 +17,21 @@ class PixiStatBar {
 		this.value = 100;
 
 		// Create the graphical shapes of this bar
+		this.barContainer = new PIXI.Container();
+		this.barContainer.addChild(this.backgroundBar);
+		this.barContainer.addChild(this.innerBar);
+		// Hide by default
+		this.barContainer.visible = false;
+
 		this.drawBackgroundBar();
 		this.drawInnerBar();
+	}
+
+	/**
+	 * Returns the Pixi.Container for all this bar's Graphics elements, for use in rendering
+	 */
+	getBarContainer() {
+		return this.barContainer;
 	}
 
 	drawBackgroundBar () {
@@ -41,11 +54,14 @@ class PixiStatBar {
 
 		this.innerBar.endFill();
 	}
-	
+
+	isVisible() {
+		return this.barContainer.visible;
+	}
+
 	// Sets visisbility for all components
-	setVisible(visisble){
-		this.backgroundBar.visisble = visisble;
-		this.innerBar.visisble = visisble;
+	setVisible(visible){
+		this.barContainer.visible = visible;
 	}
 
 	//	Sets a statbar's indicated value using a 1-100 value

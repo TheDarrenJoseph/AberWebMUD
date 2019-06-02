@@ -9,11 +9,12 @@ import { DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
 import { PageController } from 'src/controller/page/PageController.js';
 import { PixiController, ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
 
+let TEST_TAG = '|PIXI-MAP-VIEW|';
+
 let pageController = new PageController(() => {}, undefined, undefined, undefined);
 
 let pixiController = new PixiController(undefined, pageController);
 let renderer = pixiController.pixiView.getRenderer();
-let TEST_TAG = '|PIXI-MAP-VIEW|';
 // Enough pixels for 20 tiles
 const TEST_TILECOUNT = 20;
 const TEST_WINDOW_SIZE = DEFAULT_TILE_SIZE * TEST_TILECOUNT;

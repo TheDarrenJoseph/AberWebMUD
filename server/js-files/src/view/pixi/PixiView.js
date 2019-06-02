@@ -39,12 +39,17 @@ export default class PixiView extends EventMapping {
 		this.parentContainer = new PIXI.Container();
 		this.parentContainer.height = windowSize;
 		this.parentContainer.width = windowSize;
+		// Hidden until enabled
+		this.parentContainer.visible = false;
 
 		this.dialogContainer = new PIXI.Container();
 		this.controlsContainer = new PIXI.Container();
-		this.parentContainer.addChild(this.dialogContainer, this.controlsContainer);
 
 		this.statBars = this.setupStatBars();
+		this.statBars.forEach(statBar => {this.controlsContainer.addChild(statBar.getBarContainer())});
+
+		this.parentContainer.addChild(this.dialogContainer, this.controlsContainer);
+
 		this.setupDialogWindow();
 	}
 
@@ -114,6 +119,11 @@ export default class PixiView extends EventMapping {
 		return this.renderer;
 	}
 
+	// If this is false nothing will be drawn/displayed
+	isParentContainerVisible() {
+		return this.parentContainer.visible;
+	}
+
 	getParentContainer () {
 		return this.parentContainer;
 	}
@@ -143,7 +153,7 @@ export default class PixiView extends EventMapping {
 		this.dialogBackground.lineStyle(2, 0x000000, 1);
 		this.dialogBackground.drawRect(quarterWindowSize, quarterWindowSize, this.halfMapWindowSize, this.halfMapWindowSize);
 		this.dialogBackground.endFill();
-		this.dialogBackground.visible = false; // Hidden until we need it
+		//this.dialogBackground.visible = false; // Hidden until we need it
 
 		this.dialogContainer.addChild(this.dialogBackground);
 		this.dialogContainer.overflow = 'scroll';
@@ -160,10 +170,6 @@ export default class PixiView extends EventMapping {
 		let healthBarSizeY = this.tileSize;
 
 		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, healthBarSizeX, healthBarSizeY);
-	
-		this.controlsContainer.addChild(healthBar.backgroundBar);
-		this.controlsContainer.addChild(healthBar.innerBar);
-
 		return [healthBar];
 	}
 
