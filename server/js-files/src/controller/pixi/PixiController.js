@@ -70,21 +70,19 @@ class PixiController {
 		if (!this.isSetup) {
 			await this.pixiView.setupUI();
 			console.log('Pixi View Setup. Using renderer option: ' + this.pixiView.getRendererType());
-
 			this.showLoginControls();
-
 			this.isSetup = true;
 		}
 	}
 
 	/**
 	 * Idempotently creates/enables the UI
-	 * @returns a Promise that should resolve to the Renderer View (HTMLCanvasElement)
+	 * @returns a Promise that should resolve to the main Renderer View Element (HTMLCanvasElement)
 	 */
 	async enableUI () {
 		await this.setupUI();
 		
-		if (!this.uiEnabled) {HTMLCanvasElement
+		if (!this.uiEnabled) {
 			// Set the stat bar values before we render
 			this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
 
@@ -180,6 +178,4 @@ class PixiController {
 
 }
 
-// Create an instance we can refer to nicely (hide instanciation)
-//let PixiController = new PixiControllerClass(PageView.getWindowDimensions());
 export { PixiController };

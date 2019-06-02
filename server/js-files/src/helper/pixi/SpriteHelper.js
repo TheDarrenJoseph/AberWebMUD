@@ -23,7 +23,7 @@ export default class SpriteHelper {
 			// Load the named subtile from the given atlas
 			subtexturePromise.then(spriteTexture => {
 				if (spriteTexture == undefined || spriteTexture == null) {
-					reject(new Error('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' +
+					reject(new RangeError('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' +
 								tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']'));
 				} else {
 					var thisSprite = new PIXI.Sprite(spriteTexture);
@@ -45,7 +45,7 @@ export default class SpriteHelper {
 					resolve(thisSprite);
 				}
 			}).catch(err => {
-				reject(new Error('Failed to make Sprite from Atals: ' + err));
+				reject(err);
 			});
 		});
 	}

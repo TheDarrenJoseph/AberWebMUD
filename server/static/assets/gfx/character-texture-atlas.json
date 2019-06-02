@@ -12,6 +12,7 @@
 		}
 	},
 	"meta": {
-		"image": "./character.png"
+		"image": "./character.png",
+		"size": {"w":272,"h":256}
 	}
 }

@@ -8,9 +8,11 @@ import SpriteHelper from 'src/helper/pixi/SpriteHelper.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js';
 import { Session } from 'src/model/Session.js';
 
-const CONSOLE_BUTTON_NAME = 'consoleButtonSprite';
-const INVENTORY_BUTTON_NAME = 'inventoryButtonSprite';
-const STATS_BUTTON_NAME = 'statsButtonSprite';
+export const CONSOLE_BUTTON_NAME = 'consoleButtonSprite';
+export const INVENTORY_BUTTON_NAME = 'inventoryButtonSprite';
+export const STATS_BUTTON_NAME = 'statsButtonSprite';
+
+
 
 // HTML 5 Canvas
 const RENDERER_CANVAS = 'Canvas';
@@ -154,7 +156,10 @@ export default class PixiView extends EventMapping {
 		let healthBarPosX = this.windowSize - thirdMapWindowSize - 2;
 		let healthBarPosY = 0;
 
-		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, thirdMapWindowSize, this.tileSize);
+		let healthBarSizeX = thirdMapWindowSize;
+		let healthBarSizeY = this.tileSize;
+
+		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, healthBarSizeX, healthBarSizeY);
 	
 		this.controlsContainer.addChild(healthBar.backgroundBar);
 		this.controlsContainer.addChild(healthBar.innerBar);
@@ -162,31 +167,46 @@ export default class PixiView extends EventMapping {
 		return [healthBar];
 	}
 
-
 	async setupConsoleButton () {
-		if (this.controlsContainer.getChildByName(CONSOLE_BUTTON_NAME) == undefined) {
-			console.log('Creating a console button..');
-			this.consoleButtonSprite  = await SpriteHelper.makeSpriteFromAtlas(this.objectAssets, 'chat-bubble-blank', this.windowSize, this.tileSize);
+		return new Promise((resolve, reject)  => {
+			if (this.controlsContainer.getChildByName(CONSOLE_BUTTON_NAME) == undefined) {
+				console.log('Creating a console button..');
+				let buttonPos = new PIXI.Point(0, this.windowSize - this.tileSize);
 
-			this.consoleButtonSprite.name = CONSOLE_BUTTON_NAME;
-			this.controlsContainer.addChild(this.consoleButtonSprite);
+				let consoleButtonSpritePromise = SpriteHelper.makeSpriteFromAtlas(this.objectAssets, 'chat-bubble-blank', this.tileSize, this.tileSize, buttonPos, false);
 
-			this.consoleButtonSprite.on('click', this.emit(EVENTS.CONSOLE_BUTTONCLICK));
-		}
+				consoleButtonSpritePromise.then( sprite => {
+					this.consoleButtonSprite = sprite;
+					this.consoleButtonSprite.name = CONSOLE_BUTTON_NAME;
+					this.controlsContainer.addChild(this.consoleButtonSprite);
+					this.consoleButtonSprite.on('click', this.emit(EVENTS.CONSOLE_BUTTONCLICK));
+					resolve(sprite);
+				},
+				rejection => reject(rejection))
+				.catch(err => reject(err))
+			} else {
+				//Already setup
+				resolve();
+			}
+		});
 	}
 
 	async setupContextButtons () {
 		if (this.controlsContainer.getChildByName(INVENTORY_BUTTON_NAME) == undefined) {
-			console.log('Creating a context button..');
-			this.inventoryButtonSprite = await PixiView.createInventoryButton(this.objectAssets, 'chest-single', this.windowSize, this.tileSize);
+			console.log('Creating a inventory button..');
+			// Create a 2 tile wide, 1 tile high button at the bottom right of screen
+			let buttonPos = new PIXI.Point(this.windowSize - (this.tileSize * 2), this.windowSize - this.tileSize);
+			this.inventoryButtonSprite = await PixiView.createContextButton(this.objectAssets, 'chest-single', this.tileSize, buttonPos, false);
 			this.inventoryButtonSprite.name = INVENTORY_BUTTON_NAME;
 			this.controlsContainer.addChild(this.inventoryButtonSprite);
 			this.inventoryButtonSprite.on('click', this.emit(EVENTS.INVENTORY_BUTTONCLICK));
 		}
 
 		if (this.controlsContainer.getChildByName(STATS_BUTTON_NAME) == undefined) {
-			console.log('Creating a inventory button..');
-			this.statsButtonSprite = await PixiView.createStatsButton(this.objectAssets, 'chest-single', this.windowSize, this.tileSize);
+			console.log('Creating a stats button..');
+			// Create a 2 tile wide, 1 tile high button to the left of the inventory button
+			let buttonPos = new PIXI.Point(this.windowSize - (this.tileSize * 4), this.windowSize - this.tileSize);
+			this.statsButtonSprite = await PixiView.createContextButton(this.objectAssets, 'chest-single', this.tileSize, buttonPos);
 			this.statsButtonSprite.name = STATS_BUTTON_NAME;
 			this.controlsContainer.addChild(this.statsButtonSprite);
 			this.statsButtonSprite.on('click', this.emit(EVENTS.STATS_BUTTONCLICK));
@@ -211,10 +231,17 @@ export default class PixiView extends EventMapping {
 
 	// UI Building
 	async setupUI () {
+
 		// Await all setup
-		await this.setupConsoleButton();
-		await this.setupContextButtons();
-		await this.initialiseAssets();
+		let consoleButtPromise = this.setupConsoleButton();
+		let contextButtPromise = this.setupContextButtons();
+
+		return Promise.all([consoleButtPromise, contextButtPromise])
+
+		//.catch(err => {
+		//	console.error('PixiView setup failed! ' + err);
+		//	throw err;
+		//})
 	}
 
 	setDialogBackgroundVisibility (bool) {
@@ -224,14 +251,10 @@ export default class PixiView extends EventMapping {
 
 	setHealthBarValue (health) {
 		this.statBars[0].setValue(Session.ActiveSession.clientSession.player.getCharacter().health);
-		this.statBars[0].drawInnerBar();
 	}
 
 	showStatBars () {
-		console.log(this.statBars);
-		this.statBars[0].setValue(0);
-		this.statBars[0].drawBackgroundBar(Map.thirdMapWindowSize, this.mapTileSize);
-		this.statBars[0].drawInnerBar();
+		this.statBars[0].setValue(0);;
 		this.statBars[0].setVisible(true);
 	}
 	
@@ -239,20 +262,7 @@ export default class PixiView extends EventMapping {
 		this.statBars[0].setVisible(false);
 	}
 
-	static async createInventoryButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
-		let pixiPos = new PIXI.Point(mapWindowSize - (tileSize * 2), mapWindowSize - tileSize);
-		
-		return SpriteHelper.makeSpriteFromAtlas(tileAtlasPath,
-		subtileName,
-		tileSize,
-		tileSize * 2,
-		pixiPos,
-		true);
-	}
-
-	static async createStatsButton (tileAtlasPath, subtileName, mapWindowSize, tileSize) {
-		let pixiPos = new PIXI.Point(mapWindowSize - (tileSize * 4), mapWindowSize - tileSize);
-		
+	static async createContextButton (tileAtlasPath, subtileName, tileSize, pixiPos) {
 		return SpriteHelper.makeSpriteFromAtlas(tileAtlasPath,
 		subtileName,
 		tileSize,

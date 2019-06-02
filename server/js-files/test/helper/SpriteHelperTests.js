@@ -50,7 +50,25 @@ TEST_TAG + 'makeSpriteFromAtlas_Tile', function (assert) {
 		assert.deepEqual([sprite.x, sprite.y], [1, 1], 'Check Sprite PIXI.Position');
 		assert.deepEqual([sprite.width, sprite.height], [DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE], 'Check Sprite Size is correct.')
 		asyncSprite();
-	})
+	});
 
 	assert.expect(2);
 });
+
+// Try referencing a non-existent subtile
+QUnit.test(
+TEST_TAG + 'makeSpriteFromAtlas_Objects_NonsenseSubtile', function (assert) {
+	assert.timeout(MAX_TIMEOUT);
+	let expectedError = assert.async(1);
+	var pixiPos = new PIXI.Point(1,1);
+
+	// Promise the loading of the subtexture
+	var spritePromise = SpriteHelper.makeSpriteFromAtlas(ASSET_PATHS.ASSET_PATH_OBJECTS, 'nonsense', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
+	spritePromise.catch(err => {
+		assert.ok(err instanceof RangeError);
+		expectedError();
+	});
+
+	assert.expect(1);
+});
+

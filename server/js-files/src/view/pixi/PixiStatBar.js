@@ -1,24 +1,31 @@
 import PIXI from 'libs/pixi.min.js';
 
 class PixiStatBar {
-	constructor (name, posX, posY, thirdMapWindowSize, tileSize) {
+	constructor (name, posX, posY, outerSizeX, outerSizeY) {
 		this.name = name;
 		this.posX = posX;
 		this.posY = posY;
 
+		this.outerSizeX = outerSizeX;
+		this.outerSizeY = outerSizeY;
+
 		this.backgroundBar = new PIXI.Graphics();
 		this.innerBar = new PIXI.Graphics();
 
-		this.innerSizeX = thirdMapWindowSize - 9;
-		this.innerSizeY = tileSize / 3 - 6;
+		this.innerSizeX = outerSizeX - 9;
+		this.innerSizeY = outerSizeY / 3 - 6;
 		this.value = 100;
+
+		// Create the graphical shapes of this bar
+		this.drawBackgroundBar();
+		this.drawInnerBar();
 	}
 
-	drawBackgroundBar (pixelWidth, pixelHeight) {
+	drawBackgroundBar () {
 		this.backgroundBar.beginFill(0x000000);
 		this.backgroundBar.lineStyle(2, 0xFFFFFF, 1);
 
-		this.backgroundBar = this.backgroundBar.drawRoundedRect(this.posX, this.posY, pixelWidth, pixelHeight / 2, 4);
+		this.backgroundBar = this.backgroundBar.drawRoundedRect(this.posX, this.posY, this.outerSizeX, this.outerSizeY / 2, 4);
 		this.backgroundBar.endFill();
 	}
 
@@ -49,6 +56,9 @@ class PixiStatBar {
 		if (value <= 100 && value >= 0) {
 			this.value = value;
 			this.innerSizeX = ((this.innerSizeX / 100) * value); //	Simple percentage adjustment for Y size
+
+			// Re-draw the bar to the correct size
+			this.drawInnerBar();
 		} else return false;
 	}
 }
