@@ -280,9 +280,8 @@ export default class PixiMapView {
 		}
 	}
 
-
 	/**
-	 *
+	 * Draws the Map Tiles to the map view
 	 * @returns a Promise for as many Sprites as we've needed to create
 	 */
 	async drawMapTiles() {
@@ -299,23 +298,19 @@ export default class PixiMapView {
 				var globalX = globalXY[0];
 				var globalY = globalXY[1];
 				let mapTile = this.mapModel.getTile(globalX, globalY);
+				let validPos = this.mapModel.isPositionInMap(globalX, globalY);
 
-				if (mapTile != undefined && mapTile != null) {
+				if (mapTile !== undefined && mapTile !== null && validPos) {
 						let tileType = mapTile.getTileType();
 						let tileSprite = mapTile.getSprite();
 
-						// Try simply adding the sprite if it's set
-						if (tileSprite != undefined && tileSprite != null) {
-							this.mapContainer.addChild(tileSprite);
-						} else {
-							// Otherwise try to create a Sprite for this tile
-							// Only draw bits of the map we can actually seee
-							if (this.mapModel.isPositionInMap(globalX, globalY)) {
-								let tileSprite = await this.promiseSpriteForTile(tileType, x, y);
-								this.mapContainer.addChild(tileSprite);
-							}
-
+						// Get a Sprite if needed and update what's set
+						if (tileSprite == undefined || tileSprite == null) {
+								tileSprite = await this.promiseSpriteForTile(tileType, x, y);
+								mapTile.setSprite(tileSprite)
 						}
+
+						this.mapContainer.addChild(tileSprite);
 				}
 			}
 		}

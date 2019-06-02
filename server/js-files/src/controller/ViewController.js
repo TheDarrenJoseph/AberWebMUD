@@ -14,6 +14,14 @@ export default class ViewController {
 		this.pageView = this.pageController.pageView;
 	}
 
+	getPageController() {
+		return this.pageController;
+	}
+
+	getPixiController() {
+		return this.pixiController;
+	}
+
 	resetChatWindow() {
 		if (this.pageController.isSetup) {
 			this.pageController.getPageChatView().clearMessageLog();

@@ -1,7 +1,7 @@
 import ArrayHelper from 'src/helper/ArrayHelper.js'
 import MapTile from 'src/model/pixi/map/MapTile.js';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
-import { DATA_JSON_NAME, MAPSIZE_X_JSON_NAME, MAPSIZE_Y_JSON_NAME } from '../../../handler/socket/MessageHandler'
+import { DATA_JSON_NAME, MAPSIZE_X_JSON_NAME, MAPSIZE_Y_JSON_NAME } from 'src/handler/socket/MessageHandler.js';
 
 // Default map size in tiles
 export var DEFAULT_MAP_SIZE_XY = 20;

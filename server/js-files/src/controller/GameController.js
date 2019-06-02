@@ -59,17 +59,20 @@ export class GameControllerClass {
 			mapModel.updateFromJson(mapJson);
 		});
 
-		this.socketHandler.bind('movement-response',  (data) => { this.pageController.handleMovementResponse(data) });
-		this.socketHandler.bind('movement-update', this.pixiController.handleMovementUpdate);
+		let pageController = this.viewController.getPageController();
+		let pixiController = this.viewController.getPixiController();
 
-		this.socketHandler.bind('character-details-update',  (data) => { this.pageController.handleCharacterUpdateResponse(data) });
-		this.socketHandler.bind('request-password',  (newUser) => { this.pageController.requestUserPassword(newUser) }); //  Request for existing password
-		this.socketHandler.bind('request-new-password',  (data) => { this.pageController.newUser(data) }); //  Request for new password
+		this.socketHandler.bind('movement-response',  (data) => { pageController.handleMovementResponse(data) });
+		this.socketHandler.bind('movement-update', pixiController.getMapController().handleMovementUpdate);
+
+		this.socketHandler.bind('character-details-update',  (data) => { pageController.handleCharacterUpdateResponse(data) });
+		this.socketHandler.bind('request-password',  (newUser) => { pageController.requestUserPassword(newUser) }); //  Request for existing password
+		this.socketHandler.bind('request-new-password',  (data) => { pageController.newUser(data) }); //  Request for new password
 
 		this.socketHandler.bind('chat-message-response', this.handleMessageData);
 		this.socketHandler.bind('login-success', this.handlePlayerLogin);
-		this.socketHandler.bind('login-failure', this.pageController.handlePlayerLoginError);
-		this.socketHandler.bind('session-error', this.handleSessionError);
+		this.socketHandler.bind('login-failure', pageController.handlePlayerLoginError);
+		this.socketHandler.bind('session-error', this.socketHandler.handleSessionError);
 	}
 	
 	handleMessageData (data) {
