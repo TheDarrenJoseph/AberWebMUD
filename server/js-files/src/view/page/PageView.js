@@ -155,7 +155,7 @@ export class PageView extends EventMapping {
 		this.toggleWindow('statWindowId');
 	}
 
-	toggleIventoryWinVisibility () {
+	toggleInventoryWinVisibility () {
 		this.toggleWindow('inventoryWindowId');
 	}
 

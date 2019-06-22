@@ -65,10 +65,13 @@ export default class ViewController {
 	bindComponents() {
 		this.pageController.pageView.bindStageClick(this.pixiController.stageClicked);
 
+
+		let pixiView = this.pixiController.pixiView;
+
 		// Map Pixi Button clicks to HTML Window toggling
-		this.pixiController.pixiView.on(PIXIVIEW_EVENTS.CONSOLE_BUTTONCLICK, this.pageController.pageView.toggleConsoleVisibility);
-		this.pixiController.pixiView.on(PIXIVIEW_EVENTS.INVENTORY_BUTTONCLICK, this.pageController.pageView.toggleIventoryWinVisibility);
-		this.pixiController.pixiView.on(PIXIVIEW_EVENTS.STATS_BUTTONCLICK, this.pageController.pageView.toggleStatWinVisibility);
+		pixiView.on(PIXIVIEW_EVENTS.CONSOLE_BUTTONCLICK, () => { this.pageController.pageView.toggleConsoleVisibility() });
+		pixiView.on(PIXIVIEW_EVENTS.INVENTORY_BUTTONCLICK, () => { this.pageController.pageView.toggleInventoryWinVisibility() });
+		pixiView.on(PIXIVIEW_EVENTS.STATS_BUTTONCLICK, () => { this.pageController.pageView.toggleStatWinVisibility() });
 
 		// EventMappings
 		// Once the character details are set, confirm that we have some

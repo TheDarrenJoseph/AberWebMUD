@@ -7,7 +7,7 @@ console.log('Awaiting page load..');
 
 function main() {
 	//clientController.performSetup(); 
-	GameController.enableUI();
+	GameController.viewController.setupUI();
 	GameController.connect();
 
 	// GameController.pageController.onceCharacterDetailsSet();

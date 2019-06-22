@@ -27,6 +27,9 @@ export default class PixiView extends EventMapping {
 	constructor (windowSize=500, tileSize=80, ASSET_PATHS) {
 		super();
 
+		// Set EventMapping mappable events
+		this.mappableEvents = EVENTS;
+
 		this.assetPaths = ASSET_PATHS;
 		this.objectAssets = this.assetPaths.ASSET_PATH_OBJECTS;
 
@@ -185,7 +188,7 @@ export default class PixiView extends EventMapping {
 					this.consoleButtonSprite = sprite;
 					this.consoleButtonSprite.name = CONSOLE_BUTTON_NAME;
 					this.controlsContainer.addChild(this.consoleButtonSprite);
-					this.consoleButtonSprite.on('click', this.emit(EVENTS.CONSOLE_BUTTONCLICK));
+					this.consoleButtonSprite.on('click', () => { this.emit(EVENTS.CONSOLE_BUTTONCLICK) } );
 					resolve(sprite);
 				},
 				rejection => reject(rejection))
@@ -205,7 +208,7 @@ export default class PixiView extends EventMapping {
 			this.inventoryButtonSprite = await PixiView.createContextButton(this.objectAssets, 'chest-single', this.tileSize, buttonPos, false);
 			this.inventoryButtonSprite.name = INVENTORY_BUTTON_NAME;
 			this.controlsContainer.addChild(this.inventoryButtonSprite);
-			this.inventoryButtonSprite.on('click', this.emit(EVENTS.INVENTORY_BUTTONCLICK));
+			this.inventoryButtonSprite.on('click',  () => { this.emit(EVENTS.INVENTORY_BUTTONCLICK) });
 		}
 
 		if (this.controlsContainer.getChildByName(STATS_BUTTON_NAME) == undefined) {
@@ -215,7 +218,7 @@ export default class PixiView extends EventMapping {
 			this.statsButtonSprite = await PixiView.createContextButton(this.objectAssets, 'chest-single', this.tileSize, buttonPos);
 			this.statsButtonSprite.name = STATS_BUTTON_NAME;
 			this.controlsContainer.addChild(this.statsButtonSprite);
-			this.statsButtonSprite.on('click', this.emit(EVENTS.STATS_BUTTONCLICK));
+			this.statsButtonSprite.on('click', () => { this.emit(EVENTS.STATS_BUTTONCLICK) } );
 		}
 	}
 

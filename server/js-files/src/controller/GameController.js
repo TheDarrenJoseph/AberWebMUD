@@ -18,10 +18,7 @@ export class GameControllerClass {
 	
 	onConnected() {
 		console.log('SocketIO connected to game server!');
-		console.log(this.pageController);
-
 		this.bindComponents();
-
 		this.socketHandler.emit('map-data-request');
 	}
 	
@@ -46,7 +43,7 @@ export class GameControllerClass {
 
 		//	Session start welcome message
 		//	Unpack message data and send it to the message log
-		this.pageController.getPageChatView().setMessageLog(data['messageData']);
+		this.viewController.pageController.getPageChatView().setMessageLog(data['messageData']);
 	}
 
 	bindSocketEvents () {
@@ -55,7 +52,7 @@ export class GameControllerClass {
 
 		//this.socketHandler.bind('map-data-response', Session.saveMapUpdate);
 		this.socketHandler.bind('map-data-response', (mapJson) => {
-			let mapModel = this.pixiController.getMapController().getMap();
+			let mapModel = this.viewController.pixiController.getMapController().getMap();
 			mapModel.updateFromJson(mapJson);
 		});
 
