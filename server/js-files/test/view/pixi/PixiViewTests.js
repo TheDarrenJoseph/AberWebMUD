@@ -90,5 +90,4 @@ QUnit.test(TEST_TAG + 'new_PixiView_statBars', function (assert) {
 	assert.equal(healthBar.posX, healthBarPosX);
 	assert.equal(healthBar.posY, healthBarPosY);
 	assert.notOk(healthBar.isVisible(), 'Check by default the Health Bar is hidden.');
-
 });

@@ -149,7 +149,6 @@ TEST_TAG + 'newPlayerOnMap', function (assert) {
 // drawMapTiles
 QUnit.test(
 TEST_TAG + 'drawMapTiles', function (assert) {
-	// Wait a max of 2 seconds for any async
 	assert.timeout(MAX_TIMEOUT);
 
 	let asyncDrawDone = assert.async(1);

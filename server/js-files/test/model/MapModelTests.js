@@ -1,6 +1,10 @@
 import { MapModel, DEFAULT_MAP_SIZE_XY, DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
 
+import * as ResourceUtils from 'test/utils/data/ResourceUtils.js';
+
+
 const TEST_TAG = '|MAP-MODEL|';
+const MAX_TIMEOUT = 5000;
 
 let mapModel = null;
 
@@ -50,3 +54,33 @@ QUnit.test(TEST_TAG + 'in-map-invalid', function (assert) {
 	assert.notOk(mapModel.isPositionInMap(0, mapYOneIndexed), 'Check maximum global map y pos  +1 : ' + mapYOneIndexed);
 }
 );
+
+/**
+ * Given that the server has provided a valid map data response
+ * When we perform the map model update from this data
+ * Then it should be updated correctly
+ */
+QUnit.test(TEST_TAG + 'updateFromJson', function (assert) {
+	assert.timeout(MAX_TIMEOUT);
+	var mapDataLoaded = assert.async();
+
+	console.log('fetching map data to test..')
+
+	let dataJsonPromise = ResourceUtils.fetchResourceFileJSON('map/map-data-response-blank.json');
+
+	dataJsonPromise.then(data => {
+		console.log('JSON data returned: ' + data);
+		assert.ok(data !== undefined && data !== null, 'Check data is defined/non-null.');
+
+		// When
+		mapModel.updateFromJson(data);
+
+		// Then
+		assert.deepEqual(mapModel.mapTileArray, data.data, 'Check the response data is unpacked into the map model mapTiles.')
+		assert.equal(mapModel.mapSizeX, 10, 'Check the map x size is set correctly.')
+		assert.equal(mapModel.mapSizeY, 10, 'Check the map y size is set correctly.')
+
+		mapDataLoaded();
+	}).catch(rejection => {console.error(rejection)});
+
+});

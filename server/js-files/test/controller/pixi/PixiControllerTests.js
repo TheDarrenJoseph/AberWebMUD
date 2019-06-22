@@ -5,6 +5,7 @@ import { PixiStatBar } from '../../../src/view/pixi/PixiStatBar'
 
 let TEST_TAG = '|PIXI CONTROLLER|';
 
+const MAX_TIMEOUT = 10000;
 const TEST_WINDOW_SIZE = 500;
 
 let pixiController;
@@ -20,6 +21,9 @@ async function beforeAll (assert) {
 
 // Setup / assertions before each test
 async function beforeEachTest (assert) {
+	// Set a max timeout as we're doing async stuff here
+	assert.timeout(MAX_TIMEOUT);
+
 	// Make sure we have a fresh controller every time
 	// To prevent knock-on state changes
 	pixiController = new PixiController(TEST_WINDOW_SIZE);
@@ -59,7 +63,7 @@ QUnit.module('PixiControllerTests', { before: beforeAll, beforeEach: beforeEachT
  * When the UI is enabled
  * Then there should be contextButton Sprites in the controls container
  */
-QUnit.test(TEST_TAG + 'enableUI_contextButtons', async function (assert) {
+QUnit.test(TEST_TAG + 'enableUI_contextButtons', function (assert) {
 	//There should be a console Button
 	let controlsContainer = pixiController.pixiView.controlsContainer;
 	assert.ok(controlsContainer instanceof PIXI.Container, 'Check the controls container is a PIXI.Container');
@@ -86,7 +90,7 @@ QUnit.test(TEST_TAG + 'enableUI_contextButtons', async function (assert) {
  * When the UI is enabled
  * Then there should be a health bar in the top-right of screen
  */
-QUnit.test(TEST_TAG + 'enableUI_statBars', async function (assert) {
+QUnit.test(TEST_TAG + 'enableUI_statBars', function (assert) {
 	// We should have 1 stat bar which is the health bar
 	let statBars = pixiController.pixiView.statBars;
 	assert.ok(statBars.length == 1, 'Check there is 1 item in the stat bars array');

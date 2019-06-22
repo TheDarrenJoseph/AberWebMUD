@@ -146,8 +146,13 @@ export default class MapModel {
 	}
 
 	updateFromJson(data) {
+
+		//console.log('Updating from: ' + JSON.stringify(data));
+
 		// Unpack the message data
-		let mapTiles = JSON.parse(data[DATA_JSON_NAME]);
+		//let mapTiles = JSON.parse(data[DATA_JSON_NAME]);
+
+		let mapTiles = data[DATA_JSON_NAME];
 		let mapSizeX = data[MAPSIZE_X_JSON_NAME];
 		let mapSizeY = data[MAPSIZE_Y_JSON_NAME];
 
