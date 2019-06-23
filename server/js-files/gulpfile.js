@@ -1,5 +1,5 @@
 // Get src and dest from gulp
-const { src, dest, series } = require('gulp');
+const { src, dest, series, watch } = require('gulp');
 
 const rollup = require('rollup');
 const sourcemaps = require('rollup-plugin-sourcemaps');
@@ -75,23 +75,36 @@ function clean (cb) {
 }
 
 // Bundle / Minify
-function build (cb) {
+function buildMain (cb) {
 	let mainFilePromise = promiseMainModule(cb);
-	let testFilePromise = promiseTestModule(cb);
-
-	return Promise.all([mainFilePromise, testFilePromise]);
-
+	return Promise.all([mainFilePromise]);
 }
+
 // Bundle / Minify
 function buildTest (cb) {
 	let testFilePromise = promiseTestModule(cb);
-
 	return Promise.all([testFilePromise]);
-
 }
 
+// Bundle / Minify
+function build (cb) {
+	let mainFilePromise = promiseMainModule(cb);
+	let testFilePromise = promiseTestModule(cb);
+	return Promise.all([mainFilePromise, testFilePromise]);
+}
 
+// Clean, rebuild, and watch for changes
+function buildAndWatchFiles(cb) {
+	clean();
+	build();
+	console.log('Watching for changes..');
+	watch("src/**/*.js", series(clean, buildMain));
+	watch("test/**/*.js", series(clean, buildTest));
+}
+
+console.log('=== AberWebMUD JS Client ===')
 exports.default = series(clean, build);
+exports.watch = buildAndWatchFiles;
 exports.build = build;
 exports.buildTest = buildTest;
 exports.clean = clean;

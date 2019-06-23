@@ -6,10 +6,18 @@
 	z-index: 0;
 }
 
+#game-window{
+	position: absolute;
+	height:98%;
+	width: 98%;
+	z-index: 0;
+	margin: 1%;
+}
+
 #pixi-renderer{
 	position: absolute;
-	height: 75%;
-	width: 75%;
+	height: 98%;
+	width: 98%;
 	top: 0%;
 	z-index: 1;
 }
@@ -17,9 +25,10 @@
 #message-window{
 	position: absolute;
 	left: 0%;
-	bottom: 7%;
-	height:30%;
+	bottom: 2.5%;
+	height: 30%;
 	width: 50%;
+	margin: auto;
 	z-index: 2;
 }
 
@@ -120,16 +129,15 @@
 
 .dialog {
 	position: absolute;
-	background-color: white;
-
+	background: white;
 	padding: 1%;
 
 	border-style: solid;
-	border-color: black;
+	border-color: white;
 	border-width: 2px;
-	left:15%;
+	left:5%;
 	top:5%;
-	width:60%;
+	width:85%;
 	height:50%;
 }
 
