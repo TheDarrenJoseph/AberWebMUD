@@ -246,7 +246,7 @@ export default class PageCharacterDetailsView  extends EventMapping {
 			this.getStatsWindow();
 		} catch (err) {
 			let statsWindow = this.buildStatsWindow();
-			this.pageView.appendToMainWindow(statsWindow);
+			this.pageView.appendToGameWindow(statsWindow);
 		}
 	}
 

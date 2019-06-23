@@ -7,10 +7,10 @@ console.log('Awaiting page load..');
 
 function main() {
 	//clientController.performSetup(); 
-	GameController.viewController.setupUI();
-	GameController.connect();
+	GameController.viewController.setupUI().then( () => {
+		GameController.connect();
 
-	// GameController.pageController.onceCharacterDetailsSet();
+	}).catch(reason => console.error(reason));
 }
 
 //	Initialises the client setup once the HTML page loads

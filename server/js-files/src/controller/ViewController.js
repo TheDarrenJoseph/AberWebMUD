@@ -10,6 +10,7 @@ export default class ViewController {
 		this.pageController = new PageController();
 		this.pixiController = new PixiController(PageView.getWindowDimensions(), this.pageController);
 
+
 		// Extract the view for now
 		this.pageView = this.pageController.pageView;
 	}
@@ -31,12 +32,11 @@ export default class ViewController {
 
 	async setupUI() {
 		//	Get the general UI ready
-		let canvasView = await this.pixiController.enableUI();
-		this.pageController.pageView.appendToMainWindow(canvasView);
+		this.canvasView = await this.pixiController.enableUI();
+		this.pageController.enableUI();
+		this.pageController.pageView.appendToGameWindow(this.canvasView);
 
 		this.resetChatWindow();
-
-		this.pageController.enableUI();
 
 		/* Not sure if this is needed, drags Pixi Sprite Buttons onto a Page div?
 			this.pageController.pageView.appendToConsoleButtonClass(this.pixiController.pixiView.statsButtonSprite);
