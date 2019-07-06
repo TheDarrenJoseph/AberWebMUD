@@ -143,20 +143,24 @@ def handle_message(message: dict) -> None:
             if sessionHandler.active_session_exists(sid):
                 send_help_message()
 
-
+""" Checks that a player with username exists and has a valid active session (logged in)
+returns (bool, bool) meaning (found_player,valid_session_exists)
+or that the check otherwise failed (bad data)
+"""
 def valid_player_session(username : str, session_id : str) -> (bool, bool):
-    """ checks that a player with username exists and has a valid active session (logged in)
-        returns (bool, bool) meaning (found_player,valid_session_exists)
-    """
     #import pdb; pdb.set_trace()
+	
+	# Empty String check
+	if username and session_id:
+			found_player = playerController.find_player(username)
 
-    found_player = playerController.find_player(username)
-
-    if found_player is not None:
-        if sessionHandler.check_active_session(session_id, username):
-            return (True, True)
-        return (True, False)
-    return (False, False)
+			if found_player is not None:
+				if sessionHandler.check_active_session(session_id, username):
+					return (True, True)
+				return (True, False)
+			return (False, False)
+	else:
+		return (False, False)
 
 def handle_movement(message: dict) -> None:
     """ Handles a player movement command message send over SocketsIO """
@@ -209,7 +213,8 @@ def handle_char_details(message: dict) -> None:
     logging.info('CHAR DETAILS: '+str(message))
 
     if 'sessionJson' in message and 'username' in message['sessionJson']:
-        if all(valid_player_session(message['sessionJson']['username'], request.sid)):
+        sessionData = [message['sessionJson']['username'], request.sid]
+        if all(valid_player_session(sessionData[0], sessionData[1])):
             UPDATE_SUCCESS = False
             character_data = {}
 
@@ -230,7 +235,7 @@ def handle_char_details(message: dict) -> None:
             logging.info('OUT| character-details-update '+str(character_data))
             emit('character-details-update', {'success': UPDATE_SUCCESS, 'char-data': character_data})
         else:
-            logging.info('IN| (CHAR-STATS) stats save attempted for invalid session. ' + str(request.sid))
+            logging.info('IN| (CHAR-STATS) stats save attempted for invalid session. SID: ' + str(request.sid))
     else:
         logging.info('IN| Malformed protocol message for char details')
 
