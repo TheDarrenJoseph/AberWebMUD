@@ -38,6 +38,8 @@ export class GameControllerClass {
 	}
 	
 	handleSessionLinking (data) {
+		console.log('Session Link established with server..');
+
 		// Send the data over to the session controller for linking
 		Session.ActiveSession.linkConnectionToSession(data);
 
@@ -66,16 +68,16 @@ export class GameControllerClass {
 		this.socketHandler.bind('request-password',  (newUser) => { pageController.requestUserPassword(newUser) }); //  Request for existing password
 		this.socketHandler.bind('request-new-password',  (data) => { pageController.newUser(data) }); //  Request for new password
 
-		this.socketHandler.bind('chat-message-response', this.handleMessageData);
-		this.socketHandler.bind('login-success', this.handlePlayerLogin);
-		this.socketHandler.bind('login-failure', pageController.handlePlayerLoginError);
-		this.socketHandler.bind('session-error', this.socketHandler.handleSessionError);
+		this.socketHandler.bind('chat-message-response', (data) => {  this.handleMessageData(data); });
+		this.socketHandler.bind('login-success', (data) => { this.handlePlayerLogin(data); });
+		this.socketHandler.bind('login-failure', (data) => { pageController.handlePlayerLoginError(data); } );
+		this.socketHandler.bind('session-error', () => { this.socketHandler.handleSessionError(); } );
 	}
 	
 	handleMessageData (data) {
 		var messageData = data['chat-data'];
 		var username = data['username'];
-		console.log('Received: ' + data);
+		console.log('Received message: ' + data);
 
 		this.viewController.pageController.getPageChatView().updateMessageLog(messageData, username);
 	}

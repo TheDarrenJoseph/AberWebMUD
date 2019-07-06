@@ -9,7 +9,7 @@ import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 
 //	Static Helper class
 //	A collection of SocketIO management functions
-class SocketHandler {
+export default class SocketHandler {
 	
 	constructor () {
 		this.socket = new io();
@@ -25,7 +25,9 @@ class SocketHandler {
 			this.socket.emit(eventType);
 		} else if (messageData !== undefined  && messageData !== '' && messageData !== null) {
 			this.socket.emit(eventType, MessageHandler.createDataMessage(messageData));
-		} 
+		}
+
+		console.log('Emitted: ' + eventType);
 	}
 	
 	bind(event, callback) {
@@ -80,4 +82,3 @@ class SocketHandler {
 }
 
 export { SocketHandler };
-export default SocketHandler;

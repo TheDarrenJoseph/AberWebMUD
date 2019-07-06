@@ -19,23 +19,25 @@ export default class EventMapping {
 		if (callbacks !== undefined && callbacks.length > 0) {
 			for (let i in callbacks) {
 				let callback = callbacks[i];
-				let singleShot = callback.singleShot;
 
-				// for DEBUG
-				if (singleShot) {
-					if (DEBUG) console.log('Dispatching Event: ' + dispatchedEvent.type);
+				if (callback.singleShot !== undefined) {
+					let singleShot = callback.singleShot;
+
+					// for DEBUG
+					if (singleShot) {
+						if (DEBUG) console.log('Dispatching single-shot Event: ' + dispatchedEvent.type + ', data: ' + dispatchedEvent.data);
+
+						// Splice out the 1 callback function if we need to remove it after calling
+						if (singleShot) {
+							if (DEBUG) console.log('Clearing single-shot mapping..');
+							this.mappings[dispatchedEvent.type].splice(i, 1);
+						}
+					}
 				} else {
-					if (DEBUG) console.log('Dispatching single-shot Event: ' + dispatchedEvent.type);
+					if (DEBUG) console.log('Dispatching Event: ' + dispatchedEvent.type + ', data: ' + dispatchedEvent.data);
 				}
 
 				callback(data);
-
-				// Splice out the 1 callback function if we need to remove it after calling
-				if (singleShot) {
-					if (DEBUG) console.log('Clearing single-shot mapping..');
-					this.mappings[dispatchedEvent.type].splice(i, 1);
-				}
-
 			}
 		}
 	}

@@ -88,15 +88,11 @@ export class PageView extends EventMapping {
 		let mainWindow = this.getMainWindow();
 		let gameWindow = this.getGameWindow();
 
-		console.log(' Found game window ? ' + gameWindow);
-
 		if (mainWindow == null) {
 			console.log('Creating main window..');
 			mainWindow = this.doc.createElement('div');
 			mainWindow.setAttribute('id', this._MAIN_WINDOW_ID);
 			this.appendToDocumentBody(mainWindow);
-		} else {
-			console.log('Found main window: ' + mainWindow);
 		}
 
 		if (mainWindow !== null && gameWindow == null) {
@@ -104,8 +100,6 @@ export class PageView extends EventMapping {
 			gameWindow = this.doc.createElement('div');
 			gameWindow.setAttribute('id',this._GAME_WINDOW_ID);
 			mainWindow.appendChild(gameWindow);
-		} else {
-			console.log('Found game window: ' + mainWindow);
 		}
 
 	}

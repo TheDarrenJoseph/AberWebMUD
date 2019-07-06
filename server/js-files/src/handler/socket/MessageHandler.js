@@ -1,16 +1,16 @@
 import { Session } from 'src/model/Session.js';
 
 //	Export vars we may want to unpack
-export var SESSION_JSON_NAME = 'sessionJson';
+export const SESSION_JSON_NAME = 'sessionJson';
 
 //	Other constants for message format
-export var DATA_JSON_NAME = 'data';
+export const DATA_JSON_NAME = 'data';
 
-export var MOVE_X_JSON_NAME = 'moveX';
-export var MOVE_Y_JSON_NAME = 'moveY';
+export const MOVE_X_JSON_NAME = 'moveX';
+export const MOVE_Y_JSON_NAME = 'moveY';
 
-export var MAPSIZE_X_JSON_NAME = 'map-size-x';
-export var MAPSIZE_Y_JSON_NAME = 'map-size-y';
+export const MAPSIZE_X_JSON_NAME = 'map-size-x';
+export const MAPSIZE_Y_JSON_NAME = 'map-size-y';
 
 //	Static helper class
 // Defines and handles the expected format of SocketIO messages
@@ -18,6 +18,8 @@ export var MAPSIZE_Y_JSON_NAME = 'map-size-y';
 // To be sent alongside a socket Event
 class MessageHandler {
 	static isSessionInfoValid (sessionJson) {
+		console.log('Verifying session JSON: ' + JSON.stringify(sessionJson))
+
 		if (sessionJson.username != null && sessionJson.sessionId != null) {
 			return true;
 		} else {
@@ -28,17 +30,18 @@ class MessageHandler {
 	static attachSessionJson (message) {
 		var sessionJson = Session.ActiveSession.getSessionInfoJSON();
 		if (MessageHandler.isSessionInfoValid(sessionJson)) {
-			message.SESSION_JSON_NAME = sessionJson;
+			message[SESSION_JSON_NAME] = sessionJson;
+		} else {
+			console.log('Session info invalid/missing for message: ' + JSON.stringify(message));
 		}
-
-		console.log('Session info missing for message: ' + JSON.stringify(message));
 		return message;
 	}
 
 	//	Data messages for generic data transfer for specific socket events
 	static createDataMessage (data) {
 		// Make sure we send session info with all messages
-		var message = {DATA_JSON_NAME: data, SESSION_JSON_NAME: null};
+		var message = {};
+		message[DATA_JSON_NAME] = data;
 		message = MessageHandler.attachSessionJson(message);
 		return message;
 	}
@@ -46,9 +49,10 @@ class MessageHandler {
 	// Create a movement message for our session using the given co-ords
 	static createMovementMessage (x, y) {
 		//	Check we have the needed session info
-		var message = {MOVE_X_JSON_NAME: x, MOVE_Y_JSON_NAME: y, SESSION_JSON_NAME: null};
+		var message = {};
+		message[MOVE_X_JSON_NAME] = x;
+		message[MOVE_Y_JSON_NAME] = y;
 		message = MessageHandler.attachSessionJson(message);
-		console.log(message);
 		return message;
 	}
 }

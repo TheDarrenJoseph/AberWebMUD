@@ -13,7 +13,6 @@ import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 
 import ValidationHandler from 'src/handler/ValidationHandler.js';
 
-const ENTER_KEY_EVENT_CODE = 13;
 
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
 export var LOGIN_FAILURE_MESSAGE_PLAYER = 'Login failure (player does not exist)';
@@ -91,7 +90,7 @@ export default class PageController {
 	 * Bind to chat view events
 	 */
 	bindPageChatView () {
-		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.messageFieldKeyupTrigger() });
+		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.submitChatMessage() });
 	}
 
 	/**
@@ -99,7 +98,7 @@ export default class PageController {
 	 */
 	bindPageCharacterDetailsView () {
 		// Bind to events this view may emit
-		this.pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, () => {  this.sendCharDetails() });
+		this.pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, (data) => { this.sendCharDetails(data) });
 
 		// Setup emitting for the above binding(s)
 		this.pageCharacterDetailsView.bindEvents();
@@ -109,7 +108,6 @@ export default class PageController {
 	 * Binds all views vents for each view
 	 */
 	bindEvents () {
-		//this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
 		this.bindPageChatView();
 		this.bindPageCharacterDetailsView();
 	}
@@ -232,7 +230,7 @@ export default class PageController {
 			this.SOCKET_HANDLER.sendAuthentication(username, passwordInput);
 			this.pageChatView.endPasswordSubmission();
 			//	Set the send button behavior back to normal (isText)
-			this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.messageFieldKeyupTrigger);
+			this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.submitChatMessage);
 			//this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
 			
 		} else {
@@ -254,22 +252,8 @@ export default class PageController {
 			this.pageChatView.setMessageLog('Please enter your password: ');
 		}
 
-		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.passwordFieldKeyupTrigger);
+		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.pageView.submitPassword);
 		//this.pageChatView.bindMessageButton(this.passwordFieldKeyupTrigger); //	Set the send message behaviour to password sending
-	}
-
-	messageFieldKeyupTrigger (evnt) {
-		if (evnt.keyCode === ENTER_KEY_EVENT_CODE) { //	Enter key check
-			// console.log('ENTER on messagefield');
-			this.submitChatMessage();
-		}
-	}
-
-	passwordFieldKeyupTrigger (evnt) {
-		if (evnt.keyCode === ENTER_KEY_EVENT_CODE) { //	Enter key check
-			// console.log('ENTER on passwordfield');
-			this.pageView.submitPassword();
-		}
 	}
 
 	disableUI () {

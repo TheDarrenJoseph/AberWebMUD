@@ -11,6 +11,7 @@ const _MESSAGE_LOG_ID = 'message-log';
 const _SEND_MESSAGE_BUTTON_ID = 'send-message-button';
 
 export const EVENTS = { SEND_MESSAGE : 'send_message' };
+const ENTER_KEY_EVENT_CODE = 13;
 
 // DOM view for the chat
 export default class PageChatView extends EventMapping {
@@ -225,8 +226,13 @@ export default class PageChatView extends EventMapping {
 	 * Setup emitting of events for this view
 	 */
 	setupEmitting () {
-		this.getSendMessageButton().click(() => { this.emit(EVENTS.SEND_MESSAGE) });
-		this.bindEnterKeyUp(() => { this.emit(EVENTS.SEND_MESSAGE) });
+		this.getSendMessageButton().click(() => {
+			console.log('Send button clicked')
+			this.emit(EVENTS.SEND_MESSAGE)
+		});
+		this.bindEnterKeyUp(() => {
+			this.emit(EVENTS.SEND_MESSAGE)
+		});
 	}
 
 	/**
@@ -237,7 +243,7 @@ export default class PageChatView extends EventMapping {
 	}
 
 	//	Binds 'Enter' to send message behavior
-	bindEnterKeyUp (method) {
+	bindEnterKeyUp (callback) {
 		//	grab the fields
 		var messageField = this.getMessageInputFieldJquery();
 		var passwordField = this.getPasswordInputFieldJquery();
@@ -246,8 +252,18 @@ export default class PageChatView extends EventMapping {
 		
 		// blank func?
 		//messageField.on('keyup', function (evnt) {});
-		messageField.on('keyup', method);
-		passwordField.on('keyup', method);
+		messageField.on('keyup', (eventObject) => {
+			//	Enter key check
+			if (eventObject.keyCode === ENTER_KEY_EVENT_CODE) {
+				callback();
+			}
+		});
+		passwordField.on('keyup', (eventObject) => {
+			//	Enter key check
+			if (eventObject.keyCode === ENTER_KEY_EVENT_CODE) {
+				callback();
+			}
+		});
 	}
 
 	// Emit instead

@@ -21,8 +21,6 @@ class SessionModel {
 		//	Update the client session to contain our new data
 		if (ValidationHandler.notUndefOrNull(sessId)) {
 			this.clientSession.sessionId = sessId;
-			//	Also save it in a cookie
-			this.saveSessionIdCookie(sessId);
 		} else {
 			throw new RangeError('Session data is invalid: ' + ' (SessionId) ' + sessId);
 		}
@@ -47,8 +45,10 @@ class SessionModel {
 		//	Split on endline, in case we ever store more  than 1 variable
 		var cookiesList = decodedCookie.split(';');
 
+		let cookieString = String(cookiesList[0].split('=')[1]);
+		console.log('Cookie string: ' + cookieString);
 		//	Then split out the mapping and return that
-		return cookiesList[0].split('=')[1];
+		return cookieString;
 	};
 
 	//	Extracts the session data  (username and session ID) into a JSON object
@@ -62,9 +62,13 @@ class SessionModel {
 		// If we've not stored a cookie this is a new session
 		if (cookieSid == null) {
 			this.setSessionId(sessionId);
+			//	Also save it in a cookie
+			this.saveSessionIdCookie(sessionId);
 			console.log('Handshaked with server, session ID given:' + sessionId);
 		} else {
-			console.log('Reconnected, using old SID: ' + cookieSid);
+			console.log('Reconnected, using old SID: ');
+			console.log(cookieSid);
+			this.setSessionId(cookieSid);
 		}
 	};
 
