@@ -10,14 +10,28 @@ from pyfiles.model import overworld
 from pyfiles.sockets import sessionHandler
 from pyfiles.db import database
 
+"""
+    Checks for a valid session ID and proxies to the right event handler if true
+"""
+def verify_active_and_call(callback, *args):
+    sid = request.sid
+    logging.info('Proxying event for SID: '+sid)
+    if sessionHandler.active_session_exists(sid):
+        callback(args)
+    else:
+        logging.error('Checking for active session before proxying to: ' + callback.__name__ +
+                      '.. Could not find an active session for SID: ' + sid);
+
 def hookup_callbacks(socket_server : SocketIO):
-    socket_server.on_event('new-chat-message', handle_message)
-    socket_server.on_event('map-data-request', send_map_data)
-    socket_server.on_event('movement-command', handle_movement)
+    # pass authentication directly to our handler
     socket_server.on_event('client-auth', authenticate_user)
 
+    socket_server.on_event('new-chat-message', handle_message)
+    socket_server.on_event('map-data-request', lambda : verify_active_and_call(send_map_data))
+    socket_server.on_event('movement-command',  lambda json : verify_active_and_call(handle_movement, json))
+
     #socket_server.on_event('request-character-details', send_char_details)
-    socket_server.on_event('character-details', handle_char_details)
+    socket_server.on_event('character-details', lambda json : verify_active_and_call(handle_char_details, json))
 
     socket_server.on_event('connect', send_welcome)
     socket_server.on_event('disconnect', handle_disconnect)
@@ -32,18 +46,17 @@ def send_message(messageData : dict, toAll : bool) -> None:
     logging.debug('OUT| chat message RESPONSE to all')
     emit('chat-message-response', messageData, broadcast=toAll)
 
-def send_login_failure(found_player : bool) -> None:
-    """ Sends a login failure event, specifying whether or not that player exists """
+""" Sends a login failure event, specifying whether or not that player exists """
+def send_login_failure(session_id : str, found_player : bool) -> None:
     logging.debug('OUT| login failure: '+str(request.sid))
-    login_status = {'playerExists' : found_player}
-    emit('login-failure', login_status)
+    emit('login-failure', {'playerExists' : found_player}, room=session_id)
 
 def send_login_success(session_id : str, status_response : bool) -> None:
     """ Emits a login-success event to the client
         sends the current sessionId and a player-status data object
     """
     logging.debug('OUT| login success: '+str(status_response))
-    emit('login-success', {'sessionId':session_id, 'player-status':status_response})
+    emit('login-success', {'sessionId':session_id, 'player-status':status_response}, room=session_id)
     sessionHandler.list_sessions() #List sessions for debug/info
 
 def send_help_message() -> None:
@@ -56,14 +69,19 @@ def send_help_message() -> None:
     send_server_message(message, False) #Send a response back to the one client
     logging.info(message)
 
+
+""" 
+    Socket 'connect' event handler
+    emits a welcome message to the client
+    also sets a 5min timeout to disconnect the session
+"""
 def send_welcome() -> None:
-    """ emits a welcome message to the client
-        also sets a 5min timeout to disconnect the session
-    """
+    session_id = request.sid
+
     logging.debug('OUT| Welcome message to: '+request.sid)
     sessionHandler.add_connected_session(request.sid)
 
-    emit('connection-response', {'chat-data': 'Welcome to AberWebMUD! Please create a character or login by typing \'user [username]\' ', 'sessionId':request.sid})
+    emit('connection-response', {'chat-data': 'Welcome to AberWebMUD! Please create a character or login by typing \'user [username]\' ', 'sessionId':request.sid}, room=session_id)
     #emit('status-response',statusResponse)
     sessionHandler.list_sessions()
 
@@ -71,7 +89,12 @@ def send_welcome() -> None:
     connection_timeout = threading.Timer(300, sessionHandler.remove_connected_session(request.sid))
 
 
+""" 
+    Socket 'map-data-request' event handler
+"""
 def send_map_data() -> None:
+    session_id = request.sid
+
     theOverworld = overworld.getOverworld()
 
     if len(theOverworld.map_tiles) > 0:
@@ -80,18 +103,19 @@ def send_map_data() -> None:
         emit('map-data-response', {'map-size-x': theOverworld.map_size_x,
                                    'map-size-y': theOverworld.map_size_y,
                                    'data': jsonpickle.encode(theOverworld.map_tiles)
-                                  }
+                                  },
+             room=session_id
             )
 
-def parse_login(sid : str, username : str) -> None:
+def parse_login(session_id : str, username : str) -> None:
     #user inputted username from client message
-    user_and_account = valid_player_session(username, sid) # (userExists, logged_in)
+    user_and_account = valid_player_session(username, session_id) # (userExists, logged_in)
 
     #Exists but not logged in
     if user_and_account[0] is True and user_and_account[1] is False:
         #Send the password request for existing user
         logging.debug('OUT| request-password for: '+username)
-        emit('request-password', username)
+        emit('request-password', username, room=session_id)
 
     #Exists and logged in
     if all(user_and_account):
@@ -101,7 +125,7 @@ def parse_login(sid : str, username : str) -> None:
     if not user_and_account[0]:
         #Send the password creation request for a new account
         logging.debug('OUT| request-new-password for: '+username)
-        emit('request-new-password', username)
+        emit('request-new-password', username,  room=session_id)
 
 def handle_message(message: dict) -> None:
     logging.info('IN| player message: '+str(message))
@@ -206,7 +230,7 @@ def handle_movement(message: dict) -> None:
             emit('movement-response', {'success':movement_success}, broadcast=False)
     if valid[0] and not valid[1]:
         logging.info('Valid user not in activeSessions, requesting password')
-        emit('request-password', username) #Client has a valid user, but not logged in
+        emit('request-password', username, room=session_id) #Client has a valid user, but not logged in
 
 def handle_char_details(message: dict) -> None:
     """ Receives character data from the client, validates it, and updates the DB """
@@ -233,7 +257,7 @@ def handle_char_details(message: dict) -> None:
                 logging.info('Invalid character update data')
 
             logging.info('OUT| character-details-update '+str(character_data))
-            emit('character-details-update', {'success': UPDATE_SUCCESS, 'char-data': character_data})
+            emit('character-details-update', {'success': UPDATE_SUCCESS, 'char-data': character_data}, room=request.sid)
         else:
             logging.info('IN| (CHAR-STATS) stats save attempted for invalid session. SID: ' + str(request.sid))
     else:
@@ -257,29 +281,35 @@ def login_user(sid : str, username : str) -> None:
         logging.info('Player status response: '+str(status_response))
         send_login_success(sid, status_response)
 
-def authenticate_user(data) -> None:
-    """ Authenticates/logs in a user through username and password """
+""" Authenticates/logs in a user through username and password 
+    Uses decoration for @socketio.on so we can directly invoke this instead of checking session validity
+"""
+def authenticate_user(json) -> None:
 
     sid = request.sid
-    username = data['username']
-    password = data['password']
+    username = json['username']
+    password = json['password']
 
-    #Calling the static method to check player details
-    auth_result = database.DatabaseHandler.check_player_password(username, password)
-    found_player = auth_result[0]
-    password_correct = auth_result[1]
+    # Check for pre-existing session
+    if sessionHandler.active_session_exists(sid):
+        logging.info
+    else:
+        #Calling the static method to check player details
+        auth_result = database.DatabaseHandler.check_player_password(username, password)
+        found_player = auth_result[0]
+        password_correct = auth_result[1]
 
-    #First tuple val is player found, 2nd is password
-    if all(auth_result):
-        login_user(sid, username)
-
-    if found_player and (not password_correct):
-        logging.info('Password incorrect: '+username)
-        send_login_failure(found_player)
-
-    #User does not exist, password invalid (no account, make one)
-    if not all(auth_result):
-        #Create a new Player
-        logging.info('Creating a new player! '+str(username)+str(password))
-        if playerController.new_player(username, password) is not None:
+        #First tuple val is player found, 2nd is password
+        if all(auth_result):
             login_user(sid, username)
+
+        if found_player and (not password_correct):
+            logging.info('Password incorrect: ' + username)
+            send_login_failure(sid, found_player)
+
+        #User does not exist, password invalid (no account, make one)
+        if not all(auth_result):
+            #Create a new Player
+            logging.info('Creating a new player! ' + str(username) + str(password))
+            if playerController.new_player(username, password) is not None:
+                login_user(sid, username)

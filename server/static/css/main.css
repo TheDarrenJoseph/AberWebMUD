@@ -99,15 +99,21 @@
 	z-index: 2;
 }
 
-#statTable,td {
+#stat-table,td {
+	position: relative;
 	border-style: solid;
 	border-color: black;
 	border-width: 1px;
+	width: 60%;
+	height: 14%;
 }
 
 #stats-info {
-	position: absolute;
+	position: relative;
 	overflow: scroll;
+	border-style: solid;
+	border-color: black;
+	border-width: 1px;
 	width: 60%;
 	height: 14%;
 }

@@ -23,7 +23,9 @@ def parse_chat_input(text: str) -> dict:
         commands = split_words(text)
         #2nd word should be the username i.e "user foo"
         choice = 1
-        chat_data = {'username':commands[1]}
+        uname = commands[1]
+        logging.info("User login requested for user: " + uname)
+        chat_data = {'username':uname}
 
     #Check for chat message
     elif chat_match != None:

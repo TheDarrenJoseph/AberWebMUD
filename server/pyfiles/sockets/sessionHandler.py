@@ -1,6 +1,6 @@
 import logging
 
-#Current connected  but unauthenticated sessions
+#Current connected but unauthenticated sessions
 _connected_sessions = []
 
 #Dict mapping of session IDs to usernames once authenticated/logged_in
@@ -38,8 +38,8 @@ def remove_connected_session(session_id : str) -> bool:
     except ValueError:
         return False
 
+""" Checks to see if there's a username assigned to a specific sessionId """
 def active_session_exists(session_id : str) -> bool:
-    """ Checks to see if there's a username assigned to a specific sessionId """
     return session_id in _active_sessions and _active_sessions[session_id] is not None
 
 def check_active_session(session_id : str, username : str) -> bool:
