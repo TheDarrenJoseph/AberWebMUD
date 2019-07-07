@@ -252,7 +252,7 @@ export default class PageController {
 			this.pageChatView.setMessageLog('Please enter your password: ');
 		}
 
-		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.pageView.submitPassword);
+		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.submitPassword);
 		//this.pageChatView.bindMessageButton(this.passwordFieldKeyupTrigger); //	Set the send message behaviour to password sending
 	}
 

@@ -26,15 +26,24 @@ function beforeEachTest (assert) {
 QUnit.module('PageChatViewTests', { before: beforeAll, beforeEach: beforeEachTest });
 
 /**
-QUnit.test(TEST_TAG + 'bindMessageButton', function (assert) {
-	var callbackDone = assert.async(1);
-
-	function testCallback() {
-		callbackDone();
-	}
-
-	pageChatView.bindMessageButton(testCallback);
-	var messageInputEvents = jQueryUtils.getEventsForElement(pageChatView.getMessageInputField());
-	assert.equal(messageInputEvents['keyup'][0].handler, testCallback, 'Check key-up on message button is bound.');
+ * GIVEN that I have already created an instance of the PageView class
+ * WHEN I call the constructor for PageChatView
+ * THEN I expect a new instance of the PageChatView to be constructed
+ */
+QUnit.test(TEST_TAG + 'new  PageChatView', function (assert) {
+	assert.ok(pageChatView instanceof PageChatView, 'Ensure PageChatView is constructed');
+	assert.equal(pageChatView.pageView, pageView, 'Check the PageView is stored on the PageChatView');
+	assert.equal(pageChatView.doc, pageView.pageModel.doc, 'Check the PageView PageModel HTML document is stored on the PageChatView');
 });
-**/
+
+/**
+ * GIVEN I am creating a new instance of PageChatView
+ * WHEN I call the constructor for PageChatView without arguments
+ * THEN I expect a RangeError to be thrown
+ */
+QUnit.test(TEST_TAG + 'new_PageChatView_noPageView', function (assert) {
+		assert.throws(() => { new PageChatView() },
+		new RangeError('pageView expected'),
+		'Check a RangeError for a missing pageView is thrown')
+});
+

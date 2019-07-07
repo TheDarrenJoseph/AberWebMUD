@@ -24,6 +24,8 @@ export default class PageChatView extends EventMapping {
 	//	</div>
 
 	constructor (pageView) {
+
+		if (pageView == undefined) throw new RangeError('pageView expected')
 		super(EVENTS);
 
 		this.pageView = pageView;

@@ -35,6 +35,6 @@ QUnit.test(TEST_TAG + 'Session ID Cookie storage', function (assert) {
 	let sessionId = Session.ActiveSession.getSessionId();
 	assert.equal(sessionId, undefined, 'Check Session ID has not been set');
 
-	Session.ActiveSession.setSessionId(TEST_SESSION_ID);
+	Session.ActiveSession.saveSessionIdCookie(TEST_SESSION_ID);
 	assert.equal(Session.ActiveSession.getSessionIdCookie(), TEST_SESSION_ID);
 });

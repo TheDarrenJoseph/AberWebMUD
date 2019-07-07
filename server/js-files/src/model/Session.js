@@ -42,13 +42,20 @@ class SessionModel {
 
 	getSessionIdCookie () {
 		var decodedCookie = decodeURIComponent(Session.ActiveSession.doc.cookie);
-		//	Split on endline, in case we ever store more  than 1 variable
-		var cookiesList = decodedCookie.split(';');
 
-		let cookieString = String(cookiesList[0].split('=')[1]);
-		console.log('Cookie string: ' + cookieString);
-		//	Then split out the mapping and return that
-		return cookieString;
+		if (decodedCookie.length > 0) {
+			console.log('Retrieved cookie: ' + decodedCookie);
+
+			//	Split on endline, in case we ever store more  than 1 variable
+			var cookiesList = decodedCookie.split(';');
+
+			let cookieString = String(cookiesList[0].split('=')[1]);
+			console.log('Cookie string: ' + cookieString);
+			//	Then split out the mapping and return that
+			return cookieString;
+		} else {
+			return null;
+		}
 	};
 
 	//	Extracts the session data  (username and session ID) into a JSON object
