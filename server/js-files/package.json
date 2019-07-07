@@ -3,7 +3,7 @@
 	"scripts": {
 		"build": "gulp",
 		"test": "npm run build && npx karma start",
-		"testdebug" : "npm run build && npx karma start karma.conf.debug.js"
+		"testdebug": "npm run build && npx karma start karma.conf.debug.js"
 	},
 	"dependencies": {
 		"jquery": "^3.3.1",

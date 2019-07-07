@@ -1,3 +1,6 @@
+# IDEA IDE project config
+.idea
+
 # Client JS files
 server/static/*.js
 *coverage
