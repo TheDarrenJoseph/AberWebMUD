@@ -16,14 +16,14 @@ export class GameControllerClass {
 		this.viewController = new ViewController();
 	}
 	
-	onConnected() {
-		console.log('SocketIO connected to game server!');
+	onConnected(socket) {
+		this.socket = socket;
 		this.bindComponents();
 		this.socketHandler.emit('map-data-request');
 	}
 	
 	connect() {
-		this.socketHandler.connectSocket('http://localhost:5000', () => { this.onConnected() });
+		this.socketHandler.connectSocket('http://localhost:5000', (socket) => { this.onConnected(socket) });
 	}
 
 	bindComponents () {
@@ -65,8 +65,12 @@ export class GameControllerClass {
 		this.socketHandler.bind('movement-update', pixiController.getMapController().handleMovementUpdate);
 
 		this.socketHandler.bind('character-details-update',  (data) => { pageController.handleCharacterUpdateResponse(data) });
-		this.socketHandler.bind('request-password',  (newUser) => { pageController.requestUserPassword(newUser) }); //  Request for existing password
-		this.socketHandler.bind('request-new-password',  (data) => { pageController.newUser(data) }); //  Request for new password
+		//  Request for existing password
+		this.socketHandler.bind('request-password',  (newUser) => {
+			console.log('password requested.')
+			pageController.requestUserPassword(newUser)
+		});
+		this.socketHandler.bind('request-new-password',  (data) => { pageController.newUser(data) });
 
 		this.socketHandler.bind('chat-message-response', (data) => {  this.handleMessageData(data); });
 		this.socketHandler.bind('login-success', (data) => { this.handlePlayerLogin(data); });

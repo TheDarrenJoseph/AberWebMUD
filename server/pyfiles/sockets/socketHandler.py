@@ -28,7 +28,7 @@ def hookup_callbacks(socket_server : SocketIO):
 
     socket_server.on_event('new-chat-message', handle_message)
     socket_server.on_event('map-data-request', lambda : verify_active_and_call(send_map_data))
-    socket_server.on_event('movement-command',  lambda json : verify_active_and_call(handle_movement, json))
+    socket_server.on_event('movement-command', lambda json : verify_active_and_call(handle_movement, json))
 
     #socket_server.on_event('request-character-details', send_char_details)
     socket_server.on_event('character-details', lambda json : verify_active_and_call(handle_char_details, json))
@@ -78,7 +78,7 @@ def send_help_message() -> None:
 def send_welcome() -> None:
     session_id = request.sid
 
-    logging.debug('OUT| Welcome message to: '+request.sid)
+    logging.debug('OUT| Welcome message to Session ID: '+request.sid)
     sessionHandler.add_connected_session(request.sid)
 
     emit('connection-response', {'chat-data': 'Welcome to AberWebMUD! Please create a character or login by typing \'user [username]\' ', 'sessionId':request.sid}, room=session_id)

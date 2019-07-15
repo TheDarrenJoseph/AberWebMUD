@@ -1,4 +1,5 @@
-import { Session } from 'src/model/Session.js';
+import { Session, SessionModel } from 'src/model/Session.js';
+import { Player } from 'src/model/Player.js';
 
 //	Export vars we may want to unpack
 export const SESSION_JSON_NAME = 'sessionJson';
@@ -17,14 +18,15 @@ export const MAPSIZE_Y_JSON_NAME = 'map-size-y';
 // More specifically, creates JSON with correct format
 // To be sent alongside a socket Event
 class MessageHandler {
-	static isSessionInfoValid (sessionJson) {
-		console.log('Verifying session JSON: ' + JSON.stringify(sessionJson))
 
-		if (sessionJson.username != null && sessionJson.sessionId != null) {
-			return true;
-		} else {
-			return false;
-		}
+	/**
+	 * For now just verifies that we've set a sane SessionID
+	 * @param sessionJson
+	 * @returns {*}
+	 */
+	static isSessionInfoValid (sessionJson) {
+		let sessionId = sessionJson.sessionId;
+		return SessionModel.validSessionId(sessionId);
 	}
 
 	static attachSessionJson (message) {

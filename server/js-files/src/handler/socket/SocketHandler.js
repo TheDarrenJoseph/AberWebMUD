@@ -64,7 +64,9 @@ export default class SocketHandler {
 		//	Try to connect
 		this.socket = io.connect(url);
 		// Call us back when we really connect
-		this.socket.on('connect', callback);
+		this.socket.on('connect', () => {
+			callback(this.socket);
+		});;
 	}
 
 	//	Handlers for socket events

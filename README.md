@@ -52,9 +52,11 @@ Once this is built it will be served by the Python server (Flask) through the HT
 3. (Optional) Client tests are also available once the server is running at 'localhost:5000/test'
 
 ## Backend / Running the server
-1. You first need to satisfy python's dependencies, run 'sudo pip install -r requirements.txt' in the `AberWebMUD` project root folder
+1. You first need to satisfy python's dependencies
 2. Change your terminal directory to the `server` folder
-5. Run main.py in Python
+3. Create a fresh Python local venv called locenv with `python -m venv locenv`, then activate it using: `source locenv/bin/activate`
+4. In this venv shell run 'sudo pip install -r requirements.txt' in the `AberWebMUD` project root folder
+5. Run main.py in Python with `python main.py`
 6. visit 'localhost:5000' in a browser
 
 ### Running Python server tests (unittest)

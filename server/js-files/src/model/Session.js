@@ -1,6 +1,7 @@
 import ValidationHandler from 'src/handler/ValidationHandler.js';
 import Player from 'src/model/Player.js';
 
+const DEBUG=false;
 export const SESSION_ID_COOKIE_NAME = 'sessionId';
 
 class SessionModel {
@@ -17,12 +18,12 @@ class SessionModel {
 		return this.clientSession.sessionId;
 	}
 
-	setSessionId (sessId) {
+	setSessionId (sessionId) {
 		//	Update the client session to contain our new data
-		if (ValidationHandler.notUndefOrNull(sessId)) {
-			this.clientSession.sessionId = sessId;
+		if (ValidationHandler.notUndefOrNull(sessionId) && typeof sessionId === 'string') {
+			this.clientSession.sessionId = sessionId;
 		} else {
-			throw new RangeError('Session data is invalid: ' + ' (SessionId) ' + sessId);
+			throw new RangeError('Session ID is invalid: ' + JSON.stringify(sessionId));
 		}
 
 	}
@@ -36,15 +37,19 @@ class SessionModel {
 	//}
 
 	saveSessionIdCookie (sessionId) {
-		console.log('Saving sessionId ' + sessionId + ' to cookie');
-		Session.ActiveSession.doc.cookie = SESSION_ID_COOKIE_NAME + '=' + sessionId + ';';
+		if (ValidationHandler.notUndefOrNull(sessionId) & typeof sessionId === 'string' ) {
+			console.log('Saving sessionId ' + sessionId + ' to cookie');
+			Session.ActiveSession.doc.cookie = SESSION_ID_COOKIE_NAME + '=' + sessionId + ';';
+		} else {
+			throw new RangeError('Expected SessionId String to save!');
+		}
 	};
 
 	getSessionIdCookie () {
 		var decodedCookie = decodeURIComponent(Session.ActiveSession.doc.cookie);
 
 		if (decodedCookie.length > 0) {
-			console.log('Retrieved cookie: ' + decodedCookie);
+			console.log('Retrieved cookie: ' + JSON.stringify(decodedCookie));
 
 			//	Split on endline, in case we ever store more  than 1 variable
 			var cookiesList = decodedCookie.split(';');
@@ -64,18 +69,26 @@ class SessionModel {
 	};
 
 	//	Save our given session id for later, and display the welcome message
-	linkConnectionToSession (sessionId) {
-		let cookieSid = this.getSessionIdCookie();
-		// If we've not stored a cookie this is a new session
-		if (cookieSid == null) {
-			this.setSessionId(sessionId);
-			//	Also save it in a cookie
-			this.saveSessionIdCookie(sessionId);
-			console.log('Handshaked with server, session ID given:' + sessionId);
+	linkConnectionToSession (json) {
+		let sessionId = json.sessionId;
+
+		if (sessionId !== undefined) {
+			let cookieSid = this.getSessionIdCookie();
+			// If we've not stored a cookie this is a new session
+			if (cookieSid == null) {
+
+				console.log('Saving session ID: ' + JSON.stringify(sessionId))
+				this.setSessionId(sessionId);
+				//	Also save it in a cookie
+				this.saveSessionIdCookie(sessionId);
+				console.log('Handshaked with server, session ID given:' + sessionId);
+			} else {
+				console.log('Reconnected, using old SID: ');
+				console.log(cookieSid);
+				this.setSessionId(cookieSid);
+			}
 		} else {
-			console.log('Reconnected, using old SID: ');
-			console.log(cookieSid);
-			this.setSessionId(cookieSid);
+			throw new RangeError('Expected Session ID returned by the server, JSON proviced: ' + JSON.stringify(json));
 		}
 	};
 
@@ -90,6 +103,12 @@ class SessionModel {
 			Session.ActiveSession.clientSession.sessionId = data['sessionId'];
 		};
 	};
+
+	static validSessionId(sessionId) {
+		return ( sessionId !== undefined &&
+		typeof sessionId === 'string' &&
+		sessionId.length > 0);
+	}
 
 }
 

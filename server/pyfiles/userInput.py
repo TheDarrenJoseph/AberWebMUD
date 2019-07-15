@@ -44,9 +44,8 @@ def check_login_message(input_params : dict) -> (bool, dict or None):
     if input_params[data_tag] is None or \
         'username' not in input_params[data_tag] or \
         input_params[data_tag]['username'] is None:
-        logging.info('Missing (username) in protocol message (Probably not logged in)')
+        logging.info('Missing (username) in protocol message (Probably not logged in?)')
         return (False, None)
-    logging.info('User creation message checked (input good)')
     return (True, input_params)
 
 def check_chat_message(input_params: dict) -> (bool, dict or None):

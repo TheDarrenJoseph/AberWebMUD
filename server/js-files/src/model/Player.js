@@ -35,6 +35,12 @@ export default class Player {
 	setCharacter(mapCharacter) {
 		this.mapCharacter = mapCharacter;
 	}
+
+	static validUsername(username) {
+		return ( username !== undefined &&
+		typeof username === 'string' &&
+		username.length > 0);
+	}
 }
 
 

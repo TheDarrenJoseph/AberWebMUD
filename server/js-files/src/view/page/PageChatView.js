@@ -84,6 +84,9 @@ export default class PageChatView extends EventMapping {
 		if (!messageWindowExists) {
 			let messageWindow = this.buildMessageWindow();
 			this.pageView.appendToGameWindow(messageWindow);
+
+			// Ensure password input only appears when required
+			this.hidePasswordInput();
 		}
 	}
 
