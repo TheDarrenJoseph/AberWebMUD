@@ -1,37 +1,37 @@
-//import { as io} from 'libs/socket.io.js';
+//import { as io} from 'libs/io.io.js';
 
 import io from 'socket.io-client';
-
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 
-//import io from 'socket.io-client';
-// var socket = io();
+const CONNECTION_EVENT = 'connect';
+const DISCONNECTION_EVENT = 'disconnect';
+const RECONNECTION_EVENT = 'reconnect'
 
 //	Static Helper class
 //	A collection of SocketIO management functions
 export default class SocketHandler {
-	
+
 	constructor () {
-		this.socket = new io();
+		this.io = new io();
 	}
 	
 	isSocketConnected () {
-		return this.socket.connected;
+		return this.io.connected;
 	}
 	
 	emit(eventType, messageData) {
 		// We can send an event without data in some cases
 		if (messageData == undefined) {
-			this.socket.emit(eventType);
+			this.io.emit(eventType);
 		} else if (messageData !== undefined  && messageData !== '' && messageData !== null) {
-			this.socket.emit(eventType, MessageHandler.createDataMessage(messageData));
+			this.io.emit(eventType, MessageHandler.createDataMessage(messageData));
 		}
 
-		console.log('Emitted: ' + eventType);
+		console.log(' Emitted: ' + eventType);
 	}
 	
 	bind(event, callback) {
-		this.socket.on(event,callback);
+		this.io.on(event,callback);
 	}
 
 	sendCharacterDetails (attrValuesJSON) {
@@ -47,7 +47,7 @@ export default class SocketHandler {
 		var messagePayload = MessageHandler.createMovementMessage(x, y);
 		if (messagePayload[MessageHandler.SESSION_JSON_NAME] != null) {
 			console.log(messagePayload);
-			this.socket.emit('movement-command', messagePayload);
+			this.io.emit('movement-command', messagePayload);
 		} else {
 			console.log('Session info missing for movement command.');
 		}
@@ -55,21 +55,24 @@ export default class SocketHandler {
 
 	//	Send the user's password to the sever
 	sendAuthentication (username, passwordFieldVal) {
-		this.socket.emit('client-auth', {'username': username, 'password': passwordFieldVal});
+		this.io.emit('client-auth', {'username': username, 'password': passwordFieldVal});
 	}
 
 	connectSocket (url, callback) {
 		console.log('[SocketHandler] Connecting to the game server...');
 
-		//	Try to connect
-		this.socket = io.connect(url);
+		//	Try to connect, this must be first
+		this.io = io.connect(url);
+
 		// Call us back when we really connect
-		this.socket.on('connect', () => {
-			callback(this.socket);
-		});;
+		this.io.on(CONNECTION_EVENT, () => {
+			console.log('SocketIO Socket connected.');
+			callback(this.io);
+		});
+
 	}
 
-	//	Handlers for socket events
+	//	Handlers for io events
 	handleSessionError () {
 		console.log('Session Error!');
 	}

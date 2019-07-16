@@ -16,7 +16,7 @@ export const MAPSIZE_Y_JSON_NAME = 'map-size-y';
 //	Static helper class
 // Defines and handles the expected format of SocketIO messages
 // More specifically, creates JSON with correct format
-// To be sent alongside a socket Event
+// To be sent alongside a io Event
 class MessageHandler {
 
 	/**
@@ -39,7 +39,7 @@ class MessageHandler {
 		return message;
 	}
 
-	//	Data messages for generic data transfer for specific socket events
+	//	Data messages for generic data transfer for specific io events
 	static createDataMessage (data) {
 		// Make sure we send session info with all messages
 		var message = {};

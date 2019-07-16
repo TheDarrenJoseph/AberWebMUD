@@ -18,12 +18,18 @@ def list_sessions() -> None:
     """Prints the connected sessionIds and activeSessions to show auth handling"""
     logging.info('---SESSION-LOG to follow---')
     logging.info('Currently connected sessions: ')
-    for session in _connected_sessions:
-        logging.info(session)
+    if _active_sessions != {}:
+        logging.info('NONE')
+    else:
+        for session in _connected_sessions:
+            logging.info(session)
 
     logging.info('Currently active (authenticated) sessions: ')
-    for session in _active_sessions:
-        logging.info(session+' | '+_active_sessions[session])
+    if not _active_sessions:
+        logging.info('NONE')
+    else:
+        for session in _active_sessions:
+            logging.info(session+' | '+_active_sessions[session])
 
 #Clears all connected session yet to be authenticated
 def remove_connected_sessions() -> None:
@@ -32,6 +38,7 @@ def remove_connected_sessions() -> None:
 
 def remove_connected_session(session_id : str) -> bool:
     try:
+        logging.debug('Removing connected session: ' + session_id)
         _connected_sessions.remove(session_id)
         return True
 

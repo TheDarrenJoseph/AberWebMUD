@@ -15,4 +15,6 @@ npm run build
 check_return "client build" $?
 
 cd ..
+#activate the venv
+source locenv/bin/activate 
 python main.py

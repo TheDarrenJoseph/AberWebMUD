@@ -12,7 +12,7 @@ import { ViewController } from 'src/controller/ViewController.js';
 export class GameControllerClass {
 	
 	constructor() {
-		this.socketHandler = new SocketHandler();
+		this.socketHandler = SocketHandler.getInstance();
 		this.viewController = new ViewController();
 	}
 	
@@ -67,7 +67,7 @@ export class GameControllerClass {
 		this.socketHandler.bind('character-details-update',  (data) => { pageController.handleCharacterUpdateResponse(data) });
 		//  Request for existing password
 		this.socketHandler.bind('request-password',  (newUser) => {
-			console.log('password requested.')
+			console.log('Password requested.')
 			pageController.requestUserPassword(newUser)
 		});
 		this.socketHandler.bind('request-new-password',  (data) => { pageController.newUser(data) });
