@@ -1,5 +1,7 @@
 import MapCharacter from 'src/model/pixi/map/MapCharacter.js';
 
+export const INVALID_USERNAME_MSG = 'Cannot set invalid username: ';
+
 /**
  *
  */
@@ -20,12 +22,20 @@ export default class Player {
 
 	}
 
+	_validUsername(username) {
+		return username !== undefined && username !== null && typeof username == 'string' && username.length > 0;
+	}
+
 	getUsername() {
 		return this.username;
 	}
 
 	setUsername(username) {
-		this.username = username;
+		if (this._validUsername(username)) {
+			this.username = username;
+		} else {
+			throw new RangeError(INVALID_USERNAME_MSG + username);
+		}
 	}
 
 	getCharacter() {

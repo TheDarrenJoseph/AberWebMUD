@@ -4,15 +4,60 @@ import Player from 'src/model/Player.js';
 const DEBUG=false;
 export const SESSION_ID_COOKIE_NAME = 'sessionId';
 
+// Login response validation
+export const EXPECTED_LOGIN_SUCCESS_PARAMS = ['sessionId', 'player-status'];
+export const ERROR_LOGIN_RS_MISSING_USERNAME = new RangeError('Username missing on login response!')
+export const ERROR_LOGIN_RS_MISSING_CHARDETAILS = new RangeError('Character details missing on login response!')
+
+/**
+ * Once connected to the server we need to store a few things
+ * i.e The SessionID token, Player Details, etc
+ * This provides a centralised storage place (Singleton) that can be referenced at any point
+ */
 class SessionModel {
 	constructor () {
 		this.doc = document;
-		// Things we'll need to communicate with the server
 		this.clientSession = {
 			player: new Player(""),
 			sessionId: null,
 		};
 	};
+
+	_checkPlayer(player) {
+		let hasPlayer = clientSession['player'] != undefined && clientSession['player'] instanceof Player;
+		if (!hasPlayer) throw new RangeError('Expected an instance of Player!')
+	}
+
+	_checkSessionId(sessionId) {
+		let hasSessionId = ValidationHandler.notUndefOrNull(sessionId) && typeof sessionId === 'string'
+		//	Update the client session to contain our new data
+		if (!hasSessionId) {
+			if (!hasSessionId) throw new Range('Expected a defined sessionId!')
+		}
+	}
+
+	getClientSession() {
+		return this.clientSession;
+	}
+
+	setClientSession(clientSession) {
+		this._checkPlayer(clientSession['player']);
+		this._checkSessionId(clientSession['sessionid']);
+
+		if (!hasPlayer) throw new RangeError('Expected an instance of Player!')
+		if (!hasSessionId) throw new Range('Expected a defined sessionId!')
+
+		this.clientSession = clientSession;
+	}
+
+	getPlayer() {
+		return this.clientSession.player;
+	}
+
+	setPlayer(player) {
+		this._checkPlayer(player);
+		this.clientSession.player = player;
+	}
 
 	getSessionId() {
 		return this.clientSession.sessionId;
@@ -20,12 +65,8 @@ class SessionModel {
 
 	setSessionId (sessionId) {
 		//	Update the client session to contain our new data
-		if (ValidationHandler.notUndefOrNull(sessionId) && typeof sessionId === 'string') {
-			this.clientSession.sessionId = sessionId;
-		} else {
-			throw new RangeError('Session ID is invalid: ' + JSON.stringify(sessionId));
-		}
-
+		this._checkSessionId(sessionId);
+		this.clientSession.sessionId = sessionId;
 	}
 
 	//getCharacterDetails () {F
@@ -37,12 +78,9 @@ class SessionModel {
 	//}
 
 	saveSessionIdCookie (sessionId) {
-		if (ValidationHandler.notUndefOrNull(sessionId) & typeof sessionId === 'string' ) {
-			console.log('Saving sessionId ' + sessionId + ' to cookie');
-			Session.ActiveSession.doc.cookie = SESSION_ID_COOKIE_NAME + '=' + sessionId + ';';
-		} else {
-			throw new RangeError('Expected SessionId String to save!');
-		}
+		this._checkSessionId(sessionId)
+		console.log('Saving sessionId ' + sessionId + ' to cookie');
+		Session.ActiveSession.doc.cookie = SESSION_ID_COOKIE_NAME + '=' + sessionId + ';';
 	};
 
 	getSessionIdCookie () {
@@ -92,17 +130,37 @@ class SessionModel {
 		}
 	};
 
-	updateClientSessionData (data) {
-		if (ValidationHandler.checkDataAttributes(data, ['username', 'sessionId', 'char-data'])) {
-			console.log('Updating session with: '+JSON.stringify(data));
+	/**
+	 * Sets the username, sessionid, and Character Details JSON for reference
+	 * @param data
+	 */
+	setClientSessionData (data) {
+		if (ValidationHandler.checkDataAttributes(data, EXPECTED_LOGIN_SUCCESS_PARAMS)) {
+			let sid = data['sessionId'];
+			let playerStatus = data['player-status'];
 
-			// Update user details
-			Session.ActiveSession.clientSession.player.setUsername(data['username']);
-			Session.ActiveSession.clientSession.player.getCharacter().setCharacterDetails(data['char-data']);
+			let usernamePresent = ValidationHandler.checkDataAttributes(playerStatus, ['username']);
+			let detailsPresent = ValidationHandler.checkDataAttributes(playerStatus, ['char-details']);
+			// Check character details are present, throw useful exception otherwise
 
-			Session.ActiveSession.clientSession.sessionId = data['sessionId'];
-		};
-	};
+			if (!usernamePresent) {
+				throw ERROR_LOGIN_RS_MISSING_USERNAME;
+			}
+
+			if (usernamePresent && !detailsPresent) {
+				throw ERROR_LOGIN_RS_MISSING_CHARDETAILS;
+			}
+
+			if (usernamePresent && detailsPresent) {
+				console.log('Updating session with response data: ' + JSON.stringify(data));
+
+				// Update user details
+				Session.ActiveSession.clientSession.sessionId = sid;
+				Session.ActiveSession.clientSession.player.setUsername(playerStatus['username']);
+				Session.ActiveSession.clientSession.player.getCharacter().setCharacterDetails(playerStatus['char-data']);
+			}
+		}
+	}
 
 	static validSessionId(sessionId) {
 		return ( sessionId !== undefined &&

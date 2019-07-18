@@ -35,7 +35,7 @@ class SocketHandler:
         #5 minute (300 sec) session clearing timer
         connection_timeout = threading.Timer(300, lambda: sessionHandler.remove_connected_session(request.sid))
 
-    def handle_disconnect(self, data) -> None:
+    def handle_disconnect(self) -> None:
         logging.info('Client disconnected, request SID: ' + request.sid)
         removed_connected_session = sessionHandler.remove_connected_session(request.sid)
         removed_active_session = sessionHandler.remove_active_session(request.sid)
@@ -81,10 +81,10 @@ class SocketHandler:
         self.socketHandler.on_event('leave', self.handle_leave)
 
         # Messages can be received at any point, so no active session check
-        self.socketHandler.on_event('new-chat-message', self.handle_message)
+        self.socketHandler.on_event('new-chat-message', lambda data: self.handle_message(data))
 
         # pass authentication directly to our handler
-        self.socketHandler.on_event('client-auth', self.authenticate_user)
+        self.socketHandler.on_event('client-auth', lambda data: self.authenticate_user(data))
 
         self.socketHandler.on_event('map-data-request', lambda: self.verify_active_and_call(self.send_map_data, request.get_json()))
         self.socketHandler.on_event('movement-command', lambda json: self.verify_active_and_call(self.handle_movement, json))
@@ -163,19 +163,19 @@ class SocketHandler:
             logging.debug('OUT| request-new-password for: '+username)
             emit('request-new-password', username,  room=session_id)
 
-    def handle_message(self, message: dict) -> None:
-        logging.info('IN| player message: '+str(message))
+    def handle_message(self, data: dict) -> None:
+        logging.info('IN| player message: '+str(data))
 
         #Store locally and Remove the sessionId so we don't rebroadcast it to anyone
-        if 'sessionJson' in message and 'sessionId' in message['sessionJson'] :
-            sid = message['sessionJson']['sessionId']
-            del message['sessionJson']['sessionId']
+        if 'sessionJson' in data and 'sessionId' in data['sessionJson'] :
+            sid = data['sessionJson']['sessionId']
+            del data['sessionJson']['sessionId']
         else:
-            logging.info('Message missing sessionJson / sessionId! : ' + str(message))
+            logging.info('Message missing sessionJson / sessionId! : ' + str(data))
             return False
 
         #Check the message for commands and choice
-        message_details = userInput.check_message_params(message)
+        message_details = userInput.check_message_params(data)
 
         #True if the the message was properly formatted, #1st tuple in nested tuple
         if message_details[1][0] is True:
@@ -190,11 +190,11 @@ class SocketHandler:
             #Message choice
             elif user_choice == 2:
                 #user inputted username from client message
-                username = message['sessionJson']['username'] #Username from sessionJSON otherwise
+                username = data['sessionJson']['username'] #Username from sessionJSON otherwise
                 found_player = playerController.find_player(username)
 
                 if found_player is not None:
-                    logging.info('OUT| MESSAGE: '+str(message)+' Actual: '+str(input_params['chat-data']))
+                    logging.info('OUT| MESSAGE: '+str(data)+' Actual: '+str(input_params['chat-data']))
                     self.send_message(input_params, True) #Rebroadcast the message {data,sessionJson}
                 else:
                     #Send an eror message back to the user
@@ -205,7 +205,7 @@ class SocketHandler:
                 if sessionHandler.active_session_exists(sid):
                     self.send_help_message()
         else:
-            logging.info('Failed to parse message: ' + str(message))
+            logging.info('Failed to parse message: ' + str(data))
             return  False
 
     """ Checks that a player with username exists and has a valid active session (logged in)
@@ -317,19 +317,16 @@ class SocketHandler:
     """ Authenticates/logs in a user through username and password 
         Uses decoration for @socketio.on so we can directly invoke this instead of checking session validity
     """
-    def authenticate_user(self) -> None:
+    def authenticate_user(self, data) -> None:
+        requested_sid = request.sid
+        logging.info('Authentication requested by request SID: ' + requested_sid)
+        logging.info('Provided args: ' + json.dumps(data))
 
-        sid = request.sid
-        json = request.get_json()
-
-        logging.info('Authentication requested by req SID: ' + sid)
-        logging.info('Provided args: ' + json)
-
-        username = json['username']
-        password = json['password']
+        username = data['username']
+        password = data['password']
 
         # Check for pre-existing session
-        if sessionHandler.active_session_exists(sid):
+        if sessionHandler.active_session_exists(requested_sid):
             logging.info('Session Exists!')
         else:
             #Calling the static method to check player details
@@ -339,18 +336,18 @@ class SocketHandler:
 
             #First tuple val is player found, 2nd is password
             if all(auth_result):
-                self.login_user(sid, username)
+                self.login_user(requested_sid, username)
 
             if found_player and (not password_correct):
                 logging.info('Password incorrect: ' + username)
-                self.send_login_failure(sid, found_player)
+                self.send_login_failure(requested_sid, found_player)
 
             #User does not exist, password invalid (no account, make one)
             if not all(auth_result):
                 #Create a new Player
                 logging.info('Creating a new player! ' + str(username) + str(password))
                 if playerController.new_player(username, password) is not None:
-                    self.login_user(sid, username)
+                    self.login_user(requested_sid, username)
 
     def __init__(self, _APP, **kwargs) -> SocketIO:
         self.flaskApp = _APP

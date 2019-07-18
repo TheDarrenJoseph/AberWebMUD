@@ -34,11 +34,13 @@ def get_character_json(username: str) -> dict or None:
             return this_json
     return None
 
+"""
+Returns either None or JSON describing the player in a client-friendly manner
+"""
 @db_session
 def get_player_status(username: str) -> dict or None:
     if find_player(username) is not None:
-        this_player = player.Player[username]
-        return this_player.get_json()
+        return player.Player[username].get_json()
     return None
 
 #Creates a new player database object

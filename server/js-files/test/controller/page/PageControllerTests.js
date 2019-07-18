@@ -21,6 +21,7 @@ import { Page } from 'src/model/page/Page.js';
 import { EVENTS as pageCharacterDetailsViewEvents, SET_CHARDETAILS_PROMPT_MESSAGE, PageCharacterDetailsView } from 'src/view/page/PageCharacterDetailsView.js';
 import { EVENTS as pageChatEvents, PageChatView } from 'src/view/page/PageChatView.js';
 import { CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
+import { INVALID_USERNAME_MSG } from 'src/model/Player.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { EVENTS as characterDetailsEvents, CharacterDetails } from 'src/model/page/CharacterDetails.js';
 
@@ -213,22 +214,36 @@ QUnit.test(TEST_TAG + 'handleMovementResponse', function (assert) {
 	assert.equal(pageChatView.getMessageLogValue(), expectedMessage, 'Check invalid movement response leaves a message.');
 });
 
-QUnit.test(TEST_TAG + 'requestUserPassword', function (assert) {
+QUnit.test(TEST_TAG + 'requestUserPassword_good', function (assert) {
 	pageController.enableUI();
 	assert.ok(pageController.uiEnabled, 'UI Should be enabled before requesting user password.');
 
-	// 1. Username is given
-	pageController.requestUserPassword(true);
-	assert.ok(jquery(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
+	let PROMPT = 'Creating a new user, please enter a password for it: ';
 
-	assert.ok(pageChatView.getMessageLogValue().startsWith('Creating a new user, please enter a password for it: '), 'Check pwd request message.');
+	// 1. Username and prompt is given
+	pageController.requestUserPassword('test', PROMPT);
+	assert.ok(jquery(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
+	assert.ok(pageChatView.getMessageLogValue().startsWith(PROMPT), 'Check pwd request message.');
 
 	let keyupBinding = jQueryUtils.extractFirstJqueryBinding(pageChatView.getMessageInputField(), 'keyup');
 	assert.ok(keyupBinding instanceof Function, 'Check message input keyup is bound to a Function');
+});
 
-	// 2. No username passed
-	pageController.requestUserPassword();
-	assert.equal(pageChatView.getMessageLogValue(), 'Please enter your password: ', 'Check pwd request message.');
+QUnit.test(TEST_TAG + 'requestUserPassword_bad', function (assert) {
+	pageController.enableUI();
+	assert.ok(pageController.uiEnabled, 'UI Should be enabled before requesting user password.');
+
+	// 1. Username is given, no prompt
+	assert.throws(() => { pageController.requestUserPassword('test')},
+	RangeError, 'A missing prompt message should throw a range Error');
+
+	// 1. Bad username, with prompt
+	// No error thrown but we will be prompted about it.
+	let PROMPT = 'Creating a new user, please enter a password for it: ';
+	pageController.requestUserPassword('', PROMPT);
+	assert.ok(jquery(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
+	assert.ok(pageChatView.getMessageLogValue().startsWith(INVALID_USERNAME_MSG), 'Check pwd request message.');
+
 });
 
 QUnit.test(TEST_TAG + 'disableUI', function (assert) {

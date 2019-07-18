@@ -186,6 +186,7 @@ export default class PageChatView extends EventMapping {
 
 	endPasswordSubmission () {
 		this.clearPasswordInputField();
+		var passwordField = this.getPasswordInputFieldJquery();
 		//	Hide the field to show the normal input box
 		passwordField.hide();
 		this.clearMessageLog();

@@ -8,6 +8,7 @@ import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 import { Session } from 'src/model/Session.js';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 import { ViewController } from 'src/controller/ViewController.js';
+import { ERROR_LOGIN_RS_MISSING_CHARDETAILS } from '../model/Session.js'
 
 export class GameControllerClass {
 	
@@ -29,12 +30,6 @@ export class GameControllerClass {
 	bindComponents () {
 		this.viewController.bindComponents();
 		this.bindSocketEvents();
-	}
-	
-	newUser(username) {
-		// Store the username for later
-		Session.ActiveSession.setClientSessionUsername(username);
-		this.viewController.pageController.requestUserPassword(true);
 	}
 	
 	handleSessionLinking (data) {
@@ -66,11 +61,12 @@ export class GameControllerClass {
 
 		this.socketHandler.bind('character-details-update',  (data) => { pageController.handleCharacterUpdateResponse(data) });
 		//  Request for existing password
-		this.socketHandler.bind('request-password',  (newUser) => {
-			console.log('Password requested.')
-			pageController.requestUserPassword(newUser)
+		this.socketHandler.bind('request-password',  (username) => {
+			pageController.requestUserPassword(username, 'Please enter your password: ');
 		});
-		this.socketHandler.bind('request-new-password',  (data) => { pageController.newUser(data) });
+		this.socketHandler.bind('request-new-password',  (username) => {
+			pageController.requestUserPassword(username, 'Creating a new user, please enter a password for it: ');
+		});
 
 		this.socketHandler.bind('chat-message-response', (data) => {  this.handleMessageData(data); });
 		this.socketHandler.bind('login-success', (data) => { this.handlePlayerLogin(data); });
@@ -86,10 +82,28 @@ export class GameControllerClass {
 		this.viewController.pageController.getPageChatView().updateMessageLog(messageData, username);
 	}
 
-	//	data -- 'username':username,'sessionId':sid, 'character':thisPlayer
+	//	data -- {"sessionId":"66063e8275f945769481ba21674be1cf",
+	//	"player-status":{"username":"foo",
+	//	"char-details" : {
+	//		"charname" : "foo"
+	//		"pos_x
+	//	}
+	//	}}
 	handlePlayerLogin (data) {
-		// Save this data for our session
-		Session.ActiveSession.updateClientSessionData(data);
+		try {
+			// Save this data for our session
+			Session.ActiveSession.setClientSessionData(data);
+		} catch (err) {
+			if (err === ERROR_LOGIN_RS_MISSING_CHARDETAILS) {
+				this.viewController.pageController.getPageChatView().updateMessageLog('Player Character details not present, please enter them..', 'client');
+				this.viewController.pageController.getPageCharacterDetailsView().requestCharacterDetails();
+
+			} else {
+				let errMsg = 'Unexpected error when handling login response data.';
+				this.viewController.pageController.getPageChatView().updateMessageLog(errMsg, 'client');
+				console.log(errMsg + ' : ' + err);
+			}
+		}
 	}
 
 }

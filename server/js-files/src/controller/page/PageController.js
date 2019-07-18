@@ -83,7 +83,7 @@ export default class PageController {
 	}
 
 	getPageChatView () {
-		return this.pageChatView;s
+		return this.pageChatView;
 	}
 
 	/**
@@ -169,7 +169,7 @@ export default class PageController {
 				// Try to save the returned character details
 				let charData = data['char-data'];
 				if (this.saveCharacterData(charData)) {
-					Session.ActiveSession.updateClientSessionData(data);
+					Session.ActiveSession.setClientSessionData(data);
 					this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
 				}
 			} else {
@@ -222,15 +222,16 @@ export default class PageController {
 		this.pageChatView.clearMessageInputField();
 	}
 
-	submitPassword () {
-		var username = Session.ActiveSession.getSessionInfoJSON().username;
+	submitPassword (username) {
+		// If we'd rather grab from the session we can use this
+		//var username = Session.ActiveSession.getSessionInfoJSON().username;
 		var passwordInput = this.pageChatView.getPasswordInput();
 
 		if (username !== null && passwordInput !== '') {
 			this.SOCKET_HANDLER.sendAuthentication(username, passwordInput);
 			this.pageChatView.endPasswordSubmission();
 			//	Set the send button behavior back to normal (isText)
-			this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.submitChatMessage);
+			this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.submitChatMessage() } );
 			//this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
 			
 		} else {
@@ -240,20 +241,27 @@ export default class PageController {
 
 	//Triggered once a user sends a login message
 	// Prompts for a user password
-	// Username - String username
-	// If newUser is true, we give a new account message.
-	// Otherwise provides a login style text-prompt.
-	requestUserPassword (newUser) {
-		this.pageChatView.showPasswordInput();
+	// username - String username
+	requestUserPassword (username, promptMessage) {
 
-		if (newUser === true) {
-			this.pageChatView.setMessageLog('Creating a new user, please enter a password for it: ');
-		} else {
-			this.pageChatView.setMessageLog('Please enter your password: ');
+		try {
+			// Store the username for later
+			Session.ActiveSession.getPlayer().setUsername(username);
+		} catch (rangeError) {
+			this.pageChatView.setMessageLog(rangeError.message);
+			return;
 		}
 
-		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, this.submitPassword);
-		//this.pageChatView.bindMessageButton(this.passwordFieldKeyupTrigger); //	Set the send message behaviour to password sending
+		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.submitPassword.apply(this, [username]) });
+
+		this.pageChatView.showPasswordInput();
+
+		if (ValidationHandler.validString(promptMessage)) {
+			this.pageChatView.setMessageLog(promptMessage);
+		} else {
+			throw new RangeError('Expected a properly formatted prompt message!');
+		}
+
 	}
 
 	disableUI () {

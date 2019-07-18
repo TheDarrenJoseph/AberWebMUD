@@ -43,6 +43,10 @@ export default class ValidationHandler {
 		return (data !== null && data !== undefined);
 	}
 
+	static validString(input) {
+		return input !== undefined && typeof input == 'string' && input.length >= 0;
+	}
+
 	/**
 	 * Checks for the presence of data for each of the movement update fields
 	 * TODO Move this to some messaging model
