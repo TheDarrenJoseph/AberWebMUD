@@ -141,23 +141,25 @@ class SessionModel {
 
 			let usernamePresent = ValidationHandler.checkDataAttributes(playerStatus, ['username']);
 			let detailsPresent = ValidationHandler.checkDataAttributes(playerStatus, ['char-details']);
+			let detailsFilled = detailsPresent && ValidationHandler.checkDataAttributes(playerStatus['char-details'], ['charname', 'pos_x', 'pos_y', 'stats', 'attributes']);
+
 			// Check character details are present, throw useful exception otherwise
+			if (usernamePresent && detailsFilled) {
+				if (detailsFilled) {
+					console.log('Updating session with response data: ' + JSON.stringify(data));
+
+					// Update user details
+					Session.ActiveSession.clientSession.sessionId = sid;
+					Session.ActiveSession.clientSession.player.setUsername(playerStatus['username']);
+					Session.ActiveSession.clientSession.player.getCharacter().setCharacterDetails(playerStatus['char-data']);
+				}
+			}
 
 			if (!usernamePresent) {
 				throw ERROR_LOGIN_RS_MISSING_USERNAME;
-			}
-
-			if (usernamePresent && !detailsPresent) {
+			} else if (usernamePresent && !detailsFilled) {
+				// Logged in but missing char details of some sort..
 				throw ERROR_LOGIN_RS_MISSING_CHARDETAILS;
-			}
-
-			if (usernamePresent && detailsPresent) {
-				console.log('Updating session with response data: ' + JSON.stringify(data));
-
-				// Update user details
-				Session.ActiveSession.clientSession.sessionId = sid;
-				Session.ActiveSession.clientSession.player.setUsername(playerStatus['username']);
-				Session.ActiveSession.clientSession.player.getCharacter().setCharacterDetails(playerStatus['char-data']);
 			}
 		}
 	}
