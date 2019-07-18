@@ -68,3 +68,7 @@ def remove_active_session(session_id : str) -> bool:
         del _active_sessions[session_id] #Remove the sessionId from our activeSessions dict
         return True, username
     return False
+
+def contains_session_json(data : dict) -> bool:
+    # The client should pass this param in
+    return 'sessionJson' in data and 'sessionId' in data['sessionJson'] and 'username' in data['sessionJson']

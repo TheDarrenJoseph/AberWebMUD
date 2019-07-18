@@ -40,9 +40,9 @@ class SocketHandler:
         removed_connected_session = sessionHandler.remove_connected_session(request.sid)
         removed_active_session = sessionHandler.remove_active_session(request.sid)
         if removed_connected_session is True:
-            print('Connected session removed: '+request.sid+' '+removed_connected_session[1])
+            print('Connected session removed: '+request.sid)
         if removed_active_session is True:
-            print('Active session removed: '+request.sid+' '+removed_active_session[1])
+            print('Active session removed: '+request.sid)
         print('A session disconnected: '+request.sid)
 
     def handle_join(self, data):
@@ -63,14 +63,18 @@ class SocketHandler:
     def verify_active_and_call(self, callback, data):
 
         if data is not None:
-            # The client should pass this param in
-            sid = data['sessionId']
-            logging.info('Proxying event for request SID: '+sid)
-            if sessionHandler.active_session_exists(sid):
-                callback(data)
+            if sessionHandler.contains_session_json(data):
+                session_json = data['sessionJson']
+                sid = session_json['sessionId']
+                if sessionHandler.active_session_exists(sid):
+                    logging.info('Proxying event for request SID: '+sid)
+                    callback(data)
+                else:
+                    logging.error('Checking for active session before proxying to: ' + callback.__name__ +
+                                  '.. Could not find an active session for SID: ' + sid);
             else:
                 logging.error('Checking for active session before proxying to: ' + callback.__name__ +
-                              '.. Could not find an active session for SID: ' + sid);
+                              '.. sessionJson not provided!');
         else:
             logging.info('No data for proxy call to: ' + callback.__name__ + ' SocketIO Event: ' + json.dumps(request.event))
 
@@ -317,11 +321,21 @@ class SocketHandler:
     """ Authenticates/logs in a user through username and password 
         Uses decoration for @socketio.on so we can directly invoke this instead of checking session validity
     """
-    def authenticate_user(self, data) -> None:
+    def authenticate_user(self, jsonData) -> None:
+
+        # validation
+        if 'data' not in jsonData:
+            logging.error('No data attribute in the provided authentication message!')
+            return
+
+        data = jsonData['data']
+
+        if 'username' not in data or 'password' not in data:
+            logging.error('Failed to find expected parameters, username or password in dta: ' + json.dumps(data))
+            return
+
         requested_sid = request.sid
         logging.info('Authentication requested by request SID: ' + requested_sid)
-        logging.info('Provided args: ' + json.dumps(data))
-
         username = data['username']
         password = data['password']
 

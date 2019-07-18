@@ -6,6 +6,7 @@ import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 const CONNECTION_EVENT = 'connect';
 const DISCONNECTION_EVENT = 'disconnect';
 const RECONNECTION_EVENT = 'reconnect'
+const ERROR_NOSOCKET = new Error('SocketIO Socket is not connected to the game server!')
 
 //	Static Helper class
 //	A collection of SocketIO management functions
@@ -20,14 +21,19 @@ export default class SocketHandler {
 	}
 	
 	emit(eventType, messageData) {
-		// We can send an event without data in some cases
-		if (messageData == undefined) {
-			this.io.emit(eventType);
-		} else if (messageData !== undefined  && messageData !== '' && messageData !== null) {
-			this.io.emit(eventType, MessageHandler.createDataMessage(messageData));
+
+		if (this.io.connected) {
+			// We can send an event without data in some cases
+			if (messageData == undefined) {
+				this.io.emit(eventType);
+			} else if (messageData !== undefined && messageData !== '' && messageData !== null) {
+				this.io.emit(eventType, MessageHandler.createDataMessage(messageData));
+			}
+			console.log(' Emitted: ' + eventType);
+		} else {
+			throw ERROR_NOSOCKET
 		}
 
-		console.log(' Emitted: ' + eventType);
 	}
 	
 	bind(event, callback) {
@@ -47,7 +53,7 @@ export default class SocketHandler {
 		var messagePayload = MessageHandler.createMovementMessage(x, y);
 		if (messagePayload[MessageHandler.SESSION_JSON_NAME] != null) {
 			console.log(messagePayload);
-			this.io.emit('movement-command', messagePayload);
+			this.emit('movement-command', messagePayload);
 		} else {
 			console.log('Session info missing for movement command.');
 		}
@@ -55,7 +61,15 @@ export default class SocketHandler {
 
 	//	Send the user's password to the sever
 	sendAuthentication (username, passwordFieldVal) {
-		this.io.emit('client-auth', {'username': username, 'password': passwordFieldVal});
+		this.emit('client-auth', {'username': username, 'password': passwordFieldVal});
+	}
+
+	handleDisconnect() {
+		console.log('SocketIO Socket disconnected.');
+	}
+
+	handleReconnect() {
+		//TODO Maybe handle this?
 	}
 
 	connectSocket (url, callback) {
@@ -69,6 +83,9 @@ export default class SocketHandler {
 			console.log('SocketIO Socket connected.');
 			callback(this.io);
 		});
+
+		this.io.on(DISCONNECTION_EVENT, () =>{ this.handleDisconnect() });
+		this.io.on(DISCONNECTION_EVENT, () =>{ this.handleReconnect() });
 
 	}
 

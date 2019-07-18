@@ -25,7 +25,7 @@ export default class EventMapping {
 
 					// for DEBUG
 					if (singleShot) {
-						if (DEBUG) console.log('Dispatching single-shot Event: ' + dispatchedEvent.type + ', data: ' + dispatchedEvent.data);
+						if (DEBUG) console.log('Dispatching single-shot Event: ' + dispatchedEvent.type + ', data: ' + JSON.stringify(dispatchedEvent.data));
 
 						// Splice out the 1 callback function if we need to remove it after calling
 						if (singleShot) {
@@ -34,7 +34,7 @@ export default class EventMapping {
 						}
 					}
 				} else {
-					if (DEBUG) console.log('Dispatching Event: ' + dispatchedEvent.type + ', data: ' + dispatchedEvent.data);
+					if (DEBUG) console.log('Dispatching Event: ' + dispatchedEvent.type + ', data: ' + JSON.stringify(dispatchedEvent.data));
 				}
 
 				callback(data);
