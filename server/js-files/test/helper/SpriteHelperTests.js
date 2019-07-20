@@ -56,19 +56,24 @@ TEST_TAG + 'makeSpriteFromAtlas_Tile', function (assert) {
 });
 
 // Try referencing a non-existent subtile
-QUnit.test(
-TEST_TAG + 'makeSpriteFromAtlas_Objects_NonsenseSubtile', function (assert) {
+QUnit.test(TEST_TAG + 'makeSpriteFromAtlas_Objects_NonsenseSubtile', function (assert) {
 	assert.timeout(MAX_TIMEOUT);
-	let expectedError = assert.async(1);
+	//var expectedError = assert.async(1);
 	var pixiPos = new PIXI.Point(1,1);
+
+	let expectedError = assert.async(1);
 
 	// Promise the loading of the subtexture
 	var spritePromise = SpriteHelper.makeSpriteFromAtlas(ASSET_PATHS.ASSET_PATH_OBJECTS, 'nonsense', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
-	spritePromise.catch(err => {
-		assert.ok(err instanceof RangeError);
+
+	spritePromise.then(spriteTexture => {
+		assert(false, 'Did not expect Promise to be resolved!')
+	}).catch(err => {
+		assert.notEqual(err, undefined, 'Check returned error is not undefined');
+		assert.ok(err instanceof RangeError, 'Check returned error is a RangeError ');
 		expectedError();
 	});
 
-	assert.expect(1);
+	assert.expect(2);
 });
 

@@ -11,6 +11,8 @@ import PIXI from 'libs/pixi.min.js';
 var eventMappings = [];
 var loaderBusy = false;
 
+const DEBUG = false;
+
 var LOADER_FREE_EVENT = 'loaderFree';
 
 // Event Mapping for loader free
@@ -82,8 +84,6 @@ export default class AtlasHelper {
 					throw new RangeError('Error loading tile atlas subtexture / frameId: ' + frameId);
 				}
 			} else {
-				console.log('No textures? ');
-				console.log(textures);
 				throw new RangeError('No textures in the provided atlas:' + atlas.name);
 			}
 		} else {
@@ -161,27 +161,31 @@ export default class AtlasHelper {
 	// Then extracts the subtile mentioned
 	// Finally calling back the passed callback
 	static loadAtlasSubtexture (atlasPath, subtileName, callback) {
-		let argMessage = 'Failed to load atlas: ' + atlasPath + ', ' + subtileName + ', ' + callback;
-			
-		if (atlasPath !== null && atlasPath !== undefined &&
-		subtileName !== null && subtileName !== undefined &&
-		callback !== null && callback !== undefined) {
+		return new Promise ((resolve, reject) => {
+			if (atlasPath !== null && atlasPath !== undefined && subtileName !== null && subtileName !== undefined) {
 				// This is the call we want to make
 				// but it requires atlasPath to be loaded
 				AtlasHelper.attemptLoadPixiResource(atlasPath, () => {
-						let loaded = AtlasHelper.isResourceLoaded(atlasPath);
-						let atlas = AtlasHelper.getResource(atlasPath);
+					let loaded = AtlasHelper.isResourceLoaded(atlasPath);
+					let atlas = AtlasHelper.getResource(atlasPath);
 
-						if (!loaded) {
-							console.log('Extracting subtexture, no atlas!');
-							let atlas = AtlasHelper.getResource(atlasPath);
-							console.log(atlas);
-						}
-						AtlasHelper._getLoadedAtlasTexture(atlas, subtileName, callback);
+					if (!loaded) {
+						console.log('Extracting subtexture, no atlas!');
+						let atlas = AtlasHelper.getResource(atlasPath);
+						console.log(atlas);
+					}
+
+					try {
+						AtlasHelper._getLoadedAtlasTexture(atlas, subtileName, resolve);
+					} catch (err) {
+						reject(err);
+					}
 				});
-		} else {
-			throw new RangeError(argMessage);
-		}
+			} else {
+				let argMessage = 'Failed to load atlas: ' + atlasPath + ', ' + subtileName;
+				reject(new RangeError(argMessage));
+			}
+		});
 	}
 
 	// A function for politely asking for a resource
@@ -192,8 +196,7 @@ export default class AtlasHelper {
 		let loaded = AtlasHelper.isResourceLoaded(resourcePath);
 		//let queued = AtlasHelper.isResourceQueued(resourcePath);
 
-		// console.log('Attempting load of resource: '+resourcePath)
-
+		if (DEBUG) console.log('Attempting load of resource: '+resourcePath)
 		if (loaded) {
 			// console.log('Resource already loaded: ' + resourcePath);
 			callback();
@@ -201,7 +204,7 @@ export default class AtlasHelper {
 		}
 
 		if (loading) {
-		//	// console.log('Resource already loading, waiting for: ' + resourcePath);
+			if (DEBUG) console.log('Resource already loading, waiting for: ' + resourcePath);
 			let resourceLoadedEventName = AtlasHelper.getResourceLoadedEventName(resourcePath);
 			AtlasHelper.mapEvent(resourceLoadedEventName, callback);
 			return;
@@ -215,9 +218,9 @@ export default class AtlasHelper {
 				throw new Error(err);
 			}
 		} else {
-			// console.log('Waiting for loader free to load resource: ' + resourcePath);
+			if (DEBUG) console.log('Waiting for loader free to load resource: ' + resourcePath);
 			AtlasHelper.mapEvent(LOADER_FREE_EVENT, () => {
-				// console.log('Trying to load resource again: ' + resourcePath);
+				if (DEBUG) console.log('Trying to load resource again: ' + resourcePath);
 				AtlasHelper.attemptLoadPixiResource(resourcePath, callback);
 			});
 
