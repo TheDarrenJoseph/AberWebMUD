@@ -55,13 +55,15 @@ class Character(db_instance.DatabaseInstance._database.Entity):
             self.attributes = this_attributes
 
     def get_json(self) -> dict:
-        response = {'character' : {
+        response = {
+            'character': {
                     'charname': self.charname,
                     'health': self.health_val,
                     'charclass': self.charclass,
                     'pos_x': self.position.pos_x,
                     'pos_y': self.position.pos_y
-                   }}
+                   }
+            }
 
         # Append attribs onto our JSON response
         response['character'].update(self.attributes.get_json())

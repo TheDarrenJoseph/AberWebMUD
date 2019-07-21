@@ -37,5 +37,5 @@ QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
 	GameController.handlePlayerLogin(loginData);
 
 	var resultingJson = Session.ActiveSession.getSessionInfoJSON();
-	assert.deepEqual(resultingJson, { 'sessionId': loginData.sessionId, 'username': loginData.username }, 'Check session info JSON is now set.');
+	assert.deepEqual(resultingJson, { 'sessionId': loginData.sessionId, 'username': loginData['player-status'].username }, 'Check session info JSON is now set.');
 });
