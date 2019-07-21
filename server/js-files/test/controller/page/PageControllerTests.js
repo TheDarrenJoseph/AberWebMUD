@@ -122,9 +122,7 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_blankJSON', function (asser
 	'Ensure a RangeError is thrown if no character update data is returned.');
 });
 
-QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_failed', function (assert) {
-	let badDataError = new RangeError(INVALID_JSON_CHARACTER_UPDATE);
-
+QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_noData', function (assert) {
 	// Invalid data
 	let messageData = { success: false };
 	let expectedMessage = '';
@@ -133,14 +131,19 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_failed', function (assert) 
 	try {
 		pageController.handleCharacterUpdateResponse(messageData);
 	} catch (err) {
-		assert.deepEqual(err, badDataError, 'Ensure the correct RangeError is thrown if bad character update data is returned.');
+		assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_UPDATE), 'Ensure the correct RangeError is thrown if bad character update data is returned.');
 	}
 
+	assert.expect(2);
+});
+
+
+QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_failed', function (assert) {
 	// 3. Valid data but Update failed
 	pageCharacterDetailsView.clearStatsInfoField();
-	messageData =	JSON.parse(JSON.stringify(TEST_CHARUPDATE_DATA));
+	let messageData =	JSON.parse(JSON.stringify(TEST_CHARUPDATE_DATA));
 	messageData.success = false;
-	expectedMessage = serverContextTag + CHARACTER_UPDATE_FAILURE_MESSAGE + '\n';
+	let expectedMessage = serverContextTag + CHARACTER_UPDATE_FAILURE_MESSAGE + '\n';
 	pageController.handleCharacterUpdateResponse(messageData);
 
 	//assert.equal(pageCharacterDetailsView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update failed if the response says so.');
@@ -151,7 +154,7 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_failed', function (assert) 
 	assert.ok(promptMessageThere, 'Check we prompt for character details on a failure.');
 
 	// +1 expectation for this assertion
-	assert.expect(4);
+	assert.expect(3);
 });
 
 
@@ -171,7 +174,15 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 
 	// 2. Bad data
 	// Copy the original and modify
-	var badResponse = {'charname': 'roo', 'pos_x': 10, 'pos_y': 10, 'health': 100, 'charclass': 'fighter', 'free_points': 5, 'attributes': {}};
+	var badResponse = {
+		'charname': 'roo',
+		'position' : { 'pos_x': 10, 'pos_y': 10 },
+		'health': 100,
+		'charclass': 'fighter',
+		'free_points': 5,
+		'attributes': {}
+	};
+
 	try {
 		assert.notOk(pageController.saveCharacterData(badResponse), 'Ensure we fail to save our bad data.');
 	} catch (err) {

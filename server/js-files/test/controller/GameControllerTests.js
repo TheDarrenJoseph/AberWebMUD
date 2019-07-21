@@ -12,9 +12,11 @@ function beforeAll (assert) {
 }
 
 // Setup / assertions before each test
-function beforeEachTest (assert) {
+async function beforeEachTest (assert) {
 	// Re-instanciate Session to clear it
 	Session.ActiveSession = new SessionModel();
+
+	await GameController.viewController.setupUI();
 }
 
 // Hookup before each test setup / assertion
@@ -30,7 +32,7 @@ QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
 	assert.deepEqual(sessionInfoJson, expectedSessionJson, 'Check session info JSON is blank');
 
 	assert.ok(CharacterDetails.isValidCharacterData(TEST_CHARDATA), 'Check our test char data is valid');
-	var loginData = {'username': 'foo', 'sessionId': TEST_SESSIONID, 'char-data': TEST_CHARDATA};
+	var loginData = {'sessionId': TEST_SESSIONID, 'player-status' : { 'username': 'foo', 'char-details': TEST_CHARDATA }};
 
 	GameController.handlePlayerLogin(loginData);
 

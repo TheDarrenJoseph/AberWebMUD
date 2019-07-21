@@ -18,6 +18,8 @@ export const STATS_BUTTON_NAME = 'statsButtonSprite';
 const RENDERER_CANVAS = 'Canvas';
 const RENDERER_WEBGL = 'WebGL';
 
+const DEBUG = false;
+
 export const EVENTS = { 	CONSOLE_BUTTONCLICK : 'console_buttonclick',
 								INVENTORY_BUTTONCLICK : 'inventory_buttonclick',
 								STATS_BUTTONCLICK : 'stats_buttonclick'
@@ -179,7 +181,7 @@ export default class PixiView extends EventMapping {
 	async setupConsoleButton () {
 		return new Promise((resolve, reject)  => {
 			if (this.controlsContainer.getChildByName(CONSOLE_BUTTON_NAME) == undefined) {
-				console.log('Creating a console button..');
+				if (DEBUG)  console.log('Creating a console button..');
 				let buttonPos = new PIXI.Point(0, this.windowSize - this.tileSize);
 
 				let consoleButtonSpritePromise = SpriteHelper.makeSpriteFromAtlas(this.objectAssets, 'chat-bubble-blank', this.tileSize, this.tileSize, buttonPos, false);
@@ -202,7 +204,7 @@ export default class PixiView extends EventMapping {
 
 	async setupContextButtons () {
 		if (this.controlsContainer.getChildByName(INVENTORY_BUTTON_NAME) == undefined) {
-			console.log('Creating a inventory button..');
+			if (DEBUG)  console.log('Creating a inventory button..');
 			// Create a 2 tile wide, 1 tile high button at the bottom right of screen
 			let buttonPos = new PIXI.Point(this.windowSize - (this.tileSize * 2), this.windowSize - this.tileSize);
 			this.inventoryButtonSprite = await PixiView.createContextButton(this.objectAssets, 'chest-single', this.tileSize, buttonPos, false);
@@ -212,7 +214,7 @@ export default class PixiView extends EventMapping {
 		}
 
 		if (this.controlsContainer.getChildByName(STATS_BUTTON_NAME) == undefined) {
-			console.log('Creating a stats button..');
+			if (DEBUG) console.log('Creating a stats button..');
 			// Create a 2 tile wide, 1 tile high button to the left of the inventory button
 			let buttonPos = new PIXI.Point(this.windowSize - (this.tileSize * 4), this.windowSize - this.tileSize);
 			this.statsButtonSprite = await PixiView.createContextButton(this.objectAssets, 'chest-single', this.tileSize, buttonPos);

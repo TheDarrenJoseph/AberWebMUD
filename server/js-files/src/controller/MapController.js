@@ -53,10 +53,9 @@ export default class MapController {
 	//	Handles a character movement
 	handleMovementUpdate (updateJSON) {
 		var username = updateJSON['username'];
-		// var oldX = updateJSON['old_x'];
-		// var oldY = updateJSON['old_y'];
-		var posX = updateJSON['pos_x'];
-		var posY = updateJSON['pos_y'];
+		var position = updateJSON['position'];
+		var posX = position['pos_x'];
+		var posY = position['pos_y'];
 
 		if (ValidationHandler.isValidMovementUpdateData(updateJSON)) {
 			//	If it's the player, follow them with the view

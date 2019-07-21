@@ -3,19 +3,10 @@ import PIXI from 'libs/pixi.min.js';
 import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 
 export default class SpriteHelper {
-	static promisePixiTexture (tileAtlasPath, subtileName, tileHeight, tileWidth) {
-		return new Promise((resolve, reject) => {
-					AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName, (spriteTexture) => { resolve(spriteTexture); } );
-			});
-	}
 
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
 	static makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight, tileWidth, pixiPoint, interactive) {
 		return new Promise((resolve, reject) => {
-			// Wrap the subtexture promise to make a Sprite and return that
-			// Otherwise bubble up the error
-			//let subtexturePromise = SpriteHelper.promisePixiTexture(tileAtlasPath, subtileName, tileHeight, tileWidth)
-
 			// Load the named subtile from the given atlas
 			AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName).then(spriteTexture => {
 				if (spriteTexture == undefined || spriteTexture == null) {

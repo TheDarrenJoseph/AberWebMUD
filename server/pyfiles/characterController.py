@@ -7,8 +7,9 @@ from pony.orm import db_session
 
 @db_session
 def set_character_position(charname : str, x : int, y : int) -> bool:
-    if find_character(charname) is not None:
-        character.Character.get(charname=charname).position.set_position(x, y)
+    this_character = find_character(charname)
+    if this_character is not None:
+        this_character.position.set_position(x, y)
         return True
     return False
 
@@ -47,6 +48,16 @@ def find_character(character_name : str) -> character.Character or None:
     except ObjectNotFound:
         return None
 
+#Checks for the Character in the DB using PonyORM
+@db_session
+def find_player_character(username : str, character_name : str) -> character.Character or None:
+    try:
+        player.Player.get(username=username)
+        return character.Character.get(charname=character_name)
+
+    except ObjectNotFound:
+        return None
+
 #Updates a character from character update event response JSON
 @db_session
 def update_character_from_json(character_json:dict) -> bool:
@@ -55,8 +66,11 @@ def update_character_from_json(character_json:dict) -> bool:
     character_name = data['charname']
     character_class = data['charclass']
 
-    this_character = character.Character.get(charname=character_name)
+    # lookup the Player in the DB
     this_player = player.Player[username]
+    this_character = this_player.get_character()
+    # Or maybe DB lookup instead?
+    # this_character = character.Character.get(charname=character_name)
 
     data = data['attributes'] #Pick out only the 'attributes' from 'data'
     if this_character is not  None and this_player is not None:

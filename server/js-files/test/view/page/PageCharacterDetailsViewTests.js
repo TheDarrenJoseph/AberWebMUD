@@ -118,6 +118,7 @@ QUnit.test(TEST_TAG + 'Setting Character Details View Update', function (assert)
 	let currentStats = pageCharacterDetailsView.characterDetails.getCharacterDetailsJson();
 	assert.deepEqual(currentStats, DEFAULT_JSON, 'Check character details are their defaults in the view.')
 
+	// Test callback for VIEW_STATS_SET
 	let statsSetCallback = assert.async(1);
 	function checkStats() {
 		currentStats = pageCharacterDetailsView.characterDetails.getCharacterDetailsJson();

@@ -167,8 +167,7 @@ export default class PageController {
 
 			if (success === true) {
 				// Try to save the returned character details
-				let charData = data['char-data'];
-				if (this.saveCharacterData(charData)) {
+				if (this.saveCharacterData(data)) {
 					Session.ActiveSession.setClientSessionData(data);
 					this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
 				}
@@ -179,7 +178,7 @@ export default class PageController {
 			}
 			
 		} else {
-			throw new RangeError(INVALID_JSON_CHARACTER_UPDATE);
+			throw new RangeError(INVALID_JSON_CHARACTER_UPDATE + ' : ' + JSON.stringify(data));
 		}
 	}
 
@@ -195,7 +194,6 @@ export default class PageController {
 			return true;
 		} else {
 			throw new RangeError(INVALID_JSON_CHARACTER_DATA);
-			return false;
 		}
 	}
 
@@ -209,7 +207,7 @@ export default class PageController {
 
 	//	Handles a movement response (success/fail) for this client's move action
 	handleMovementResponse (responseJSON) {
-		var success = responseJSON['success'];
+		let success = responseJSON['success'];
 
 		//	Let the player know if their move is invalid/unsuccessful
 		if (!success) {
@@ -225,7 +223,7 @@ export default class PageController {
 	submitPassword (username) {
 		// If we'd rather grab from the session we can use this
 		//var username = Session.ActiveSession.getSessionInfoJSON().username;
-		var passwordInput = this.pageChatView.getPasswordInput();
+		let passwordInput = this.pageChatView.getPasswordInput();
 
 		if (username !== null && passwordInput !== '') {
 			this.SOCKET_HANDLER.sendAuthentication(username, passwordInput);

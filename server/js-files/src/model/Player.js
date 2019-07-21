@@ -1,4 +1,4 @@
-import MapCharacter from 'src/model/pixi/map/MapCharacter.js';
+import MapCharacter from 'src/model/pixi/map/MapCharacter.js'
 
 export const INVALID_USERNAME_MSG = 'Cannot set invalid username: ';
 
@@ -44,6 +44,11 @@ export default class Player {
 
 	setCharacter(mapCharacter) {
 		this.mapCharacter = mapCharacter;
+	}
+
+	updateFromJson(jsonData) {
+		this.setUsername(jsonData['username']);
+		this.getCharacter().setCharacterDetails(jsonData['character']);
 	}
 
 	static validUsername(username) {

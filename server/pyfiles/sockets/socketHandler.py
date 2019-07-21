@@ -262,11 +262,15 @@ class SocketHandler:
                     #Update every client to the new movement
                     logging.debug('OUT| movement UPDATE')
                     emit('movement-update', {
-                        'username':username,
-                        'old_x':old_x,
-                        'old_y':old_y,
-                        'pos_x':new_pos[0],
-                        'pos_y':new_pos[1]
+                        'username': username,
+                        'old_position': {
+                            'pos_x': old_x,
+                            'pos_y': old_y
+                        },
+                        'position': {
+                            'pos_x': new_pos[0],
+                            'pos_y': new_pos[1]
+                        }
                     }, broadcast=True)
 
                     logging.info('movement success for'+found_player.username)
@@ -296,13 +300,15 @@ class SocketHandler:
                     username = message['sessionJson']['username']
 
                     character_data = playerController.get_character_json(username)
-
-
                 else:
                     logging.info('Invalid character update data')
 
                 logging.info('OUT| character-details-update '+str(character_data))
-                emit('character-details-update', {'success': UPDATE_SUCCESS, 'char-data': character_data}, room=request.sid)
+                character_details_update = {
+                    'success': UPDATE_SUCCESS,
+                    'character': character_data['character']
+                }
+                emit('character-details-update', character_details_update, room=request.sid)
             else:
                 logging.info('IN| (CHAR-STATS) stats save attempted for invalid session. SID: ' + str(request.sid))
         else:

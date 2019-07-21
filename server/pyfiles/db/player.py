@@ -8,19 +8,37 @@ class Player(db_instance.DatabaseInstance._database.Entity):
     password = Required(str)
     character = Optional(character.Character)
 
+    def get_username(self) -> str :
+        return self.username
+
+    def set_username(self, this_username) -> None:
+        if this_username is not None:
+            self.username = this_username
+
+    def get_password(self) -> str :
+        return self.password
+
+    def set_password(self, this_password) -> None:
+        if this_password is not None:
+            self.password = this_password
+
+    def get_character(self) -> character.Character:
+        return self.character
+
+    def set_character(self, this_character) -> None:
+        if this_character is not None:
+            self.character = this_character
 
     """ 
         Returns player data needed for the client as a dict/JSON format
         This gets given to the client as a status response for a player
     """
-    @db_session
     def get_json(self) -> dict:
         this_player = Player[self.username] #find the database entity for this (allows db_session)
 
-        response = {'username': this_player.username}
-        if this_player.character is not None:
-            char_details = {'char-details' : this_player.character.get_json()}
-            response.update(char_details)
+        response = {'username': self.username}
+        if self.character is not None:
+            response.update(self.character.get_json())
 
         logging.debug('OUT| playerJSON: '+str(response))
         return response

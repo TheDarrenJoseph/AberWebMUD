@@ -386,7 +386,7 @@ export default class PageCharacterDetailsView  extends EventMapping {
 
 	/**
 	 * Gets the current stats being displayed
-	 * @returns {{charclass: *, attributes: *, charname: *}}
+	 * @returns {{charclass: *, attributeScores: *, charname: *}}
 	 */
 	getViewStats () {
 		return {
@@ -417,10 +417,13 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	 */
 	setStatsFromJsonResponse (statsValuesJson) {
 		if (DEBUG) console.log('Displaying stats:'+JSON.stringify(statsValuesJson));
-		this.setStatsCharacterName(statsValuesJson['charname']);
-		let classOption = this.getClassOptionIndex(statsValuesJson['charclass']);
+
+		let characterJson = statsValuesJson['character'];
+
+		this.setStatsCharacterName(characterJson['charname']);
+		let classOption = this.getClassOptionIndex(characterJson['charclass']);
 		this.setStatsCharacterClass(classOption);
-		this.setAttributes(statsValuesJson['attributes']);
+		this.setAttributes(characterJson['attributes']);
 
 
 		// TODO Assign free points to something as we don't have a field yet

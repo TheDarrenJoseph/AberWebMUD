@@ -1,4 +1,6 @@
-var MOVEMENT_UPDATE_ATTRIBS = ['username', 'old_x', 'old_y', 'pos_x', 'pos_y'];
+var MOVEMENT_UPDATE_ATTRIBS = ['username', 'old_position', 'position'];
+var POSITION_TYPE_ATTRIBS = ['old_position', 'position'];
+var POSITION_ATTRIBS = [ 'pos_x', 'pos_y']
 
 /**
  * Static data validation helper methods
@@ -8,13 +10,12 @@ export default class ValidationHandler {
 	/**
 	 *
 	 * @param data the JSON data to check
-	 * @param attributeNamesArray an array of the attributes to check data for
+	 * @param attributeNamesArray an array of the attributeScores to check data for
 	 * @returns {boolean}
 	 */
 	static checkDataAttributes(data, attributeNamesArray) {
-		var dataDefined = (ValidationHandler.notUndefOrNull(data) &&
-		data.constructor == Object &&
-		Object.keys(data).length > 0);
+		var dataDefined = (ValidationHandler.notUndefOrNull(data) && data.constructor == Object && Object.keys(data).length > 0);
+
 		var attribsDefined = (ValidationHandler.notUndefOrNull(attributeNamesArray) &&
 		attributeNamesArray instanceof Array &&
 		attributeNamesArray.length > 0);
@@ -55,7 +56,17 @@ export default class ValidationHandler {
 	 */
 	static isValidMovementUpdateData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
-			return (ValidationHandler.checkDataAttributes(updateJSON, MOVEMENT_UPDATE_ATTRIBS));
+			let topLevelAttribsExist = (ValidationHandler.checkDataAttributes(updateJSON, MOVEMENT_UPDATE_ATTRIBS));
+
+			if (topLevelAttribsExist) {
+				let positionAttribsExist = true;
+
+				POSITION_TYPE_ATTRIBS.forEach( key => 	{
+					if (!ValidationHandler.checkDataAttributes(updateJSON[key], POSITION_ATTRIBS)) positionAttribsExist = false
+				});
+
+				return topLevelAttribsExist && positionAttribsExist;
+			}
 		}
 		
 		return false;

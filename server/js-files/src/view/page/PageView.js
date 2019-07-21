@@ -11,6 +11,8 @@ var EVENTS = {};
 const _MAIN_WINDOW_ID = 'main-window';
 const _GAME_WINDOW_ID = 'game-window';
 
+const DEBUG = false;
+
 //	General UI Page View
 // This is the main page view and builds the parent div for all others
 //	Binding to click / key events using jQuery and controlling the overall UI elements
@@ -41,7 +43,7 @@ export class PageView extends EventMapping {
 	appendToMainWindow(domElement) {
 		if (this.getMainWindow() !== null) {
 			if (domElement instanceof Element) {
-				console.log('Appending element to the main window: ' + domElement.id);
+				if (DEBUG) console.log('Appending element to the main window: ' + domElement.id);
 				this.getMainWindowJquery().append(domElement);
 			} else {
 				console.log('Wrapping main window element in a new div');
@@ -61,7 +63,7 @@ export class PageView extends EventMapping {
 	appendToGameWindow(domElement) {
 		if (this.getGameWindow() !== null) {
 			if (domElement instanceof Element) {
-				console.log('Appending element to the main window: ' + domElement.id);
+				if (DEBUG) console.log('Appending element to the game window: ' + domElement.id);
 				this.getGameWindowJquery().append(domElement);
 			} else {
 				console.log('Wrapping game window element in a new div');
@@ -89,14 +91,14 @@ export class PageView extends EventMapping {
 		let gameWindow = this.getGameWindow();
 
 		if (mainWindow == null) {
-			console.log('Creating main window..');
+			if (DEBUG) console.log('Creating main window..');
 			mainWindow = this.doc.createElement('div');
 			mainWindow.setAttribute('id', _MAIN_WINDOW_ID);
 			this.appendToDocumentBody(mainWindow);
 		}
 
 		if (mainWindow !== null && gameWindow == null) {
-			console.log('Creating game window..');
+			if (DEBUG) console.log('Creating game window..');
 			gameWindow = this.doc.createElement('div');
 			gameWindow.setAttribute('id',_GAME_WINDOW_ID);
 			mainWindow.appendChild(gameWindow);

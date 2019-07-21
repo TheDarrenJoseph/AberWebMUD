@@ -2,7 +2,17 @@ import ValidationHandler from 'src/handler/ValidationHandler.js';
 
 var TEST_TAG = '|VALIDATION-HANDLER|';
 
-const VALID_MOVEMENT_UPDATE = {'username':'testy','old_x':1, 'old_y':1,'pos_x':2,'pos_y':2};
+const VALID_MOVEMENT_UPDATE = {
+	'username': 'testy',
+	'old_position': {
+		'pos_x': 1,
+		'pos_y': 1
+	},
+	'position': {
+		'pos_x': 2,
+		'pos_y': 2
+	}
+};
 
 function beforeAll (assert) {
 	// DO SOME STUFF
@@ -159,12 +169,12 @@ TEST_TAG + 'isValidMovementUpdateData_bad', function (assert) {
 
 	// Stringify and parse the valid data to clone it;
 	let invalidDataOldX = JSON.parse(JSON.stringify(VALID_MOVEMENT_UPDATE));
-	invalidDataOldX.old_x = undefined;
-	assert.notOk(ValidationHandler.isValidMovementUpdateData(invalidDataOldX), 'Check no old_x fails validation');
+	invalidDataOldX.old_position.pos_x = undefined;
+	assert.notOk(ValidationHandler.isValidMovementUpdateData(invalidDataOldX), 'Check no old pos_x fails validation');
 
 	let invalidDataOldY = JSON.parse(JSON.stringify(VALID_MOVEMENT_UPDATE));
-	invalidDataOldY.old_y = undefined;
-	assert.notOk(ValidationHandler.isValidMovementUpdateData(invalidDataOldY), 'Check no old_y fails validation');
+	invalidDataOldY.old_position.pos_y = undefined;
+	assert.notOk(ValidationHandler.isValidMovementUpdateData(invalidDataOldY), 'Check no old pos_y fails validation');
 });
 
 QUnit.test(

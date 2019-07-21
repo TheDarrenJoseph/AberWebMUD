@@ -4,7 +4,9 @@ from pony.orm import Required, db_session
 from pyfiles.db import db_instance
 from pyfiles import jsonChecker
 
+
 class Attributes(db_instance.DatabaseInstance._database.Entity):
+    # 1-1 Reverse attribute
     character = Required('Character')
     free_points = Required(int, default=5)
     str_val = Required(int, default=1)
@@ -61,16 +63,16 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
 
     @db_session
     def get_json(self) -> dict:
-        attributes = {
+        attributes = {'attributes': {
             'free_points': self.free_points,
             'scores': {
-				'STR':self.str_val,
-				'DEX':self.dex_val,
-				'CON':self.con_val,
-				'INT':self.int_val,
-				'WIS':self.wis_val,
-				'CHA':self.cha_val
-            }
+                'STR': self.str_val,
+                'DEX': self.dex_val,
+                'CON': self.con_val,
+                'INT': self.int_val,
+                'WIS': self.wis_val,
+                'CHA': self.cha_val
+            }}
         }
 
         logging.debug(attributes)
