@@ -22,7 +22,7 @@ class Player(db_instance.DatabaseInstance._database.Entity):
         if this_password is not None:
             self.password = this_password
 
-    def get_character(self) -> character.Character:
+    def get_character(self):
         return self.character
 
     def set_character(self, this_character) -> None:
@@ -34,7 +34,7 @@ class Player(db_instance.DatabaseInstance._database.Entity):
         This gets given to the client as a status response for a player
     """
     def get_json(self) -> dict:
-        this_player = Player[self.username] #find the database entity for this (allows db_session)
+        #this_player = Player[self.username] #find the database entity for this (allows db_session)
 
         response = {'username': self.username}
         if self.character is not None:

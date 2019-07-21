@@ -47,8 +47,16 @@ export default class Player {
 	}
 
 	updateFromJson(jsonData) {
-		this.setUsername(jsonData['username']);
-		this.getCharacter().setCharacterDetails(jsonData['character']);
+		if (jsonData.hasOwnProperty('username')) {
+			this.setUsername(jsonData['username']);
+		} else {
+			throw new RangeError (' Expected property \'username\' in jsonData: ' + JSON.stringify(jsonData));
+		}
+
+		// Optional parameter
+		if (jsonData.hasOwnProperty('character')) {
+			this.getCharacter().setCharacterDetails(jsonData['character']);
+		}
 	}
 
 	static validUsername(username) {

@@ -1,7 +1,6 @@
 from pyfiles.db import db_instance, attributes   #position, player, database
 from pony.orm import Required, Optional, db_session
 
-
 class Character(db_instance.DatabaseInstance._database.Entity):
     # char_id = PrimaryKey(int, auto=True)
     charname = Required(str, unique=True)
@@ -19,14 +18,14 @@ class Character(db_instance.DatabaseInstance._database.Entity):
         if charname is not None:
             self.charname = charname
 
-    def get_player(self) -> player.Player:
+    def get_player(self):
         return self.player
 
     def set_player(self, this_player) -> None:
         if this_player is not None:
             self.player = this_player
 
-    def get_position(self) -> position.Position:
+    def get_position(self):
         return self.position
 
     def set_position(self, this_position) -> None:

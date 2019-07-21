@@ -93,16 +93,14 @@ export class GameControllerClass {
 		try {
 			// Save this data for our session
 			Session.ActiveSession.setClientSessionData(data);
-		} catch (err) {
-			if (err === ERROR_LOGIN_RS_MISSING_CHARDETAILS) {
+			if (!data.hasOwnProperty('character')) {
 				this.viewController.pageController.getPageChatView().updateMessageLog('Player Character details not present, please enter them..', 'client');
 				this.viewController.pageController.getPageCharacterDetailsView().requestCharacterDetails();
-
-			} else {
-				let errMsg = 'Unexpected error when handling login response data.';
-				this.viewController.pageController.getPageChatView().updateMessageLog(errMsg, 'client');
-				console.log(errMsg + ' : ' + err);
 			}
+		} catch (err) {
+			let errMsg = 'Unexpected error when handling login response data.';
+			this.viewController.pageController.getPageChatView().updateMessageLog(errMsg, 'client');
+			console.log(errMsg + ' : ' + err);
 		}
 	}
 

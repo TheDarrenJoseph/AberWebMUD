@@ -183,6 +183,22 @@ export default class CharacterDetails extends EventMapping {
 
 	};
 
+	getCharacterName() {
+		return this.charname;
+	}
+
+	setCharacterName(charname) {
+		this.charname = charname;
+	}
+
+	getCharacterClass() {
+		return this.charclass;
+	}
+
+	setCharacterClass(charclass) {
+		this.charclass = charclass;
+	}
+
 	getAttributes () {
 		return this.attributeScores;
 	}
@@ -215,11 +231,10 @@ export default class CharacterDetails extends EventMapping {
 
 	static isValidCharacterUpdateData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
-			let bodyValid = ValidationHandler.checkDataAttributes(updateJSON, CHARACTER_UPDATE_ATTRIBS);
-			if (bodyValid) {
-				let contentValid = CharacterDetails.isValidCharacterData(updateJSON);
-				return bodyValid && contentValid;
-			}
+			return ValidationHandler.checkDataAttributes(updateJSON, CHARACTER_UPDATE_ATTRIBS);
+			//if (bodyValid) {
+				//let contentValid = CharacterDetails.isValidCharacterData(updateJSON);
+			//}
 		}
 
 		return false;

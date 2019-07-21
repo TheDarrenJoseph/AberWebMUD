@@ -288,25 +288,24 @@ class SocketHandler:
         if 'sessionJson' in message and 'username' in message['sessionJson']:
             sessionData = [message['sessionJson']['username'], request.sid]
             if all(self.valid_player_session(sessionData[0], sessionData[1])):
-                UPDATE_SUCCESS = False
+                update_success = False
                 character_data = {}
 
                 #Check the details and emit a response based on that
                 if userInput.validate_character_update(message):
                     logging.info('Updating char details: '+str(message))
-                    UPDATE_SUCCESS = characterController.update_character_details(message)
-                    logging.info('CHARACTER UPDATE SUCCESS: '+str(UPDATE_SUCCESS))
-
+                    update_success = characterController.update_character_details(message)
+                    logging.info('CHARACTER UPDATE SUCCESS: '+str(update_success))
                     username = message['sessionJson']['username']
 
-                    character_data = playerController.get_character_json(username)
+                    character_data = playerController.get_character_json(username)['character']
                 else:
                     logging.info('Invalid character update data')
 
                 logging.info('OUT| character-details-update '+str(character_data))
                 character_details_update = {
-                    'success': UPDATE_SUCCESS,
-                    'character': character_data['character']
+                    'success': update_success,
+                    'character': character_data
                 }
                 emit('character-details-update', character_details_update, room=request.sid)
             else:

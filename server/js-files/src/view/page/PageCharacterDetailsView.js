@@ -70,6 +70,17 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	 * Emits the data for this view.
 	 */
 	submitStats() {
+		let displayedCharname  =  this.getStatsCharacterNameVal();
+		let displayedCharclass =  this.getStatsCharacterClass();
+		let displayedAttribs   = this.getAttributes();
+
+		// Update the underlying data model before we submit it
+		let currentDetails = this.characterDetails;
+		currentDetails.setCharacterName(displayedCharname);
+		currentDetails.setCharacterClass(displayedCharclass);
+		currentDetails.setAttributes(displayedAttribs);
+
+		// Extract the JSON representation and send that
 		let statsData = this.characterDetails.getCharacterDetailsJson();
 		this.emit(EVENTS.SUBMIT_STATS, statsData);
 	}
@@ -78,6 +89,7 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	 * Binds to any events this view needs to react to w/o emitting
 	 */
 	bindEvents () {
+
 		// Ensure we update our view whenever the model is updated
 		this.characterDetails.on(characterDetailsEvents.SET_DETAILS, () => {
 			if (DEBUG) console.log('Updating character details view..')
@@ -336,7 +348,6 @@ export default class PageCharacterDetailsView  extends EventMapping {
 
 	requestCharacterDetails () {
 		this.pageView.showWindow('statWindowId');
-		this.updateStatsInfoLog(SET_CHARDETAILS_PROMPT_MESSAGE, 'client');
 	}
 
 	getStatsCharacterNameVal () {
@@ -381,7 +392,7 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	clearAll() {
 		this.setStatsCharacterName('');
 		this.setStatsCharacterClass(0);
-		this.setAttributes(this.characterDetails.getAttributes());
+		this.setAttributes(DEFAULT_ATTRIBUTES);
 	}
 
 	/**
@@ -396,10 +407,25 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		};
 	}
 
-	//	Takes a JSON object of form: {'STR':1,'DEX':2,...} and sets the value fields to match
+	getAttributes() {
+		let ATTRIB_NAMES = Object.keys(DEFAULT_ATTRIBUTES);
+
+		// TODO extract a real field value for free_points
+		let freePoints = 0;
+		let attributes = { 'scores' : {}, 'free_points' : freePoints};
+
+		for (var i = 0; i < ATTRIB_INPUT_IDS.length; i++) {
+			let fieldId = '#' + ATTRIB_INPUT_IDS[i];
+			// Set the value of the first match for our field
+			let attribValue = jquery(fieldId, this.doc).val();
+			attributes['scores'][ATTRIB_NAMES[i]] = attribValue;
+		}
+
+		return attributes;
+	}
 
 	/**
-	 * Displays a series of stats for the character details
+	 * Displays a series of attributes for the character details
 	 * @param attrValuesJSON JSON mapping of attribute names to integer values
 	 */
 	setAttributes (attrValuesJSON) {

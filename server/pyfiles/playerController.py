@@ -32,6 +32,8 @@ def get_character_json(username: str) -> dict or None:
             this_json = this_player.character.get_json()
             logging.info('Found character JSON: '+str(this_json))
             return this_json
+    else:
+        logging.error('Could not find a character for the given username: ' + username)
     return None
 
 """

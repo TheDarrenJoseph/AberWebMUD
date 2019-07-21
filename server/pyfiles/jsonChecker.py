@@ -24,30 +24,38 @@ def character_attribues_exist(attributes : dict) -> bool:
     and key_and_data_exists(attributes, 'CHA')
     return ATTRIBUTES_PRESENT
 
+def check_for_attribute(data : dict, attrib_name : str) :
+    if not key_and_data_exists( data, attrib_name ) :
+        logging.error('Missing expected attribute \'' + attrib_name + '\'')
+        return False
+    return True
+
 def character_details_exist(characterJson : dict) -> bool:
     """ Checks that the character update JSON data exists in the correct format
         EXAMPLE DATA:
         {'data': {'charname': 'Ragnar', 'charclass': 'fighter', 'attributes': {'STR': '1', 'DEX': '1', 'CON': '1', 'INT': '1', 'WIS': '1', 'CHA': '1'}},
         'sessionJson': {'sessionId': 'saa2231sad2121', 'username': 'test'}}
-
     """
-    if key_and_data_exists(characterJson, 'data'):
-        if key_and_data_exists(characterJson, 'sessionJson'):
-            charData = characterJson['data']
-            charDetails = characterJson['sessionJson']
+    if check_for_attribute(characterJson, 'data'):
+        if check_for_attribute(characterJson, 'sessionJson'):
 
-            USERNAME_PRESENT = key_and_data_exists(charDetails, 'username')
-            logging.info('USERNAME PRESENT - '+str(USERNAME_PRESENT))
+            user_data = characterJson['data']
+            chardata_present = check_for_attribute(user_data, 'character')
 
-            ALL_DATA_PRESENT = key_and_data_exists(charData, 'charname') \
-            and key_and_data_exists(charData, 'charclass') \
-            and key_and_data_exists(charData, 'attributes')
-            logging.info('ALL DATA PRESENT - '+str(ALL_DATA_PRESENT))
+            if (chardata_present):
+                char_data = user_data['character']
+                session_json = characterJson['sessionJson']
 
-            #If both are valid, check for attributes
-            if USERNAME_PRESENT and ALL_DATA_PRESENT:
-                ATTRIBUTES_PRESENT = character_attribues_exist(charData['attributes'])
+                USERNAME_PRESENT = check_for_attribute(session_json, 'username')
+                ALL_DATA_PRESENT = check_for_attribute(char_data, 'charname') \
+                and check_for_attribute(char_data, 'charclass') \
+                and check_for_attribute(char_data, 'position') \
+                and check_for_attribute(char_data, 'health') \
+                and check_for_attribute(char_data, 'attributes')
 
-                logging.info('ATTRIBUTES PRESENT - '+str(ATTRIBUTES_PRESENT))
-                return ATTRIBUTES_PRESENT
+                #If both are valid, check for attributes
+                if USERNAME_PRESENT and ALL_DATA_PRESENT:
+                    FREEPOINTS_PRESENT = check_for_attribute(char_data['attributes'], 'free_points')
+                    ATTRIBUTES_PRESENT = character_attribues_exist(char_data['attributes']['scores'])
+                    return FREEPOINTS_PRESENT and ATTRIBUTES_PRESENT
     return False
