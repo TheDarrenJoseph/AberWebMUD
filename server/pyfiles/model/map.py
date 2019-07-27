@@ -1,5 +1,4 @@
-from pyfiles.model import mapTile
-from pyfiles.db import position
+from pyfiles.model import tileEnum
 
 # Shared size constants
 MIN_SIZE_X = 1
@@ -9,9 +8,6 @@ MAX_SIZE_Y = 100
 
 # A literal tile map model
 class Map:
-    map_size_x = None
-    map_size_y = None
-    map_tiles = []
 
     def is_traversible(self, x : int, y : int) -> bool:
         """ Checks both map bounds and traversibility for a given co-ord """
@@ -32,20 +28,26 @@ class Map:
         # validate/update map size
         self.assign_size(map_size_x, map_size_y)
 
+        print(str(self.map_size_x) + ' ' + str(self.map_size_y))
+
         for x in range(self.map_size_x):
             self.map_tiles.append([]) #Appending a new list to allow indexing
-            for y in range(map_size_y):
+            for y in range(self.map_size_y):
                 self.map_tiles[x].append([])
 
                 # Create a new default tile
-                map_tile = mapTile.MapTile()
+                map_tile = tileEnum.TileEnum.grass_plain
 
                 #Adding a random barrier tile for testing the map
                 if x == 5 and y == 5:
-                    map_tile = mapTile.MapTile(1, "dummy-1", False)
+                    map_tile = tileEnum.TileEnum.grass_bush
 
                 self.map_tiles[x][y] = map_tile
 
     def __init__(self, map_size_x=20, map_size_y=20):
+        self.map_size_x = None
+        self.map_size_y = None
+        self.map_tiles = []
+
         print ("New map attempt: "+str(map_size_x)+str(map_size_y))
         self.create_map(map_size_x, map_size_y)

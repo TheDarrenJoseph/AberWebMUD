@@ -13,6 +13,8 @@ export var DEFAULT_TILE_MAPPINGS = ['grass-plain', 'barn-front'];
 var DEFAULT_WINDOW_SIZE_PIXELS = 500;
 var DEFAULT_WINDOW_SIZE = DEFAULT_WINDOW_SIZE_PIXELS / DEFAULT_TILE_SIZE;
 
+const DEBUG = true;
+
 export default class PixiMapView {
 
 	/**
@@ -172,8 +174,54 @@ export default class PixiMapView {
 				// Add the map tile sprites to the mapContainer
 				let mapTileSprite = this.mapModel.getTile(x, y).getSprite();
 				if (mapTileSprite !== undefined && mapTileSprite !== null) {
-					this.mapContainer.addChild(mapTileSprite);
+					let addedSprite = this.addSpriteToContainer(this.mapContainer, mapTileSprite);
 				}
+			}
+		}
+	}
+
+	getChildIndex(container, sprite) {
+		try {
+			let index = container.getChildIndex(sprite)
+			return index;
+		} catch (error) {
+			return -1;
+		}
+	}
+
+	isSpriteInContainer(container, sprite) {
+		return (this.getChildIndex(container, sprite) > 0);
+	}
+
+	getSpriteInMapContainer(sprite) {
+		if (this.isSpriteInContainer(this.mapContainer, sprite)) {
+			let childIndex = this.getChildIndex(this.mapContainer, oldSprite);
+			let displayObject = this.mapContainer.getChildAt(childIndex);
+			return displayObject;
+		}
+
+		throw new RangeError('Could not find the sprite in map container: ' + sprite.name);
+	}
+
+	addSpriteToContainer(container, sprite) {
+		if (this.isSpriteInContainer(container, sprite)) {
+			throw new RangeError('Sprite already exists in map container at the following index: ' + childIndex);
+		}
+
+		return container.addChild(sprite);
+	}
+
+	updateSpriteInContainer(container, oldSprite, newSprite) {
+
+		let spritesMatch = tileSprite === currentSprite;
+		if (!spritesMatch) {
+			if (this.isSpriteInContainer(container, oldSprite)) {
+				let childIndex = this.getChildIndex(container, oldSprite);
+				let removedObject = container.removeChildAt(childIndex);
+				let addedObject = container.addChildAt(newSprite, childIndex);
+				if (DEBUG) console.log('Updated map container object. Removed: ' + removedObject.name + ', added: ' + addedObject.name);
+			} else {
+				throw new RangeError('Could not find the sprite to update it: ' + oldSprite.name);
 			}
 		}
 	}
@@ -273,18 +321,24 @@ export default class PixiMapView {
 
 					// Try simply adding the sprite if it's set
 					if (playerSprite != undefined && playerSprite != null) {
-						this.mapContainer.addChild(playerSprite);
+						if (!this.isSpriteInContainer(this.mapContainer, playerSprite)) {
+							this.addSpriteToContainer(this.mapContainer, playerSprite);
+						}
+
+						if (DEBUG) console.log('Drawing local pos: ' + x + ', ' + y + '. Sprite pos: ' + playerSprite.x + ', ' + playerSprite.y + '. ')
 					}
 				}
 			}
 		}
 	}
 
+
+
 	/**
 	 * Draws the Map Tiles to the map view
 	 * @returns a Promise for as many Sprites as we've needed to create
 	 */
-	async drawMapTiles() {
+	drawMapTiles() {
 		let spritePromises = new Array();
 
 		// Clear the map display container first
@@ -306,16 +360,35 @@ export default class PixiMapView {
 
 						// Get a Sprite if needed and update what's set
 						if (tileSprite == undefined || tileSprite == null) {
-								tileSprite = await this.promiseSpriteForTile(tileType, x, y);
-								mapTile.setSprite(tileSprite)
+								//tileSprite = await this.promiseSpriteForTile(tileType, x, y);
+								let spritePromise = this.promiseSpriteForTile(tileType, x, y);
+								spritePromises.push(spritePromise);
+
+								spritePromise.then((thisSprite) => {
+										mapTile.setSprite(thisSprite);
+										this.addSpriteToContainer(this.mapContainer, thisSprite);
+								}, reason => {
+										console.error('Map tile promise rejected with reason: ' + reason);
+								});
+						} else {
+							let currentSprite = this.getSpriteInMapContainer(tileSprite);
+
+							if (!spritesMatch) {
+								if (currentSprite !== undefined && currentSprite !== null) {
+									this.updateSpriteInContainer(this.mapContainer, currentSprite, tileSprite);
+								} else {
+									this.addSpriteToContainer(this.mapContainer, thisSprite);
+								}
+							}
 						}
 
-						this.mapContainer.addChild(tileSprite);
 				}
 			}
 		}
 
-		return Promise.all(spritePromises).then(() => { this.renderMapContainer });
+		return Promise.all(spritePromises).then((values) => {
+			this.renderMapContainer()
+		});
 	}
 
 	/**

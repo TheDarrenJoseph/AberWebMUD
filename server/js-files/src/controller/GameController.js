@@ -16,7 +16,15 @@ export class GameControllerClass {
 		this.socketHandler = SocketHandler.getInstance();
 		this.viewController = new ViewController();
 	}
-	
+
+	getSocketHandler() {
+		return this.socketHandler;
+	}
+
+	getViewController() {
+		return this.viewController;
+	}
+
 	onConnected(socket) {
 		this.socket = socket;
 		this.bindComponents();

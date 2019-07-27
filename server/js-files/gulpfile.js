@@ -181,10 +181,18 @@ function build (cb) {
 function buildAndWatchFiles(cb) {
 	cleanInputFiles()
 	cleanOutputFiles();
-	build();
-	console.log('Watching for changes..');
-	watch("src/**/*.js", series(cleanInputFiles, cleanOutputFiles, buildMain));
-	watch("test/**/*.js", series(cleanInputFiles, cleanOutputFiles, genTestMainFile, buildTest));
+	genTestMainfile();
+	build(() => {
+		console.log('Build complete..')
+	}).then(() => {
+		console.log('Watching for changes..');
+		watch("src/**/*.js", series(cleanInputFiles, cleanOutputFiles, buildMain));
+		watch("test/**/*.js", series(cleanInputFiles, cleanOutputFiles, genTestMainfile, buildTest));
+		cb();
+	}).catch((reason) => {
+		console.log('Build and watch failed: ' + reason);
+		cb();
+	})
 }
 
 console.log('=== AberWebMUD JS Client ===')
