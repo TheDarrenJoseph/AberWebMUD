@@ -149,9 +149,9 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_failed', function (assert) 
 	//assert.equal(pageCharacterDetailsView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update failed if the response says so.');
 	var statsInfoFieldVal = pageCharacterDetailsView.getStatsInfoFieldValue();
 	let failureMessageThere = (statsInfoFieldVal.indexOf(expectedMessage) !== -1);
-	let promptMessageThere = (statsInfoFieldVal.indexOf(SET_CHARDETAILS_PROMPT_MESSAGE) !== -1);
+	let promptMessageThere = (statsInfoFieldVal.indexOf(CHARACTER_UPDATE_FAILURE_MESSAGE) !== -1);
 	assert.ok(failureMessageThere, 'Check we alert the user that the details have failed to submit.');
-	assert.ok(promptMessageThere, 'Check we prompt for character details on a failure.');
+	assert.ok(promptMessageThere, 'Check we mention there was a failure if the response says so.');
 
 	// +1 expectation for this assertion
 	assert.expect(3);
