@@ -64,6 +64,12 @@ export default class SocketHandler {
 		this.emit('client-auth', {'username': username, 'password': passwordFieldVal});
 	}
 
+	validateSessionId(currentSid) {
+		console.log('Validating current SID: ' + currentSid);
+		// Bypass our nice emit wrappering
+		this.io.emit('validate-sid', currentSid)
+	}
+
 	handleDisconnect() {
 		console.log('SocketIO Socket disconnected.');
 	}
@@ -87,6 +93,11 @@ export default class SocketHandler {
 		this.io.on(DISCONNECTION_EVENT, () =>{ this.handleDisconnect() });
 		this.io.on(DISCONNECTION_EVENT, () =>{ this.handleReconnect() });
 
+	}
+
+	reconnectSocket(url, callback) {
+		this.io.disconnect();
+		this.connectSocket(url, callback);
 	}
 
 	//	Handlers for io events

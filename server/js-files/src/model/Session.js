@@ -9,6 +9,9 @@ export const EXPECTED_LOGIN_SUCCESS_PARAMS = ['sessionId', 'player-status'];
 export const ERROR_LOGIN_RS_MISSING_USERNAME = new RangeError('Username missing on login response!')
 export const ERROR_LOGIN_RS_MISSING_CHARDETAILS = new RangeError('Character details missing on login response!')
 
+// January 1, 1970, 00:00:00 UTC
+const EPOCH_DATE = Date(0);
+
 /**
  * Once connected to the server we need to store a few things
  * i.e The SessionID token, Player Details, etc
@@ -69,7 +72,7 @@ class SessionModel {
 		this.clientSession.sessionId = sessionId;
 	}
 
-	//getCharacterDetails () {F
+	//getCharacterDetails () {
 	//	return this.clientSession.characterDetails;
 	//}
 
@@ -78,10 +81,23 @@ class SessionModel {
 	//}
 
 	saveSessionIdCookie (sessionId) {
+		let expiryDate = new Date();
+		// Increment the day by one, Date will handle rollover
+		expiryDate.setHours(expiryDate.getHours() + 1);
+
 		this._checkSessionId(sessionId)
-		console.log('Saving sessionId ' + sessionId + ' to cookie');
-		Session.ActiveSession.doc.cookie = SESSION_ID_COOKIE_NAME + '=' + sessionId + ';';
+		console.log('Saving sessionId ' + sessionId + ' to cookie' + ' with expiry: ' + expiryDate);
+		Session.ActiveSession.doc.cookie = SESSION_ID_COOKIE_NAME + '=' + sessionId + ';' + 'expires=' + expiryDate;
 	};
+
+	deleteSessionIdCookie() {
+		let cookieSid = this.getSessionIdCookie();
+
+		if (cookieSid != null) {
+			console.log('Removing cookie for SID: ' + cookieSid);
+			Session.ActiveSession.doc.cookie = SESSION_ID_COOKIE_NAME + '=;expires=' + EPOCH_DATE;
+		}
+	}
 
 	getSessionIdCookie () {
 		var decodedCookie = decodeURIComponent(Session.ActiveSession.doc.cookie);
@@ -93,7 +109,7 @@ class SessionModel {
 			var cookiesList = decodedCookie.split(';');
 
 			let cookieString = String(cookiesList[0].split('=')[1]);
-			console.log('Cookie string: ' + cookieString);
+			//console.log('Cookie string: ' + cookieString);
 			//	Then split out the mapping and return that
 			return cookieString;
 		} else {
@@ -125,6 +141,8 @@ class SessionModel {
 				console.log(cookieSid);
 				this.setSessionId(cookieSid);
 			}
+
+			return this.getSessionId();
 		} else {
 			throw new RangeError('Expected Session ID returned by the server, JSON proviced: ' + JSON.stringify(json));
 		}

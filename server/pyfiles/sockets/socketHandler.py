@@ -13,6 +13,9 @@ from pyfiles.db import database
 
 class SocketHandler:
 
+    def get_rooms(self):
+        return self.socketHandler.server.rooms(sid=request.sid)
+
     """
     Socket 'connect' event handler
     emits a welcome message to the client
@@ -55,6 +58,17 @@ class SocketHandler:
         logging.info('Client with request SID: ' + request.sid + ' left room: ' + left_room + ' joining..')
         leave_room(left_room)
 
+    def validate_sessionid(self, sid):
+        logging.info('Validating SID: ')
+        logging.info(sid)
+        if not sessionHandler.connected_session_exists(sid) and not sessionHandler.active_session_exists(sid):
+            logging.info('Invalid SID, current rooms: ')
+            logging.info(self.get_rooms())
+            emit('invalid-sid', sid, room=request.sid)
+            return False
+        else:
+            return True
+
     """
         Checks for a valid (active) session ID and proxies to the right event handler if true
         callback - the function to pass to if there's an active session
@@ -66,7 +80,8 @@ class SocketHandler:
             if sessionHandler.contains_session_json(data):
                 session_json = data['sessionJson']
                 sid = session_json['sessionId']
-                if sessionHandler.active_session_exists(sid):
+
+                if self.validate_sessionid(sid) and sessionHandler.active_session_exists(sid):
                     logging.info('Proxying event for request SID: '+sid)
                     callback(data)
                 else:
@@ -83,6 +98,8 @@ class SocketHandler:
         self.socketHandler.on_event('disconnect', self.handle_disconnect)
         self.socketHandler.on_event('join', self.handle_join)
         self.socketHandler.on_event('leave', self.handle_leave)
+
+        self.socketHandler.on_event('validate-sid', lambda sid: self.validate_sessionid(sid))
 
         # Messages can be received at any point, so no active session check
         self.socketHandler.on_event('new-chat-message', lambda data: self.handle_message(data))

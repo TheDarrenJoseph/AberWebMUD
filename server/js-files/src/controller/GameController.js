@@ -10,6 +10,8 @@ import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 import { ViewController } from 'src/controller/ViewController.js';
 import { ERROR_LOGIN_RS_MISSING_CHARDETAILS } from '../model/Session.js'
 
+const SERVER_URL = 'http://localhost:5000';
+
 export class GameControllerClass {
 	
 	constructor() {
@@ -32,28 +34,44 @@ export class GameControllerClass {
 	}
 	
 	connect() {
-		this.socketHandler.connectSocket('http://localhost:5000', (socket) => { this.onConnected(socket) });
+		this.socketHandler.connectSocket(SERVER_URL, (socket) => { this.onConnected(socket) });
+	}
+
+	reConnect() {
+		this.socketHandler.reconnectSocket(SERVER_URL, (socket) => { this.onConnected(socket) });
 	}
 
 	bindComponents () {
 		this.viewController.bindComponents();
 		this.bindSocketEvents();
 	}
-	
-	handleSessionLinking (data) {
-		console.log('Session Link established with server..');
 
+	linkSession(data) {
 		// Send the data over to the session controller for linking
-		Session.ActiveSession.linkConnectionToSession(data);
+		let currentSid = Session.ActiveSession.linkConnectionToSession(data);
+		this.socketHandler.validateSessionId(currentSid);
+	}
+
+	handleConnectionResponse (data) {
+		console.log('Session Link established with server..');
+		this.linkSession(data);
 
 		//	Session start welcome message
 		//	Unpack message data and send it to the message log
 		this.viewController.pageController.getPageChatView().setMessageLog(data['messageData']);
 	}
 
+	handleInvalidSid(sessionId) {
+		console.log('Session ID no longer valid: ' + sessionId);
+		Session.ActiveSession.deleteSessionIdCookie();
+		this.reConnect();
+	}
+
 	bindSocketEvents () {
 		//	Link the Session using the sessionId response
-		this.socketHandler.bind('connection-response', (data) => { this.handleSessionLinking(data) } );
+		this.socketHandler.bind('connection-response', (data) => { this.handleConnectionResponse(data) } );
+
+		this.socketHandler.bind('invalid-sid', sidString => this.handleInvalidSid(sidString));
 
 		//this.socketHandler.bind('map-data-response', Session.saveMapUpdate);
 		this.socketHandler.bind('map-data-response', (mapJson) => {
