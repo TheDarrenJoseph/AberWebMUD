@@ -5,10 +5,11 @@ import jquery from 'jquery';
 //import $ from 'libs/jquery.js';
 import { EVENTS as characterDetailsEvents, CLASS_OPTIONS, DEFAULT_ATTRIBUTES, ATTRIB_NAMES, ATTRIB_INPUT_IDS, MIN_ATTRIB_VAL, MAX_ATTRIB_VAL } from 'src/model/page/CharacterDetails.js';
 import { PageView } from 'src/view/page/PageView.js';
-import { EventMapping } from 'src/helper/EventMapping.js';
+import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
 
 // These should be in mostly hierarchical order
-export var _STATS_WINDOW_ID = 'stat-window';
+export const _STATS_WINDOW_ID = 'stat-window';
+
 const _STATS_FORM_ID = 'stat-form';
 const _STATS_TABLE_ID = 'stat-table';
 const _STATS_INFO_FIELD_ID = 'stats-info';
@@ -30,7 +31,7 @@ export const EVENTS = {
 };
 
 // DOM View for the Character Stats dialog window
-export default class PageCharacterDetailsView  extends EventMapping {
+export default class PageCharacterDetailsView  extends PageHtmlView {
 
 	/**
 	 * Construct and manage the HTML view elements for Character Details
@@ -38,21 +39,12 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	 * @param characterDetails CharacterDetails model to display
 	 */
 	constructor (pageView, characterDetails) {
-		super(EVENTS);
+		super(pageView.pageModel.doc, EVENTS, { [_STATS_WINDOW_ID] : '#' + _STATS_WINDOW_ID} );
 
 		// We need to be able to make some calls to show/hide windows etc
 		this.pageView = pageView;
-		// Extract the page view document
-		let doc = this.pageView.pageModel.doc;
-		if (doc == undefined) {
-			throw new RangeError("No Document provided for PageCharacterDetailsView");
-		}
-
-		this.doc = this.pageView.pageModel.doc;
-
 		// Assign the stats window to the main page view windows
-		this.pageView.htmlWindows['statWindowId'] = '#'+_STATS_WINDOW_ID;
-
+		//this.pageView.htmlWindows['statWindowId'] = this.getHtmlIdMapping(_STATS_WINDOW_ID);
 		this.characterDetails = characterDetails;
 	}
 
@@ -113,7 +105,7 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	}
 
 	getStatsWindowJquery() {
-		return jquery('#'+_STATS_WINDOW_ID, this.doc);
+		return jquery(this.getHtmlIdMapping(_STATS_WINDOW_ID), this.doc);
 	}
 
 	getStatsForm() {
@@ -347,7 +339,7 @@ export default class PageCharacterDetailsView  extends EventMapping {
 	}
 
 	requestCharacterDetails () {
-		this.pageView.showWindow('statWindowId');
+		this.showElement(_STATS_WINDOW_ID);
 	}
 
 	getStatsCharacterNameVal () {
@@ -456,6 +448,10 @@ export default class PageCharacterDetailsView  extends EventMapping {
 		// var freePoints = statsValuesJson['free_points']
 
 		this.emit(EVENTS.VIEW_STATS_SET);
+	}
+
+	toggleStatWinVisibility () {
+		this.toggleWindow(_STATS_WINDOW_ID);
 	}
 
 	/**

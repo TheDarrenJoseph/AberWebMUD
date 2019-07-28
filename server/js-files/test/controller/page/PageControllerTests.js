@@ -19,11 +19,12 @@ import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { Session } from 'src/model/Session.js';
 import { Page } from 'src/model/page/Page.js';
 import { EVENTS as pageCharacterDetailsViewEvents, SET_CHARDETAILS_PROMPT_MESSAGE, PageCharacterDetailsView } from 'src/view/page/PageCharacterDetailsView.js';
-import { EVENTS as pageChatEvents, PageChatView } from 'src/view/page/PageChatView.js';
+import { EVENTS as pageChatEvents, PageChatView, _PWD_INPUT_ID } from 'src/view/page/PageChatView.js';
 import { CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
 import { INVALID_USERNAME_MSG } from 'src/model/Player.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { EVENTS as characterDetailsEvents, CharacterDetails } from 'src/model/page/CharacterDetails.js';
+import PageInventoryView from '../../../src/view/page/PageInventoryView'
 
 var TEST_TAG = '|PAGE CONTROLLER|';
 
@@ -57,7 +58,8 @@ function beforeEachTest (assert) {
 	pageCharacterDetailsView = new PageCharacterDetailsView(pageView, charDets);
 	pageChatView = new PageChatView(pageView);
 
-	pageController = new PageController(TEST_DOCUMENT, pageView, pageCharacterDetailsView, pageChatView);
+	let pageInventoryView = new PageInventoryView(TEST_DOCUMENT);
+	pageController = new PageController(TEST_DOCUMENT, pageView, pageCharacterDetailsView, pageChatView, pageInventoryView);
 	// Perform Document based (HTML Elements, etc) setup
 	pageController.setupUI();
 
@@ -233,7 +235,8 @@ QUnit.test(TEST_TAG + 'requestUserPassword_good', function (assert) {
 
 	// 1. Username and prompt is given
 	pageController.requestUserPassword('test', PROMPT);
-	assert.ok(jquery(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
+	//assert.ok(jquery(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
+	assert.ok(pageChatView.isElementVisible(_PWD_INPUT_ID), 'Check the password field is showing');
 	assert.ok(pageChatView.getMessageLogValue().startsWith(PROMPT), 'Check pwd request message.');
 
 	let keyupBinding = jQueryUtils.extractFirstJqueryBinding(pageChatView.getMessageInputField(), 'keyup');
@@ -252,7 +255,7 @@ QUnit.test(TEST_TAG + 'requestUserPassword_bad', function (assert) {
 	// No error thrown but we will be prompted about it.
 	let PROMPT = 'Creating a new user, please enter a password for it: ';
 	pageController.requestUserPassword('', PROMPT);
-	assert.ok(jquery(pageChatView.getPasswordInputFieldJquery()).is(':visible'), 'Check the password field is showing');
+	assert.ok(pageChatView.isElementVisible(_PWD_INPUT_ID), 'Check the password field is showing');
 	assert.ok(pageChatView.getMessageLogValue().startsWith(INVALID_USERNAME_MSG), 'Check pwd request message.');
 
 });

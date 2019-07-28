@@ -6,10 +6,15 @@ import { PageView } from 'src/view/page/PageView.js';
 
 export default class ViewController {
 
-	constructor () {
-		this.pageController = new PageController();
-		this.pixiController = new PixiController(PageView.getWindowDimensions(), this.pageController);
+	constructor (doc) {
 
+		if (doc !== undefined) {
+			this.pageController = new PageController(doc);
+		} else {
+			this.pageController = new PageController();
+		}
+
+		this.pixiController = new PixiController(PageView.getWindowDimensions(), this.pageController);
 
 		// Extract the view for now
 		this.pageView = this.pageController.pageView;
@@ -30,13 +35,21 @@ export default class ViewController {
 		}
 	}
 
-	async setupUI() {
-		//	Get the general UI ready
-		this.canvasView = await this.pixiController.enableUI();
-		this.pageController.enableUI();
-		this.pageController.pageView.appendToGameWindow(this.canvasView);
+	setupUI() {
+		return new Promise( (resolve, reject) => {
+			//	Get the general UI ready
+			let canvasViewPromise = this.pixiController.enableUI();
+			canvasViewPromise.then( canvasView => {
+				console.log('ViewController intialised: ' + canvasView);
+				this.canvasView = canvasView;
 
-		this.resetChatWindow();
+				this.pageController.enableUI();
+				this.pageController.pageView.appendToGameWindow(this.canvasView);
+
+				this.resetChatWindow();
+				resolve(canvasView);
+			}).catch(reject);
+		});
 
 		/* Not sure if this is needed, drags Pixi Sprite Buttons onto a Page div?
 			this.pageController.pageView.appendToConsoleButtonClass(this.pixiController.pixiView.statsButtonSprite);
@@ -51,8 +64,7 @@ export default class ViewController {
 		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.ActiveSession.clientSession);
 
 		//	Hide the stats window
-		this.pageView.hideWindow('statWindowId');
-		this.setupUI();
+		this.pageView.hideElement('statWindowId');
 
 		// Show whatever player position is stored on the session model
 		this.pixiController.getMapController().showMapPosition(Session.ActiveSession.clientSession.player.getCharacter().pos_x,
@@ -69,9 +81,9 @@ export default class ViewController {
 		let pixiView = this.pixiController.pixiView;
 
 		// Map Pixi Button clicks to HTML Window toggling
-		pixiView.on(PIXIVIEW_EVENTS.CONSOLE_BUTTONCLICK, () => { this.pageController.pageView.toggleConsoleVisibility() });
-		pixiView.on(PIXIVIEW_EVENTS.INVENTORY_BUTTONCLICK, () => { this.pageController.pageView.toggleInventoryWinVisibility() });
-		pixiView.on(PIXIVIEW_EVENTS.STATS_BUTTONCLICK, () => { this.pageController.pageView.toggleStatWinVisibility() });
+		pixiView.on(PIXIVIEW_EVENTS.CONSOLE_BUTTONCLICK, () => { this.pageController.pageChatView.toggleConsoleVisibility() });
+		pixiView.on(PIXIVIEW_EVENTS.INVENTORY_BUTTONCLICK, () => { this.pageController.pageInventoryView.toggleInventoryWinVisibility() });
+		pixiView.on(PIXIVIEW_EVENTS.STATS_BUTTONCLICK, () => { this.pageController.pageCharacterDetailsView.toggleStatWinVisibility() });
 
 		// EventMappings
 		// Once the character details are set, confirm that we have some

@@ -1,9 +1,10 @@
-import { EVENTS as pageChatEvents, PageChatView} from 'src/view/page/PageChatView.js';
-import { EVENTS as pageCharacterDetailsViewEvents, PageCharacterDetailsView} from 'src/view/page/PageCharacterDetailsView.js';
+import { EVENTS as pageChatEvents, PageChatView, _MESSAGE_WINDOW_ID} from 'src/view/page/PageChatView.js';
+import { EVENTS as pageCharacterDetailsViewEvents, PageCharacterDetailsView, _STATS_WINDOW_ID} from 'src/view/page/PageCharacterDetailsView.js';
 
 import { Page } from 'src/model/page/Page.js';
 import { EVENTS as characterDetailsEvents, CharacterDetails } from 'src/model/page/CharacterDetails.js';
-import { PageView } from 'src/view/page/PageView.js';
+import { PageView, _MAIN_WINDOW_ID, _GAME_WINDOW_ID } from 'src/view/page/PageView.js';
+import  { _INVENTORY_WINDOW_ID } from 'src/view/page/PageInventoryView.js';
 
 //	Hooking up to a bunch of other controllers for now
 import { Session } from 'src/model/Session.js';
@@ -12,6 +13,7 @@ import { Session } from 'src/model/Session.js';
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 
 import ValidationHandler from 'src/handler/ValidationHandler.js';
+import PageInventoryView from '../../view/page/PageInventoryView'
 
 
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
@@ -35,7 +37,7 @@ export default class PageController {
 	 * @param pageCharacterDetailsView
 	 * @param pageChatView
 	 */
-	constructor(doc, pageView, pageCharacterDetailsView, pageChatView) {
+	constructor(doc, pageView, pageCharacterDetailsView, pageChatView, pageInventoryView) {
 
 		this.isSetup = false;
 		this.uiEnabled = false;
@@ -72,6 +74,12 @@ export default class PageController {
 		} else {
 			this.pageChatView = pageChatView;
 		}
+
+		if (pageInventoryView == undefined) {
+			this.pageInventoryView = new PageInventoryView(this.doc);
+		} else {
+			this.pageInventoryView = pageInventoryView;
+		}
 	}
 
 	getPageView() {
@@ -80,6 +88,10 @@ export default class PageController {
 
 	getPageCharacterDetailsView() {
 		return this.pageCharacterDetailsView;
+	}
+
+	getPageInventoryView() {
+		return this.pageInventoryView;
 	}
 
 	getPageChatView () {
@@ -132,6 +144,8 @@ export default class PageController {
 		return this.charDetailsConfirmed;
 	}
 
+
+
 	// Builds UI Components
 	setupUI () {
 		if (!this.isSetup) {
@@ -139,6 +153,13 @@ export default class PageController {
 			this.pageView.buildView();
 			this.pageCharacterDetailsView.buildView();
 			this.pageChatView.buildView();
+
+			this.pageView.showElement(_MAIN_WINDOW_ID);
+			this.pageView.showElement(_GAME_WINDOW_ID);
+
+			this.pageCharacterDetailsView.hideElement(_STATS_WINDOW_ID);
+			this.pageChatView.hideElement(_MESSAGE_WINDOW_ID);
+			this.pageInventoryView.hideElement(_INVENTORY_WINDOW_ID);
 		}
 	}
 

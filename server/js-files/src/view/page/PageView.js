@@ -1,39 +1,31 @@
 import jquery from 'jquery';
 
 //import $ from 'libs/jquery.js';
-import { EventMapping } from 'src/helper/EventMapping.js';
+import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
 
 //export var this.doc = document;
 //export var this.doc = document.implementation.createHTMLDocument('PageView');
 
 var EVENTS = {};
 
-const _MAIN_WINDOW_ID = 'main-window';
-const _GAME_WINDOW_ID = 'game-window';
+export const _MAIN_WINDOW_ID = 'main-window';
+export const _GAME_WINDOW_ID = 'game-window';
 
 const DEBUG = false;
 
 //	General UI Page View
 // This is the main page view and builds the parent div for all others
 //	Binding to click / key events using jQuery and controlling the overall UI elements
-export class PageView extends EventMapping {
+export class PageView extends PageHtmlView {
 
 	constructor(pageModel) {
-		super(EVENTS);
-
-		// Class ID mappings
-		this.htmlWindows = { mainWindowId: '#main-window', messageWindowId: '#message-window', inventoryWindowId: '#inventory-window' };
-
 		if (pageModel == undefined ) {
 			throw new RangeError('Page Model undefined.');
 		}
 
-		if (pageModel.doc == undefined) {
-			throw new RangeError('Page Model Document undefined.');
-		}
-
+		//let idSelectorMappings = { mainWindowId: '#main-window', messageWindowId: '#message-window', inventoryWindowId: '#inventory-window' };
+		super(pageModel.doc, EVENTS, { [_MAIN_WINDOW_ID]: '#'+_MAIN_WINDOW_ID, [_GAME_WINDOW_ID]: '#'+_GAME_WINDOW_ID });
 		this.pageModel = pageModel;
-		this.doc = this.pageModel.doc;
 	}
 
 	/**
@@ -100,7 +92,7 @@ export class PageView extends EventMapping {
 		if (mainWindow !== null && gameWindow == null) {
 			if (DEBUG) console.log('Creating game window..');
 			gameWindow = this.doc.createElement('div');
-			gameWindow.setAttribute('id',_GAME_WINDOW_ID);
+			gameWindow.setAttribute('id', _GAME_WINDOW_ID);
 			mainWindow.appendChild(gameWindow);
 		}
 
@@ -118,11 +110,11 @@ export class PageView extends EventMapping {
 	}
 
 	getMainWindowJquery() {
-		return jquery('#'+_MAIN_WINDOW_ID, this.doc);
+		return jquery(this.getHtmlIdMapping(_MAIN_WINDOW_ID), this.doc);
 	}
 
 	getGameWindowJquery() {
-		return jquery('#'+_GAME_WINDOW_ID, this.doc);
+		return jquery(this.getHtmlIdMapping(_GAME_WINDOW_ID), this.doc);
 	}
 
 	/**
@@ -153,54 +145,14 @@ export class PageView extends EventMapping {
 		}
 	}
 
-	showWindow (dialog) {
-		jquery(this.htmlWindows[dialog], this.doc).show();
-	}
-
-	hideWindow (dialog) {
-		jquery(this.htmlWindows[dialog], this.doc).hide();
-	}
-
-	hideWindows () {
-		for (var windowId in this.htmlWindows) {
-			this.hideWindow(windowId);
-		}
-	}
-
-	toggleWindow (dialog) {
-		var thisWindow = jquery(this.htmlWindows[dialog]);
-		//	Check if the dialog is visible to begin with
-		var toHide = thisWindow.is(':visible');
-
-		//jquery('.dialog:visible', this.doc).hide();
-
-		if (toHide) {
-			thisWindow.hide();
-		} else {
-			thisWindow.show();
-		}
-	}
-
 	bindStageClick (clickedFunction) {
-		let mainWindow = jquery(this.htmlWindows[_MAIN_WINDOW_ID]);
+		let mainWindow = jquery(this.getHtmlIdMapping(_MAIN_WINDOW_ID));
 		mainWindow.on('click', clickedFunction);
 	}
 	
 	unbindStageClick () {
-		let mainWindow = jquery(this.htmlWindows[_MAIN_WINDOW_ID]);
+		let mainWindow = jquery(this.getHtmlIdMapping(_MAIN_WINDOW_ID));
 		mainWindow.unbind('click');
-	}
-	
-	toggleStatWinVisibility () {
-		this.toggleWindow('statWindowId');
-	}
-
-	toggleInventoryWinVisibility () {
-		this.toggleWindow('inventoryWindowId');
-	}
-
-	toggleConsoleVisibility () {
-		this.toggleWindow('messageWindowId');
 	}
 
 	/*

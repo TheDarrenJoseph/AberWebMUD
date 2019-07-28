@@ -13,7 +13,6 @@ export const INVENTORY_BUTTON_NAME = 'inventoryButtonSprite';
 export const STATS_BUTTON_NAME = 'statsButtonSprite';
 
 
-
 // HTML 5 Canvas
 const RENDERER_CANVAS = 'Canvas';
 const RENDERER_WEBGL = 'WebGL';

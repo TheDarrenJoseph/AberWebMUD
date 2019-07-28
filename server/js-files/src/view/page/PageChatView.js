@@ -1,20 +1,20 @@
 import jquery from 'jquery';
 import { PageView } from 'src/view/page/PageView.js';
-import { EventMapping } from 'src/helper/EventMapping.js';
+import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
 
 //import $ from 'libs/jquery.js';
 
-const _MESSAGE_WINDOW_ID = 'message-window';
-const _MESSAGE_INPUT_ID = 'message-input';
-const _PWD_INPUT_ID = 'password-input';
-const _MESSAGE_LOG_ID = 'message-log';
-const _SEND_MESSAGE_BUTTON_ID = 'send-message-button';
+export const _MESSAGE_WINDOW_ID = 'message-window';
+export const _MESSAGE_INPUT_ID = 'message-input';
+export const _PWD_INPUT_ID = 'password-input';
+export const _MESSAGE_LOG_ID = 'message-log';
+export const _SEND_MESSAGE_BUTTON_ID = 'send-message-button';
 
 export const EVENTS = { SEND_MESSAGE : 'send_message' };
 const ENTER_KEY_EVENT_CODE = 13;
 
 // DOM view for the chat
-export default class PageChatView extends EventMapping {
+export default class PageChatView extends PageHtmlView {
 
 	//	<div id='message-window'>
 	//		<textarea id='message-log' disabled='true'></textarea>
@@ -24,19 +24,15 @@ export default class PageChatView extends EventMapping {
 	//	</div>
 
 	constructor (pageView) {
-
 		if (pageView == undefined) throw new RangeError('pageView expected')
-		super(EVENTS);
-
+		super(pageView.pageModel.doc, EVENTS,
+		{
+			[_MESSAGE_WINDOW_ID]: '#'+_MESSAGE_WINDOW_ID,
+			[_MESSAGE_INPUT_ID]: '#' + _MESSAGE_INPUT_ID,
+			[_PWD_INPUT_ID]: '#' + _PWD_INPUT_ID,
+			[_SEND_MESSAGE_BUTTON_ID]: '#' + _SEND_MESSAGE_BUTTON_ID
+		});
 		this.pageView = pageView;
-
-		// Try to extract the Document context
-		let doc = pageView.pageModel.doc;
-		if (doc !== undefined) {
-			this.doc = doc;
-		} else {
-			throw new RangeError("Bad constructor arguments: " + JSON.stringify(arguments));
-		}
 	}
 
 	/**
@@ -221,11 +217,17 @@ export default class PageChatView extends EventMapping {
 	};
 
 	showPasswordInput () {
-		this.getPasswordInputFieldJquery().show();
+		// Make sure the parent window is showing
+		this.showElement(_MESSAGE_WINDOW_ID);
+		this.showElement(_PWD_INPUT_ID);
+	}
+
+	toggleConsoleVisibility () {
+		this.toggleWindow(_MESSAGE_WINDOW_ID);
 	}
 
 	hidePasswordInput () {
-		this.getPasswordInputFieldJquery().hide();
+		this.hideElement(_PWD_INPUT_ID);
 	}
 
 	/**

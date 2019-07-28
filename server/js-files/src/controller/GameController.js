@@ -14,9 +14,9 @@ const SERVER_URL = 'http://localhost:5000';
 
 export class GameControllerClass {
 	
-	constructor() {
+	constructor(doc) {
 		this.socketHandler = SocketHandler.getInstance();
-		this.viewController = new ViewController();
+		this.viewController = new ViewController(doc);
 	}
 
 	getSocketHandler() {

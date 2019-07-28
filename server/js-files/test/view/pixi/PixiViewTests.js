@@ -4,6 +4,7 @@ import { PixiView } from 'src/view/pixi/PixiView.js';
 import { ASSET_PATHS } from 'src/controller/pixi/PixiController.js'
 import { CONSOLE_BUTTON_NAME, INVENTORY_BUTTON_NAME, STATS_BUTTON_NAME } from 'src/view/pixi/PixiView.js';
 import { PixiStatBar } from 'src/view/pixi/PixiStatBar.js'
+import  * as TestWindow from 'test/utils/TestWindow.js'
 
 let TEST_TAG = '|PIXI-VIEW|';
 let TEST_WINDOW;
@@ -19,7 +20,8 @@ let canvasView;
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
-	TEST_WINDOW = window.open('', TEST_TAG, "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes")
+	TEST_WINDOW = TestWindow.buildTestWindow(TEST_TAG);
+	// TEST_WINDOW = window.open('', TEST_TAG, "menubar=yes,location=yes,resizable=yes,scrollbars=yes,status=yes")
 	TEST_DOCUMENT = TEST_WINDOW.document;
 }
 

@@ -66,40 +66,46 @@ class PixiController {
 		return this.mapController;
 	}
 
-	async setupUI() {
-		if (!this.isSetup) {
-			await this.pixiView.setupUI();
-			console.log('Pixi View Setup. Using renderer option: ' + this.pixiView.getRendererType());
-			this.showLoginControls();
-			this.isSetup = true;
-		}
+	setupUI() {
+		return new Promise((resolve, reject) => {
+			if (!this.isSetup) {
+				this.pixiView.setupUI().then(() => {
+					console.log('Pixi View Setup. Using renderer option: ' + this.pixiView.getRendererType());
+					this.isSetup = true;
+					resolve();
+				}).catch(reject);
+			}
+		});
 	}
 
 	/**
 	 * Idempotently creates/enables the UI
 	 * @returns a Promise that should resolve to the main Renderer View Element (HTMLCanvasElement)
 	 */
-	async enableUI () {
-		await this.setupUI();
-		
-		if (!this.uiEnabled) {
-			// Set the stat bar values before we render
-			this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
+	enableUI () {
+		return new Promise( (resolve, reject) => {
+			this.setupUI().then(() => {
 
-			this.pixiView.showParentContainer(true);
-			this.pixiView.showStatBars();
-			this.pixiView.showControlsContainer(true);
-			this.renderAll();
+				if (!this.uiEnabled) {
+					// Set the stat bar values before we render
+					this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
 
-			this.uiEnabled = true;
-		}
+					this.pixiView.showParentContainer(true);
+					this.pixiView.showStatBars();
+					this.pixiView.showControlsContainer(true);
+					this.renderAll();
 
-		return this.renderer.view;
+					this.uiEnabled = true;
+				}
+
+				resolve(this.renderer.view);
+			}).catch(reject);
+		});
 	}
 
 	disableUI () {
 		if (this.uiEnabled) {
-			//this.pageController.pageView.hideWindows();
+			//this.pageController.pageView.hideElements();
 
 			// Show the initial dialog
 			//this.pageController.pageView.showDialog();
@@ -118,9 +124,14 @@ class PixiController {
 
 	// Sets the timeout trigger for a double-click
 	stageClicked () {
-		var mouseEvent = this.renderer.plugins.interaction.pointer.originalEvent;
-		//	console.log(pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY));
-		setTimeout(function () { return this.stageDoubleClicked(mouseEvent); }, 150);
+
+		let renderer = this.renderer;
+
+		if (renderer !== undefined) {
+			var mouseEvent = renderer.plugins.interaction.pointer.originalEvent;
+			//	console.log(pixiPosToTileCoord(mouseEvent.clientX, mouseEvent.clientY));
+			setTimeout(function () { return this.stageDoubleClicked(mouseEvent); }, 150);
+		}
 	}
 
 	// Trigger function on second click
@@ -159,9 +170,9 @@ class PixiController {
 	// Shows just the controls needed for login
 	// Hiding all other controls
 	showLoginControls () {
-		//this.pageController.pageView.hideWindows();
+		//this.pageController.pageView.hideElements();
 		//	Make the console only visisble
-		//this.pageController.pageView.toggleConsoleVisibility();
+		//this.pageController.pageChatView.toggleConsoleVisibility();
 		//	Check connection every 5 seconds
 		setTimeout(() => {
 			this.checkConnection.apply(this)
