@@ -82,10 +82,18 @@ class PixiController {
 					this.pixiView.hideContextControl(STATS_BUTTON_NAME);
 					this.pixiView.hideContextControl(INVENTORY_BUTTON_NAME);
 
-					resolve();
+					this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
+
+					// Showing everything roughly
+					this.pixiView.showParentContainer(true);
+					// this.pixiView.showControlsContainer(true);
+
+					this.renderAll();
+
+					resolve(this.renderer.view);
 				}).catch(reject);
 			} else {
-				resolve();
+				resolve(this.renderer.view);
 			}
 		});
 	}
@@ -103,11 +111,7 @@ class PixiController {
 
 				if (!this.uiEnabled) {
 					// Set the stat bar values before we render
-					this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
-
-					this.pixiView.showParentContainer(true);
 					this.pixiView.showStatBars();
-					this.pixiView.showControlsContainer(true);
 					this.pixiView.showContextControl(CONSOLE_BUTTON_NAME);
 					this.pixiView.showContextControl(STATS_BUTTON_NAME);
 					this.pixiView.showContextControl(INVENTORY_BUTTON_NAME);
