@@ -24,6 +24,8 @@ export const EVENTS = { 	CONSOLE_BUTTONCLICK : 'console_buttonclick',
 								STATS_BUTTONCLICK : 'stats_buttonclick'
 };
 
+export const STATBAR_ID_HEALTH = 'health-bar'
+
 export default class PixiView extends EventMapping {
 	constructor (windowSize=500, tileSize=80, ASSET_PATHS) {
 		super();
@@ -173,7 +175,9 @@ export default class PixiView extends EventMapping {
 		let healthBarSizeX = thirdMapWindowSize;
 		let healthBarSizeY = this.tileSize;
 
-		var healthBar = new PixiStatBar('health-bar', healthBarPosX, healthBarPosY, healthBarSizeX, healthBarSizeY);
+		let healthBar = new PixiStatBar(STATBAR_ID_HEALTH, healthBarPosX, healthBarPosY, healthBarSizeX, healthBarSizeY);
+		healthBar.setValue(0);
+
 		return [healthBar];
 	}
 
@@ -199,6 +203,20 @@ export default class PixiView extends EventMapping {
 				resolve();
 			}
 		});
+	}
+
+	getContextControl(controlName) {
+		return this.controlsContainer.getChildByName(controlName);
+	}
+
+	showContextControl(controlName) {
+		let control = this.getContextControl(controlName);
+		control.visible = true;
+	}
+
+	hideContextControl(controlName) {
+		let control = this.getContextControl(controlName);
+		control.visible = false;
 	}
 
 	async setupContextButtons () {
@@ -259,17 +277,29 @@ export default class PixiView extends EventMapping {
 		this.dialogBackground.visible = bool;
 	}
 
+	getStatBar(statBarId) {
+		let statBar= this.statBars.find( statBar => {
+			return statBar.getBarId() == statBarId;
+		});
+
+		if (statBar !== undefined) {
+			return statBar;
+		} else {
+			throw new RangeError('Stat bar with ID: \'' + statBarId + '\' not found!');
+		}
+	}
+
 	setHealthBarValue (health) {
-		this.statBars[0].setValue(Session.ActiveSession.clientSession.player.getCharacter().health);
+		this.getStatBar(STATBAR_ID_HEALTH).setValue(Session.ActiveSession.clientSession.player.getCharacter().health);
 	}
 
 	showStatBars () {
-		this.statBars[0].setValue(0);;
-		this.statBars[0].setVisible(true);
+		let healthBar = this.getStatBar(STATBAR_ID_HEALTH);
+		healthBar.setVisible(true);
 	}
 	
 	hideStatBars() {
-		this.statBars[0].setVisible(false);
+		this.getStatBar(STATBAR_ID_HEALTH).setVisible(false);
 	}
 
 	static async createContextButton (tileAtlasPath, subtileName, tileSize, pixiPos) {

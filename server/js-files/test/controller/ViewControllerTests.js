@@ -6,6 +6,7 @@ import  { _STATS_WINDOW_ID } from 'src/view/page/PageCharacterDetailsView.js';
 import { _MESSAGE_WINDOW_ID } from 'src/view/page/PageChatView.js';
 
 import  * as TestWindow from 'test/utils/TestWindow.js'
+import { STATBAR_ID_HEALTH, CONSOLE_BUTTON_NAME, INVENTORY_BUTTON_NAME, STATS_BUTTON_NAME } from 'src/view/pixi/PixiView.js'
 
 var TEST_TAG = '|VIEW CONTROLLER|';
 var MAX_TIMEOUT = 5000;
@@ -61,7 +62,21 @@ QUnit.test(TEST_TAG + 'setupUI', function (assert) {
 		assert.notOk(pageChatView.isElementVisible(_MESSAGE_WINDOW_ID), 'Message window div should be hidden')
 
 		// --- Pixi View
+		let pixiController = viewController.getPixiController();
+		let pixiView = pixiController.getPixiView();
+
 		// Pixi View Controls should be hidden
+		// Stats bars (health)
+		let healthBar = pixiView.getStatBar(STATBAR_ID_HEALTH)
+		assert.notOk(healthBar.isVisible(), 'Ensure the Pixi UI Health bar is hidden.');
+
+		// Control buttons
+		let consoleButton 	= pixiView.getContextControl(CONSOLE_BUTTON_NAME);
+		let statsButton 		= pixiView.getContextControl(STATS_BUTTON_NAME);
+		let inventoryButton = pixiView.getContextControl(INVENTORY_BUTTON_NAME);
+		assert.notOk(consoleButton.visible, 'Ensure the console button is not displayed.');
+		assert.notOk(statsButton.visible, 'Ensure the stats button is not displayed.');
+		assert.notOk(inventoryButton.visible, 'Ensure the inventory button is not displayed.');
 
 		viewSetup();
 	})
@@ -69,6 +84,6 @@ QUnit.test(TEST_TAG + 'setupUI', function (assert) {
 		console.error(rejection);
 	})
 
-	assert.expect(5);
+	assert.expect(9);
 }
 );

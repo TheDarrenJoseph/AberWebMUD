@@ -35,15 +35,20 @@ export default class ViewController {
 		}
 	}
 
+	/**
+	 * Construct everything needed for the view
+	 * @returns {Promise<any>}
+	 */
 	setupUI() {
 		return new Promise( (resolve, reject) => {
 			//	Get the general UI ready
-			let canvasViewPromise = this.pixiController.enableUI();
+			let canvasViewPromise = this.pixiController.setupUI();
 			canvasViewPromise.then( canvasView => {
 				console.log('ViewController intialised: ' + canvasView);
 				this.canvasView = canvasView;
 
-				this.pageController.enableUI();
+				// this.pageController.enableUI();
+				this.pageController.setupUI();
 				this.pageController.pageView.appendToGameWindow(this.canvasView);
 
 				this.resetChatWindow();
@@ -55,6 +60,14 @@ export default class ViewController {
 			this.pageController.pageView.appendToConsoleButtonClass(this.pixiController.pixiView.statsButtonSprite);
 			this.pageController.pageView.appendToConsoleButtonClass(this.pixiController.pixiView.inventoryButtonSprite);
 		*/
+	}
+
+	/**
+	 * Turn on various view components
+	 */
+	enableUI () {
+		this.pageController.enableUI();
+		this.pixiController.enableUI();
 	}
 
 	/**

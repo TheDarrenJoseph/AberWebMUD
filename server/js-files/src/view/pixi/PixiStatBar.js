@@ -1,8 +1,8 @@
 import PIXI from 'libs/pixi.min.js';
 
 class PixiStatBar {
-	constructor (name, posX, posY, outerSizeX, outerSizeY) {
-		this.name = name;
+	constructor (barId, posX, posY, outerSizeX, outerSizeY) {
+		this.barId = barId;
 		this.posX = posX;
 		this.posY = posY;
 
@@ -25,6 +25,10 @@ class PixiStatBar {
 
 		this.drawBackgroundBar();
 		this.drawInnerBar();
+	}
+
+	getBarId() {
+		return this.barId;
 	}
 
 	/**

@@ -55,7 +55,6 @@ export class PageHtmlView extends EventMapping {
 	}
 
 	hideElement (localWindowId) {
-		console.log('Hiding: ' + localWindowId)
 		this.getWindowJquery(localWindowId).hide();
 	}
 

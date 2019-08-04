@@ -9,6 +9,7 @@ import { Session } from 'src/model/Session.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
 import { PixiView } from 'src/view/pixi/PixiView.js';
+import { CONSOLE_BUTTON_NAME, INVENTORY_BUTTON_NAME, STATS_BUTTON_NAME } from 'src/view/pixi/PixiView.js'
 
 // import { ValidationHandler } from 'src/handler/ValidationHandler.js';
 
@@ -62,6 +63,10 @@ class PixiController {
 		//	};
 	}
 
+	getPixiView() {
+		return this.pixiView;
+	}
+
 	getMapController () {
 		return this.mapController;
 	}
@@ -72,14 +77,24 @@ class PixiController {
 				this.pixiView.setupUI().then(() => {
 					console.log('Pixi View Setup. Using renderer option: ' + this.pixiView.getRendererType());
 					this.isSetup = true;
+					this.pixiView.hideStatBars();
+					this.pixiView.hideContextControl(CONSOLE_BUTTON_NAME);
+					this.pixiView.hideContextControl(STATS_BUTTON_NAME);
+					this.pixiView.hideContextControl(INVENTORY_BUTTON_NAME);
+
 					resolve();
 				}).catch(reject);
+			} else {
+				resolve();
 			}
 		});
 	}
 
 	/**
 	 * Idempotently creates/enables the UI
+	 *
+	 * Shows / enables various view components
+	 *
 	 * @returns a Promise that should resolve to the main Renderer View Element (HTMLCanvasElement)
 	 */
 	enableUI () {
@@ -93,6 +108,10 @@ class PixiController {
 					this.pixiView.showParentContainer(true);
 					this.pixiView.showStatBars();
 					this.pixiView.showControlsContainer(true);
+					this.pixiView.showContextControl(CONSOLE_BUTTON_NAME);
+					this.pixiView.showContextControl(STATS_BUTTON_NAME);
+					this.pixiView.showContextControl(INVENTORY_BUTTON_NAME);
+
 					this.renderAll();
 
 					this.uiEnabled = true;
