@@ -4,34 +4,38 @@ import AtlasHelper from 'src/helper/pixi/AtlasHelper.js';
 
 export default class SpriteHelper {
 
+	static handleAtlasSubtexture(spriteTexture, tileAtlasPath, subtileName, tileHeight, tileWidth, pixiPoint, interactive) {
+		// Load the named subtile from the given atlas
+			if (spriteTexture == undefined || spriteTexture == null) {
+				let theError = new RangeError('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' +
+				tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']');
+				throw new RangeError(theError);
+			} else {
+				var thisSprite = new PIXI.Sprite(spriteTexture);
+
+				thisSprite.height = tileHeight;
+				thisSprite.width = tileWidth;
+
+				if (pixiPoint !== undefined && pixiPoint instanceof PIXI.Point) {
+					//console.debug('Using Pixi Point: ' + pixiPoint.x + ',' + pixiPoint.y)
+					thisSprite.position = pixiPoint;
+				} else {
+					throw new RangeError('Sprite PIXI.Point is undefined!')
+				}
+
+				if (interactive !== undefined) {
+					thisSprite.interactive = interactive;
+				}
+				return thisSprite;
+			}
+	}
+
 	// Creates a new PIXI.Sprite from a tileset atlas loaded in by Pixi's resource loader
 	static makeSpriteFromAtlas (tileAtlasPath, subtileName, tileHeight, tileWidth, pixiPoint, interactive) {
 		return new Promise((resolve, reject) => {
-			// Load the named subtile from the given atlas
 			AtlasHelper.loadAtlasSubtexture(tileAtlasPath, subtileName).then(spriteTexture => {
-				if (spriteTexture == undefined || spriteTexture == null) {
-					let theError = new RangeError('Invalid Sprite texture! Could not create sprite from atlas with given parameters:\n path: (' +
-					tileAtlasPath + ') subtile: (' + subtileName + ') tileSize: [' + tileHeight + ',' + tileWidth + ']');
-					reject(theError);
-				} else {
-					var thisSprite = new PIXI.Sprite(spriteTexture);
-
-					thisSprite.height = tileHeight;
-					thisSprite.width = tileWidth;
-
-					if (pixiPoint !== undefined) {
-						thisSprite.position = pixiPoint;
-					}
-
-					if (interactive !== undefined) {
-						thisSprite.interactive = interactive;
-					}
-
-					// Not sure if we'll be setting this just here
-					// thisSprite.interactive = interactive;
-
-					resolve(thisSprite);
-				}
+				let theSprite = SpriteHelper.handleAtlasSubtexture(spriteTexture, tileAtlasPath, subtileName, tileHeight, tileWidth, pixiPoint, interactive);
+				resolve(theSprite);
 			}).catch(err => {
 				reject(err);
 			});

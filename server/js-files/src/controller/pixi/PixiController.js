@@ -84,9 +84,7 @@ class PixiController {
 
 					this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
 
-					// Showing everything roughly
 					this.pixiView.showParentContainer(true);
-					// this.pixiView.showControlsContainer(true);
 
 					this.renderAll();
 
@@ -100,8 +98,7 @@ class PixiController {
 
 	/**
 	 * Idempotently creates/enables the UI
-	 *
-	 * Shows / enables various view components
+	 * Then shows / enables various view components considered default to the running game
 	 *
 	 * @returns a Promise that should resolve to the main Renderer View Element (HTMLCanvasElement)
 	 */

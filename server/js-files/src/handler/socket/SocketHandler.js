@@ -4,6 +4,7 @@ import io from 'socket.io-client';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 
 const CONNECTION_EVENT = 'connect';
+const CONNERROR_EVENT = 'connect_error';
 const DISCONNECTION_EVENT = 'disconnect';
 const RECONNECTION_EVENT = 'reconnect'
 const ERROR_NOSOCKET = new Error('SocketIO Socket is not connected to the game server!')
@@ -78,21 +79,23 @@ export default class SocketHandler {
 		//TODO Maybe handle this?
 	}
 
-	connectSocket (url, callback) {
-		console.log('[SocketHandler] Connecting to the game server...');
+	connectSocket (url) {
+		return new Promise ( (resolve, reject ) => {
+			console.log('[SocketHandler] Connecting to the game server...');
 
-		//	Try to connect, this must be first
-		this.io = io.connect(url);
+			//	Try to connect, this must be first
+			this.io = io.connect(url);
 
-		// Call us back when we really connect
-		this.io.on(CONNECTION_EVENT, () => {
-			console.log('SocketIO Socket connected.');
-			callback(this.io);
+			this.io.on(CONNERROR_EVENT, reject);
+			this.io.on(DISCONNECTION_EVENT, () =>{ this.handleDisconnect() });
+			this.io.on(RECONNECTION_EVENT, () =>{ this.handleReconnect() });
+
+			// Call us back when we really connect
+			this.io.on(CONNECTION_EVENT, () => {
+				console.log('SocketIO Socket connected.');
+				resolve(this.io);
+			});
 		});
-
-		this.io.on(DISCONNECTION_EVENT, () =>{ this.handleDisconnect() });
-		this.io.on(DISCONNECTION_EVENT, () =>{ this.handleReconnect() });
-
 	}
 
 	reconnectSocket(url, callback) {

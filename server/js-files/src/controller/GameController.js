@@ -34,7 +34,13 @@ export class GameControllerClass {
 	}
 	
 	connect() {
-		this.socketHandler.connectSocket(SERVER_URL, (socket) => { this.onConnected(socket) });
+		return new Promise ( (resolve, reject ) => {
+			let connPromise = this.socketHandler.connectSocket(SERVER_URL);
+			connPromise.then(socket => {
+				this.onConnected(socket);
+				resolve();
+			}).catch(reject);
+		});
 	}
 
 	reConnect() {

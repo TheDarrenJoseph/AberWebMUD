@@ -1,4 +1,4 @@
-const DEFAULT_TILETYPE = 0;
+export const DEFAULT_TILETYPE = 0;
 
 /**
  * Map tile

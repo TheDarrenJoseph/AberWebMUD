@@ -120,11 +120,43 @@ export default class PixiMapView {
 	}
 
 	renderAll () {
+		this.showParentContainer();
+		this.showMapContainer();
+		this.showCharacterContainer();
 		console.log('PixiMapView - Rendering all containers.');
 		this.renderer.render(this.parentContainer);
 	}
 
+	showParentContainer() {
+		this.parentContainer.visible = true;
+	}
+
+	hideParentContainer() {
+		this.parentContainer.visible = false;
+	}
+
+	showCharacterContainer() {
+		this.characterContainer.visible = true;
+	}
+
+	hideCharacterContainer() {
+		this.characterContainer.visible = false;
+	}
+
+	isMapContainerVisible() {
+		return this.mapContainer.visible;
+	}
+
+	showMapContainer() {
+		this.mapContainer.visible = true;
+	}
+
+	hideMapContainer() {
+		this.mapContainer.visible = false;
+	}
+
 	renderMapContainer () {
+		if (!this.isMapContainerVisible()) this.showMapContainer();
 		console.log('PixiMapView - Rendering map container.');
 		this.renderer.render(this.mapContainer);
 	}
@@ -249,18 +281,23 @@ export default class PixiMapView {
 		}
 	}
 
+	tileCoordToPixiPoint (xRelative, yRelative) {
+		let convertedPos = this.mapPositionHelper.tileCoordToPixiPos(xRelative, yRelative);
+		let x = convertedPos[0];
+		let y = convertedPos[1];
+		return new PIXI.Point(x,y);
+	}
+
 	promiseSpriteForTile (tileType, localX, localY) {
-		var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
+		let pixiPoint = this.tileCoordToPixiPoint(localX, localY);
 		// Promise the loading of the subtexture
-		var spritePromise = SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileType], DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
-		return spritePromise;
+		return SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_OVERWORLD, this.tileMappings[tileType], DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPoint, false);
 	}
 
 	promiseSpriteForPlayer (localX, localY) {
-		var pixiPos = this.mapPositionHelper.tileCoordToPixiPos(localX, localY);
+		let pixiPoint = this.tileCoordToPixiPoint(localX, localY);
 		// Promise the loading of the subtexture
-  	var spritePromise = SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPos, false);
-		return spritePromise;
+  	return SpriteHelper.makeSpriteFromAtlas(this.assetPaths.ASSET_PATH_CHARACTERS, 'player', DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE, pixiPoint, false);
 	}
 
 	// Creates a character sprite on-the-fly to represent another character
@@ -365,12 +402,13 @@ export default class PixiMapView {
 								spritePromises.push(spritePromise);
 
 								spritePromise.then((thisSprite) => {
-										mapTile.setSprite(thisSprite);
-										this.addSpriteToContainer(this.mapContainer, thisSprite);
+									mapTile.setSprite(thisSprite);
+									this.addSpriteToContainer(this.mapContainer, thisSprite);
 								}, reason => {
 										console.error('Map tile promise rejected with reason: ' + reason);
 								});
 						} else {
+							if (DEBUG) console.log('Updating map tile sprite for x: ' + x + ', y: ' + y);
 							let currentSprite = this.getSpriteInMapContainer(tileSprite);
 
 							if (!spritesMatch) {

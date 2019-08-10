@@ -63,6 +63,14 @@ export default class ViewController {
 	}
 
 	/**
+	 * Shows all UI elements relevant for user login
+	 */
+	loginPrompt() {
+		this.pageController.enableUI();
+		this.pageController.showLogin();
+	}
+
+	/**
 	 * Turn on various view components
 	 */
 	enableUI () {

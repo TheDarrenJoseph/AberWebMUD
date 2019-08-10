@@ -222,13 +222,23 @@ export default class PageChatView extends PageHtmlView {
 		this.showElement(_PWD_INPUT_ID);
 	}
 
+	hidePasswordInput () {
+		this.hideElement(_PWD_INPUT_ID);
+	}
+
+
+	showMessageWindow() {
+		this.showElement(_MESSAGE_WINDOW_ID);
+	}
+
+	hideMessageWindow() {
+		this.hideElement(_MESSAGE_WINDOW_ID);
+	}
+
 	toggleConsoleVisibility () {
 		this.toggleWindow(_MESSAGE_WINDOW_ID);
 	}
 
-	hidePasswordInput () {
-		this.hideElement(_PWD_INPUT_ID);
-	}
 
 	/**
 	 * Setup emitting of events for this view

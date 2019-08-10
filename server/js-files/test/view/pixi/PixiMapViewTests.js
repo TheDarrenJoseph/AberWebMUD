@@ -6,6 +6,7 @@ import Player from 'src/model/Player.js';
 
 import { PixiMapView,  } from 'src/view/pixi/PixiMapView.js';
 import { DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
+import { DEFAULT_TILETYPE } from 'src/model/pixi/map/MapTile.js';
 import { PageController } from 'src/controller/page/PageController.js';
 import { PixiController, ASSET_PATHS } from 'src/controller/pixi/PixiController.js';
 
@@ -101,7 +102,10 @@ QUnit.test(TEST_TAG + 'new PixiMapView', function (assert) {
 		assert.ok(mapTileArray instanceof Array, 'Check mapTileArray is actually an array');
 		assert.equal(mapTileArray.length, TEST_TILECOUNT, 'Check mapTileArray 1d size.');
 
-		// Check Pixi JS Container objects
+		let firstTile = mapTileArray[0][0];
+		assert.equal(firstTile.getTileType(), DEFAULT_TILETYPE, 'Ensure the first tile has the default tile type number.');
+
+	// Check Pixi JS Container objects
 		// Top level container for all children
 		let parentContainer = testPixiMapView.parentContainer;
 		assert.ok(parentContainer instanceof PIXI.Container, 'Ensure the pixiMapView parent container is initialised.');
@@ -158,18 +162,42 @@ TEST_TAG + 'drawMapTiles', function (assert) {
 		let mapDrawPromise = pixiMapView.drawMapTiles();
 
 		mapDrawPromise.then(() => {
-			let totalTileArea = TEST_TILECOUNT * TEST_TILECOUNT;
+
+			let mapTileArray = mapModel.getTiles();
+			assert.ok(mapTileArray instanceof Array, 'Check mapTileArray is actually an array');
+			assert.equal(mapTileArray.length, TEST_TILECOUNT, 'Check mapTileArray 1d size.');
+
+			let firstTile = mapTileArray[0][0];
+			assert.equal(firstTile.getTileType(), DEFAULT_TILETYPE, 'Ensure the first tile has the default tile type number.');
+			let firstTileSprite = firstTile.getSprite();
+			assert.ok(firstTileSprite instanceof PIXI.Sprite, 'Ensure the first tile has a valid PIXI Sprite assigned.');
+			assert.deepEqual([firstTileSprite.position.x, firstTileSprite.position.y], [0,0] , 'Ensure the first tile has the correct PIXI Point position.');
+			assert.equal(firstTileSprite.texture.textureCacheIds[0], 'grass-plain', 'Ensure the first sprite has the correct sprite texture cache name');
+			assert.equal(firstTileSprite.height, DEFAULT_TILE_SIZE, 'Ensure the first sprite has the correct height');
+			assert.equal(firstTileSprite.width, DEFAULT_TILE_SIZE, 'Ensure the first sprite has the correct width');
+
+			let lastTile = mapTileArray[TEST_TILECOUNT-1][TEST_TILECOUNT-1];
+			assert.equal(lastTile.getTileType(), DEFAULT_TILETYPE, 'Ensure the last tile has the default tile type number.');
+			let lastTileSprite = lastTile.getSprite();
+			assert.ok(lastTileSprite instanceof PIXI.Sprite, 'Ensure the last tile has a valid PIXI Sprite assigned.');
+			assert.equal(lastTileSprite.texture.textureCacheIds[0], 'grass-plain', 'Ensure the last sprite has the correct sprite texture cache name');
+			assert.equal(lastTileSprite.height, DEFAULT_TILE_SIZE, 'Ensure the last sprite has the correct height');
+			assert.equal(lastTileSprite.width, DEFAULT_TILE_SIZE, 'Ensure the last sprite has the correct width');
+
+			let maxmimumTilePosition = (TEST_TILECOUNT-1) * DEFAULT_TILE_SIZE;
+			assert.deepEqual([lastTileSprite.position.x, lastTileSprite.position.y], [maxmimumTilePosition, maxmimumTilePosition] , 'Ensure the last tile has the correct PIXI Point position.');
 
 			assert.ok(pixiMapView.mapContainer instanceof PIXI.Container, 'Check the map Container is a PIXI.Container');
 			assert.ok(pixiMapView.mapContainer.children instanceof Array, 'Check the map Container has a children array');
-			
+
+			let totalTileArea = TEST_TILECOUNT * TEST_TILECOUNT;
 			assert.equal(pixiMapView.mapContainer.children.length, totalTileArea, 'Check the map Container has enough children for each tile');
 			asyncDrawDone();
 		}).catch(rejection => {
 			assert.ok(false, 'Map drawing Promise rejected with: ' + rejection);
 		});
 	//});
-	assert.expect(3);
+	assert.expect(17);
 }
 );
 

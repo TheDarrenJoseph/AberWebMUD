@@ -338,8 +338,17 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		return form;
 	}
 
-	requestCharacterDetails () {
+	showStatsWindow() {
 		this.showElement(_STATS_WINDOW_ID);
+
+	}
+
+	hideStatsWindow() {
+		this.hideElement(_STATS_WINDOW_ID);
+	}
+
+	requestCharacterDetails () {
+		this.showStatsWindow();
 	}
 
 	getStatsCharacterNameVal () {

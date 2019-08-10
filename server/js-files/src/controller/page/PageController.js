@@ -144,8 +144,6 @@ export default class PageController {
 		return this.charDetailsConfirmed;
 	}
 
-
-
 	// Builds UI Components
 	setupUI () {
 		if (!this.isSetup) {
@@ -157,10 +155,18 @@ export default class PageController {
 			this.pageView.showElement(_MAIN_WINDOW_ID);
 			this.pageView.showElement(_GAME_WINDOW_ID);
 
-			this.pageCharacterDetailsView.hideElement(_STATS_WINDOW_ID);
-			this.pageChatView.hideElement(_MESSAGE_WINDOW_ID);
-			this.pageInventoryView.hideElement(_INVENTORY_WINDOW_ID);
+			this.pageCharacterDetailsView.hideStatsWindow();
+			this.pageChatView.hideMessageWindow();
+			this.pageInventoryView.hideInventoryWindow();
 		}
+	}
+
+	showLogin() {
+		this.pageChatView.showMessageWindow();
+	}
+
+	hideLogin() {
+		this.pageChatView.hideMessageWindow();
 	}
 
 	/**
