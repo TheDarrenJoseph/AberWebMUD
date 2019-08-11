@@ -52,14 +52,6 @@
 	z-index: 2;
 }
 
-#password-input{
-	position: absolute;
-	width: 80%;
-	height: 20%;
-	bottom:0%;
-	z-index: 2;
-}
-
 #send-message-button {
 	position: absolute;
 	width: 18%;
@@ -85,8 +77,33 @@
 
 
 #inventory-window{
+	width: 75%;
+	height: 80%;
 	overflow: scroll;
 	z-index: 2;
+}
+
+#login-window{
+	padding: 4%;
+	top: 25%;
+	z-index: 2;
+}
+
+.login-title{
+	font: normal 3em sans-serif;
+	fill: yellow !important;
+       	stroke: black !important;
+}
+
+.login-label{
+	display: inline-block;
+	text-align: right;
+	width: 25%;
+}
+
+.login-textinput{
+	vertical-align: top;
+	box-sizing: border-box;
 }
 
 .inventoryItem:hover{

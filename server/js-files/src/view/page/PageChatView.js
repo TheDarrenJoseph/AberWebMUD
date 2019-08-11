@@ -163,9 +163,9 @@ export default class PageChatView extends PageHtmlView {
 	//	return this.getPasswordInputFieldJquery()[0];
 	//}
 
-	getPasswordInput () {
-		return this.getPasswordInputFieldJquery().val();
-	}
+	//getPasswordInput () {
+	//	return this.getPasswordInputFieldJquery().val();
+	//}
 
 	getMessageLogJquery () {
 		return jquery('#'+_MESSAGE_LOG_ID, this.doc);
@@ -267,9 +267,9 @@ export default class PageChatView extends PageHtmlView {
 	bindEnterKeyUp (callback) {
 		//	grab the fields
 		var messageField = this.getMessageInputFieldJquery();
-		var passwordField = this.getPasswordInputFieldJquery();
+		//var passwordField = this.getPasswordInputFieldJquery();
 		messageField.unbind('keyup'); //	Clear previous bindings first
-		passwordField.unbind('keyup');
+		//passwordField.unbind('keyup');
 		
 		// blank func?
 		//messageField.on('keyup', function (evnt) {});
@@ -279,12 +279,15 @@ export default class PageChatView extends PageHtmlView {
 				callback();
 			}
 		});
+
+		/**
 		passwordField.on('keyup', (eventObject) => {
 			//	Enter key check
 			if (eventObject.keyCode === ENTER_KEY_EVENT_CODE) {
 				callback();
 			}
 		});
+		 **/
 	}
 
 	// Emit instead

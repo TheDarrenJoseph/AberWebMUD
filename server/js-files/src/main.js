@@ -14,7 +14,7 @@ function runGame() {
 
 	let pixiMapView = mapController.getPixiMapView();
 
-	//viewController.loginPrompt();
+	viewController.loginPrompt();
 
 	console.log('Attempting map draw..')
 	pixiMapView.drawMapTiles().then(() => {

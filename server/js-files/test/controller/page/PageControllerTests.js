@@ -76,7 +76,7 @@ function tearDown () {
 // Hookup before each test setup / assertion
 QUnit.module('PageContollerTests', { before: beforeAll, beforeEach: beforeEachTest, after: tearDown });
 
-QUnit.test(TEST_TAG + 'setupUI', function (assert) {
+QUnit.skip(TEST_TAG + 'setupUI', function (assert) {
 	pageView.destroyView();
 	assert.equal(pageView.getMainWindowJquery().length, 0, 'Check main window does not exist');
 	pageController.setupUI();

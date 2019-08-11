@@ -73,8 +73,8 @@ export class PageHtmlView extends EventMapping {
 	}
 
 	createElement(elementType, elementId) {
-		let elemTypePresent = elementType !== undefined;
-		let elemIdPresent = elementId !== undefined;
+		let elemTypePresent = (elementType !== undefined);
+		let elemIdPresent = (elementId !== undefined);
 		if (elemTypePresent) {
 			let theElement = this.doc.createElement(elementType);
 			if (elemIdPresent) {
@@ -88,7 +88,7 @@ export class PageHtmlView extends EventMapping {
 	}
 
 	createInputField(elementId, inputType) {
-		let inputField = this.doc.createElement('input', elementId);
+		let inputField = this.createElement('input', elementId);
 		inputField.setAttribute('type', inputType);
 		return inputField;
 	}

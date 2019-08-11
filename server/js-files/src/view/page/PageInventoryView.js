@@ -66,7 +66,7 @@ export default class PageInventoryView extends PageHtmlView {
 			nameData.innerHTML = 'Test Item ' + i;
 
 			let valueData = this.createElement('td');
-			nameData.innerHTML = i;
+			valueData.innerHTML = i;
 
 			let infoData = this.createElement('td');
 			let infoButton = this.createButton('info-button-'+i, 'Info');

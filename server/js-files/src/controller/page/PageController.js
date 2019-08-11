@@ -14,8 +14,7 @@ import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 
 import ValidationHandler from 'src/handler/ValidationHandler.js';
 import PageInventoryView from 'src/view/page/PageInventoryView.js';
-import PageLoginView from 'src/view/page/PageLoginView.js';
-
+import { EVENTS as pageLoginEvents, PageLoginView } from 'src/view/page/PageLoginView.js';
 
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
 export var LOGIN_FAILURE_MESSAGE_PLAYER = 'Login failure (player does not exist)';
@@ -124,12 +123,18 @@ export default class PageController {
 		this.pageCharacterDetailsView.bindEvents();
 	}
 
+	bindPageLoginView() {
+		//this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.submitPassword.apply(this, [username]) });
+		this.pageLoginView.on(pageLoginEvents.SUBMIT_LOGIN, () => { this.submitPassword() })
+	}
+
 	/**
 	 * Binds all views vents for each view
 	 */
 	bindEvents () {
 		this.bindPageChatView();
 		this.bindPageCharacterDetailsView();
+		this.bindPageLoginView();
 	}
 
 	/**
@@ -171,15 +176,15 @@ export default class PageController {
 
 			this.pageCharacterDetailsView.hideStatsWindow();
 			this.pageChatView.hideMessageWindow();
-			this.pageInventoryView.hideInventoryWindow();
+			//this.pageInventoryView.hideInventoryWindow();
 			this.pageLoginView.hideLoginWindow();
+
+			this.isSetup = true;
 		}
 	}
 
 	showLogin() {
-		//this.pageChatView.showMessageWindow();
-		this.pageInventoryView.showInventoryWindow();
-		//this.pageLoginView.showLoginWindow();
+		this.pageLoginView.showLoginWindow();
 	}
 
 	hideLogin() {
@@ -264,20 +269,15 @@ export default class PageController {
 		this.pageChatView.clearMessageInputField();
 	}
 
-	submitPassword (username) {
-		// If we'd rather grab from the session we can use this
-		//var username = Session.ActiveSession.getSessionInfoJSON().username;
-		let passwordInput = this.pageChatView.getPasswordInput();
+	submitPassword () {
+		let username = this.pageLoginView.getUsername();
+		let password = this.pageLoginView.getPassword();
 
-		if (username !== null && passwordInput !== '') {
-			this.SOCKET_HANDLER.sendAuthentication(username, passwordInput);
-			this.pageChatView.endPasswordSubmission();
-			//	Set the send button behavior back to normal (isText)
-			this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.submitChatMessage() } );
-			//this.pageChatView.bindMessageButton(this.messageFieldKeyupTrigger);
-			
+		if (username !== null && password !== '') {
+			this.SOCKET_HANDLER.sendAuthentication(username, password);
+			this.pageLoginView.hideLoginWindow();
 		} else {
-			this.pageChatView.updateMessageLog(INVALID_LOGIN_MESSAGE, 'client');
+			console.error('Invalid login details');
 		}
 	}
 
@@ -294,7 +294,7 @@ export default class PageController {
 			return;
 		}
 
-		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.submitPassword.apply(this, [username]) });
+		//this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.submitPassword.apply(this, [username]) });
 
 		//this.pageChatView.showPasswordInput();
 

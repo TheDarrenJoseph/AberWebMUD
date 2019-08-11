@@ -11,7 +11,7 @@ var EVENTS = {};
 export const _MAIN_WINDOW_ID = 'main-window';
 export const _GAME_WINDOW_ID = 'game-window';
 
-const DEBUG = false;
+const DEBUG = true;
 
 //	General UI Page View
 // This is the main page view and builds the parent div for all others
