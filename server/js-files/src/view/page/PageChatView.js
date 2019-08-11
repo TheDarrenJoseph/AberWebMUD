@@ -6,7 +6,6 @@ import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
 
 export const _MESSAGE_WINDOW_ID = 'message-window';
 export const _MESSAGE_INPUT_ID = 'message-input';
-export const _PWD_INPUT_ID = 'password-input';
 export const _MESSAGE_LOG_ID = 'message-log';
 export const _SEND_MESSAGE_BUTTON_ID = 'send-message-button';
 
@@ -29,7 +28,7 @@ export default class PageChatView extends PageHtmlView {
 		{
 			[_MESSAGE_WINDOW_ID]: '#'+_MESSAGE_WINDOW_ID,
 			[_MESSAGE_INPUT_ID]: '#' + _MESSAGE_INPUT_ID,
-			[_PWD_INPUT_ID]: '#' + _PWD_INPUT_ID,
+			//[_PWD_INPUT_ID]: '#' + _PWD_INPUT_ID,
 			[_SEND_MESSAGE_BUTTON_ID]: '#' + _SEND_MESSAGE_BUTTON_ID
 		});
 		this.pageView = pageView;
@@ -53,9 +52,9 @@ export default class PageChatView extends PageHtmlView {
 		messageInput.setAttribute('id', _MESSAGE_INPUT_ID);
 		messageInput.setAttribute('type', 'text');
 
-		var pwdInput = this.doc.createElement('input');
-		pwdInput.setAttribute('id', _PWD_INPUT_ID);
-		pwdInput.setAttribute('type', 'password');
+		//var pwdInput = this.doc.createElement('input');
+		//pwdInput.setAttribute('id', _PWD_INPUT_ID);
+		//pwdInput.setAttribute('type', 'password');
 
 		var submitButton = this.doc.createElement('input');
 		submitButton.setAttribute('type', 'submit');
@@ -64,7 +63,7 @@ export default class PageChatView extends PageHtmlView {
 
 		messageWindow.append(messageLog);
 		messageWindow.append(messageInput);
-		messageWindow.append(pwdInput);
+		//messageWindow.append(pwdInput);
 		messageWindow.append(submitButton);
 
 		return messageWindow;
@@ -80,16 +79,20 @@ export default class PageChatView extends PageHtmlView {
 		if (!messageWindowExists) {
 			let messageWindow = this.buildMessageWindow();
 			this.pageView.appendToGameWindow(messageWindow);
+			return messageWindow;
 
 			// Ensure password input only appears when required
-			this.hidePasswordInput();
+			// this.hidePasswordInput();
+		} else {
+			return this.getMessageWindow();
 		}
 	}
 
 
 	// Creates the HTML for this view if needed
 	buildView () {
-		this.generateMessageWindow();
+		let messageWindow = this.generateMessageWindow();
+		return messageWindow;
 	}	
 	
 	updateInputField (character) {
@@ -147,18 +150,18 @@ export default class PageChatView extends PageHtmlView {
 	}
 
 	// Return a single matching DOM element
-	getPasswordInputFieldJquery () {
-		return jquery('#'+_PWD_INPUT_ID, this.doc);
-	}
+	//getPasswordInputFieldJquery () {
+	//	return jquery('#'+_PWD_INPUT_ID, this.doc);
+	//}
 
-	clearPasswordInputField() {
-		this.getPasswordInputFieldJquery().val('');
-	}
+	//clearPasswordInputField() {
+	//	this.getPasswordInputFieldJquery().val('');
+	//}
 	
 	// Return a single matching DOM element
-	getPasswordInputField () {
-		return this.getPasswordInputFieldJquery()[0];
-	}
+	//getPasswordInputField () {
+	//	return this.getPasswordInputFieldJquery()[0];
+	//}
 
 	getPasswordInput () {
 		return this.getPasswordInputFieldJquery().val();
@@ -216,15 +219,15 @@ export default class PageChatView extends PageHtmlView {
 		this.getMessageInputFieldJquery().val('');
 	};
 
-	showPasswordInput () {
+	//showPasswordInput () {
 		// Make sure the parent window is showing
-		this.showElement(_MESSAGE_WINDOW_ID);
-		this.showElement(_PWD_INPUT_ID);
-	}
+		//this.showElement(_MESSAGE_WINDOW_ID);
+		//this.showElement(_PWD_INPUT_ID);
+  //}
 
-	hidePasswordInput () {
-		this.hideElement(_PWD_INPUT_ID);
-	}
+	//hidePasswordInput () {
+	//	this.hideElement(_PWD_INPUT_ID);
+	//}
 
 
 	showMessageWindow() {

@@ -41,6 +41,14 @@ export class PageHtmlView extends EventMapping {
 		}
 	}
 
+	extractElementFromJquery(elements) {
+		if (elements.length >= 1) {
+			return elements.get(0);
+		} else {
+			throw new Error("No HTML elements present in jQuery object.");
+		}
+	}
+
 	isElementVisible(localWindowId) {
 		//	Check if the dialog is visible to begin with
 		return this.getWindowJquery(localWindowId).is(':visible');
@@ -62,6 +70,27 @@ export class PageHtmlView extends EventMapping {
 		for (var windowId in this.idSelectorMappings) {
 			this.hideElement(windowId);
 		}
+	}
+
+	createElement(elementType, elementId) {
+		let elemTypePresent = elementType !== undefined;
+		let elemIdPresent = elementId !== undefined;
+		if (elemTypePresent) {
+			let theElement = this.doc.createElement(elementType);
+			if (elemIdPresent) {
+				theElement.setAttribute('id', elementId);
+			}
+
+			return theElement;
+		} else {
+			throw new RangeError('Missing the elementType to create a new HTML Element of.')
+		}
+	}
+
+	createInputField(elementId, inputType) {
+		let inputField = this.doc.createElement('input', elementId);
+		inputField.setAttribute('type', inputType);
+		return inputField;
 	}
 
 	toggleWindow (localWindowId) {

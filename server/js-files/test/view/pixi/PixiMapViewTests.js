@@ -12,7 +12,7 @@ import { PixiController, ASSET_PATHS } from 'src/controller/pixi/PixiController.
 
 let TEST_TAG = '|PIXI-MAP-VIEW|';
 
-let pageController = new PageController(() => {}, undefined, undefined, undefined);
+let pageController = new PageController(() => {}, undefined, undefined, undefined, undefined);
 
 let pixiController = new PixiController(undefined, pageController);
 let renderer = pixiController.pixiView.getRenderer();

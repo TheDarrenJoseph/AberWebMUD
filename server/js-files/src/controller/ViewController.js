@@ -31,7 +31,7 @@ export default class ViewController {
 	resetChatWindow() {
 		if (this.pageController.isSetup) {
 			this.pageController.getPageChatView().clearMessageLog();
-			this.pageController.getPageChatView().hidePasswordInput();
+			// this.pageController.getPageChatView().hidePasswordInput();
 		}
 	}
 

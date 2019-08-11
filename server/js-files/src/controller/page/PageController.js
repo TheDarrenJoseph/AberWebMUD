@@ -13,7 +13,8 @@ import { Session } from 'src/model/Session.js';
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 
 import ValidationHandler from 'src/handler/ValidationHandler.js';
-import PageInventoryView from '../../view/page/PageInventoryView'
+import PageInventoryView from 'src/view/page/PageInventoryView.js';
+import PageLoginView from 'src/view/page/PageLoginView.js';
 
 
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
@@ -37,7 +38,7 @@ export default class PageController {
 	 * @param pageCharacterDetailsView
 	 * @param pageChatView
 	 */
-	constructor(doc, pageView, pageCharacterDetailsView, pageChatView, pageInventoryView) {
+	constructor(doc, pageView, pageCharacterDetailsView, pageChatView, pageInventoryView, pageLoginView) {
 
 		this.isSetup = false;
 		this.uiEnabled = false;
@@ -80,6 +81,13 @@ export default class PageController {
 		} else {
 			this.pageInventoryView = pageInventoryView;
 		}
+
+		if (pageLoginView == undefined) {
+			this.pageLoginView = new PageLoginView(this.doc)
+		} else {
+			this.pageLoginView = pageLoginView;
+		}
+
 	}
 
 	getPageView() {
@@ -149,8 +157,14 @@ export default class PageController {
 		if (!this.isSetup) {
 			// Ensure our HTML DOM content is built
 			this.pageView.buildView();
-			this.pageCharacterDetailsView.buildView();
-			this.pageChatView.buildView();
+			let pageCharDetailsView = this.pageCharacterDetailsView.buildView();
+			let pageChatView        = this.pageChatView.buildView();
+			let pageInventoryView   = this.pageInventoryView.buildView();
+			let pageLoginView       = this.pageLoginView.buildView();
+
+			//TODO perform this step somewhere graceful to avoid passing the pageView into every view element
+			this.pageView.appendToGameWindow(pageInventoryView);
+			this.pageView.appendToGameWindow(pageLoginView);
 
 			this.pageView.showElement(_MAIN_WINDOW_ID);
 			this.pageView.showElement(_GAME_WINDOW_ID);
@@ -158,11 +172,14 @@ export default class PageController {
 			this.pageCharacterDetailsView.hideStatsWindow();
 			this.pageChatView.hideMessageWindow();
 			this.pageInventoryView.hideInventoryWindow();
+			this.pageLoginView.hideLoginWindow();
 		}
 	}
 
 	showLogin() {
-		this.pageChatView.showMessageWindow();
+		//this.pageChatView.showMessageWindow();
+		this.pageInventoryView.showInventoryWindow();
+		//this.pageLoginView.showLoginWindow();
 	}
 
 	hideLogin() {
@@ -279,7 +296,7 @@ export default class PageController {
 
 		this.pageChatView.on(pageChatEvents.SEND_MESSAGE, () => { this.submitPassword.apply(this, [username]) });
 
-		this.pageChatView.showPasswordInput();
+		//this.pageChatView.showPasswordInput();
 
 		if (ValidationHandler.validString(promptMessage)) {
 			this.pageChatView.setMessageLog(promptMessage);

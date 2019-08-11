@@ -469,8 +469,10 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	 */
 	buildView () {
 		// Build the window itself if needed
-		this.generateStatsWindow();
+		let statsWindow = this.generateStatsWindow();
 		this.generateStatsForm();
+
+		return statsWindow;
 	}
 
 	destroyView () {
