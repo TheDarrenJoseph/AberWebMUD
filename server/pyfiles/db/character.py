@@ -46,7 +46,7 @@ class Character(db_instance.DatabaseInstance._database.Entity):
         if this_charclass is not None:
             self.charclass = this_charclass
 
-    def get_attributes(self) -> str:
+    def get_attributes(self):
         return self.attributes
 
     def set_attributes(self, this_attributes) -> None:

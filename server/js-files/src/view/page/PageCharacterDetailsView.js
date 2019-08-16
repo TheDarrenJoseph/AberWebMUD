@@ -39,7 +39,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	 * @param characterDetails CharacterDetails model to display
 	 */
 	constructor (pageView, characterDetails) {
-		super(pageView.pageModel.doc, EVENTS, { [_STATS_WINDOW_ID] : '#' + _STATS_WINDOW_ID} );
+		super(pageView.pageModel.doc, EVENTS, { [_STATS_WINDOW_ID]: '#' + _STATS_WINDOW_ID });
 
 		// We need to be able to make some calls to show/hide windows etc
 		this.pageView = pageView;
@@ -61,10 +61,10 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	/**
 	 * Emits the data for this view.
 	 */
-	submitStats() {
-		let displayedCharname  =  this.getStatsCharacterNameVal();
-		let displayedCharclass =  this.getStatsCharacterClass();
-		let displayedAttribs   = this.getAttributes();
+	submitStats () {
+		let displayedCharname = this.getStatsCharacterNameVal();
+		let displayedCharclass = this.getStatsCharacterClass();
+		let displayedAttribs = this.getAttributes();
 
 		// Update the underlying data model before we submit it
 		let currentDetails = this.characterDetails;

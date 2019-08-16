@@ -1,5 +1,5 @@
 import logging
-from pyfiles.db import player, character
+from pyfiles.db import player, character, attributes
 from pyfiles import userInput,  playerController
 from pyfiles.model import  overworld
 from pony.orm.core import ObjectNotFound
@@ -20,12 +20,16 @@ def new_character(charname : str, username : str) -> player.Player:
         if playerController.find_player(username) is not None:
             start_pos = overworld.getOverworld().get_starting_pos()
 
+
             #Create a new Character in the DB for the player to reference (PonyORM)
             this_character = character.Character(charname=charname,
                                                  position=start_pos,
                                                  player=player.Player[username])
 
-            logging.info('NEW CHAR: '+str(this_character)+'JSON: '+str(this_character.get_json()))
+            character_attributes = attributes.Attributes(character=this_character).with_default_attributes()
+            this_character.set_attributes(character_attributes)
+
+            logging.info('Character created, JSON: '+str(this_character.get_json()))
 
             return charname #Charname return confirms creation
     return None
@@ -60,28 +64,26 @@ def find_player_character(username : str, character_name : str) -> character.Cha
 
 #Updates a character from character update event response JSON
 @db_session
-def update_character_from_json(character_json:dict) -> bool:
+def update_character_from_json(character_json: dict) -> bool:
     username = character_json['sessionJson']['username']
-    data = character_json['data']
+    data = character_json['character']
     character_name = data['charname']
     character_class = data['charclass']
 
     # lookup the Player in the DB
     this_player = player.Player[username]
     this_character = this_player.get_character()
-    # Or maybe DB lookup instead?
+    # Or maybe direct DB lookup instead?
     # this_character = character.Character.get(charname=character_name)
 
-    data = data['attributes'] #Pick out only the 'attributes' from 'data'
-    if this_character is not  None and this_player is not None:
+    attributes = data['attributes'] #Pick out only the 'attributes' from 'data'
+    if this_character is not None and this_player is not None:
         this_character.set_charname(character_name)
-        this_character.stats.charclass = character_class
+        this_character.set_charclass(character_class)
 
+        attribute_scores = attributes['scores']
         these_attribs = this_character.attributes
-        these_attribs.update_attribs_from_json(data)
-
-        logging.info(these_attribs.get_json())
-        logging.info(this_character.get_json())
+        these_attribs.update_attribs_from_json(attribute_scores)
         return True
 
     else:
@@ -90,7 +92,7 @@ def update_character_from_json(character_json:dict) -> bool:
 
 @db_session
 def update_character_details(character_json : dict) -> bool:
-    data = character_json['data']
+    data = character_json['character']
     username = character_json['sessionJson']['username']
     charname = data['charname']
 

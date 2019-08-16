@@ -9,7 +9,7 @@ max_dice_face_val = 100
 max_dice_count = 10
 max_max_range = max_dice_count*max_dice_count
 
-class diceRollGood(unittest.TestCase):
+class TestDiceRollGood(unittest.TestCase):
 
     def check_value(self, dice_value, face_count):
         self.assertLessEqual(dice_value, face_count)
@@ -60,7 +60,7 @@ class diceRollGood(unittest.TestCase):
             dice_value = dice.rollDice(1, max_dice_face_val)
             self.check_value(dice_value, max_dice_face_val)
 
-class diceRollBad(unittest.TestCase):
+class TestDiceRollBad(unittest.TestCase):
     exception_response = None
 
     def test_dice_roll_invalid_face(self):

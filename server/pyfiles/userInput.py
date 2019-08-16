@@ -1,5 +1,6 @@
 import re, logging
 from pyfiles import jsonChecker, playerController, characterController
+from pyfiles.db.attributes import ATTRIBUTE_NAMES
 
 def split_words(text : str) -> list:
     """ Breaks up a command input such as 'hello foo bar' into individual words"""
@@ -93,6 +94,6 @@ def check_message_params(message : dict) -> (bool, dict):
 
 def validate_character_update(characterJson : dict) -> bool:
     """ Checks we've been given valid data, and that any changes are within limits """
-    return jsonChecker.character_details_exist(characterJson)
+    return jsonChecker.character_details_exist(characterJson, ATTRIBUTE_NAMES)
     #Check for a prexisting character
     #if characterController.find_character(characterJson['data']['charname']) is None:

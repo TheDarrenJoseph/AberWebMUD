@@ -5,6 +5,9 @@ from pyfiles.model import overworld
 # Define a DB handler since we're creating entities that will need mapping
 DB_HANDLER = None
 
+def setUp(self) :
+    print(self.__testMethodName)
+
 def setUpModule():
     DB_HANDLER = database.DatabaseHandler()
     DB_HANDLER.open_db()
@@ -13,7 +16,7 @@ def tearDownModule():
     if DB_HANDLER is not None:
         DB_HANDLER.close_db()
 
-class overworldCreation(unittest.TestCase):
+class TestOverworldGood(unittest.TestCase):
     thisOverworld = overworld.getOverworld()
 
     def test_start_pos(self):

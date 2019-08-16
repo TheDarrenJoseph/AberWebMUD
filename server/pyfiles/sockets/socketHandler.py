@@ -385,6 +385,8 @@ class SocketHandler:
                 if playerController.new_player(username, password) is not None:
                     self.login_user(requested_sid, username)
 
+
+
     def __init__(self, _APP, **kwargs) -> SocketIO:
         self.flaskApp = _APP
         logging.info('Creating new SocketIO handler.. ')
