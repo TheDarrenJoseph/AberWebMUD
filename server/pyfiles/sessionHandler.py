@@ -1,4 +1,6 @@
 import logging
+from pyfiles.db import player
+from pyfiles.model import session
 
 # Current connected but unauthenticated sessions
 _connected_sessions = []
@@ -81,7 +83,56 @@ def remove_active_session(session_id: str) -> bool:
         return True, username
     return False
 
+""" Checks that a player with username exists and has a valid active session (logged in)
+returns (bool, bool) meaning (found_player, valid_session_exists)
+or that the check otherwise failed (bad data)
+"""
+def valid_player_session(self, username : str, session_id : str, found_player : player.Player) -> (bool, bool):
+    if username and session_id and found_player is not None:
+        if check_active_session(session_id, username):
+            return True, True
+        else:
+            return True, False
+    else:
+        return False, False
 
 def contains_session_json(data: dict) -> bool:
     # The client should pass this param in
     return 'sessionJson' in data and 'sessionId' in data['sessionJson'] and 'username' in data['sessionJson']
+
+def extract_session_json(self, json_data):
+    return json_data[session.SESSION_JSON_NAME]
+
+# Returns True if there's a connected or active session
+def is_sessionid_connected_or_active(self, sid):
+    logging.info('Validating SID: ')
+    logging.info(sid)
+    if not connected_session_exists(sid) and not active_session_exists(sid):
+        return False
+    else:
+        return True
+
+"""
+    Checks for a valid (active) session ID and proxies to the right event handler if true
+    callback - the function to pass to if there's an active session
+    data     - The data from SocketIO
+"""
+def verify_active_and_call(callback, data):
+
+    if data is not None:
+        if contains_session_json(data):
+            session_json = extract_session_json(data)
+            sid = session_json[session.SESSION_ID_JSON_NAME]
+
+            if is_sessionid_connected_or_active(sid) and active_session_exists(sid):
+                logging.info('Proxying event for request SID: '+sid)
+                callback(data)
+            else:
+                logging.error('Checking for active session before proxying to: ' + callback.__name__ +
+                              '.. Could not find an active session for SID: ' + sid);
+        else:
+            logging.error('Checking for active session before proxying to: ' + callback.__name__ +
+                          '.. sessionJson not provided!');
+    else:
+        # + ' SocketIO Event: ' + json.dumps(request.event)
+        logging.info('No data for proxy call to: ' + callback.__name__)

@@ -1,6 +1,8 @@
 import ValidationHandler from 'src/handler/ValidationHandler.js';
 import Player from 'src/model/Player.js';
 
+import { EventMapping } from 'src/helper/EventMapping.js';
+
 const DEBUG=false;
 export const SESSION_ID_COOKIE_NAME = 'sessionId';
 
@@ -12,17 +14,23 @@ export const ERROR_LOGIN_RS_MISSING_CHARDETAILS = new RangeError('Character deta
 // January 1, 1970, 00:00:00 UTC
 const EPOCH_DATE = Date(0);
 
+export const EVENTS = { ACTIVE_SESSION : 'active-sesion', INACTIVE_SESSION: 'inactive-session' };
+
+
 /**
  * Once connected to the server we need to store a few things
  * i.e The SessionID token, Player Details, etc
  * This provides a centralised storage place (Singleton) that can be referenced at any point
  */
-class SessionModel {
+class SessionModel extends EventMapping {
 	constructor () {
+		super(EVENTS);
+
 		this.doc = document;
 		this.clientSession = {
 			player: new Player(""),
 			sessionId: null,
+			activeSession: false
 		};
 	};
 
@@ -70,6 +78,36 @@ class SessionModel {
 		//	Update the client session to contain our new data
 		this._checkSessionId(sessionId);
 		this.clientSession.sessionId = sessionId;
+	}
+
+	isActiveSession() {
+		return this.clientSession.activeSession
+	}
+
+	handleSessionActivity(activeBool) {
+		if (activeBool) {
+			this.emit(EVENTS.ACTIVE_SESSION)
+		} else {
+			this.emit(EVENTS.INACTIVE_SESSION)
+		}
+	}
+
+	setActiveSession(activeBool) {
+		if (typeof activeBool === "boolean") {
+			this.clientSession.activeSession = activeBool;
+			this.handleSessionActivity(activeBool);
+		} else {
+			throw new RangeError('Expected a boolean, received: ' + activeBool)
+		}
+	}
+
+	/**
+	 * Set upon successful connection to the server
+	 * @returns {*|boolean}
+	 */
+	isSessionIdSet() {
+		let sessionId = this.getSessionId();
+		return ValidationHandler.notUndefOrNull(sessionId) && typeof sessionId === 'string'
 	}
 
 	//getCharacterDetails () {
@@ -165,7 +203,7 @@ class SessionModel {
 				console.log('Updating session with response data: ' + JSON.stringify(data));
 
 				// Update user details
-				Session.ActiveSession.clientSession.sessionId = sid;
+				Session.ActiveSession.setSessionId(sid)
 				Session.ActiveSession.clientSession.player.updateFromJson(playerStatus)
 			} else {
 				throw new RangeError('Missing attributes when setting client session data: ' + JSON.stringify(expectedAttribs));

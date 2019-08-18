@@ -46,6 +46,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		// Assign the stats window to the main page view windows
 		//this.pageView.htmlWindows['statWindowId'] = this.getHtmlIdMapping(_STATS_WINDOW_ID);
 		this.characterDetails = characterDetails;
+
 	}
 
 	setupEmitting () {
@@ -63,7 +64,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	 */
 	submitStats () {
 		let displayedCharname = this.getStatsCharacterNameVal();
-		let displayedCharclass = this.getStatsCharacterClass();
+		let displayedCharclass = this.getCharacterClassValue();
 		let displayedAttribs = this.getAttributes();
 
 		// Update the underlying data model before we submit it
@@ -134,24 +135,17 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		return jquery('#' + _SAVE_STATS_BUTTON_ID, this.doc);
 	}
 
+	getCharclassSelectionJquery() {
+		return jquery('#'+_CHAR_CLASS_SELECTION_ID, this.doc);
+	}
+
 	getCharclassSelection() {
-		let elements = this.getCharclassSelectionJquery();
-		if (elements.length >= 1) {
-			return elements.get(0);
-		} else {
-			throw new Error("Charclass selection field not present.");
-		}
+		return this.extractElementFromJquery(this.getCharclassSelectionJquery())
 	}
 
 	setCharclassSelection(value) {
 		this.getCharclassSelectionJquery().val(value);
 	}
-
-
-	getCharclassSelectionJquery() {
-		return jquery('#'+_CHAR_CLASS_SELECTION_ID, this.doc);
-	}
-
 
 	clearStatsInfoField() {
 		this.getStatsInfoFieldJquery().val('');
@@ -281,6 +275,33 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	}
 
 	/**
+	 * Ensures the latest character class options are displayed, unlikely to change but this lets them be dynamic
+	 */
+	updateCharacterClassOptions() {
+		if (this.characterDetails.isCharacterClassOptionsDefined()) {
+
+			let classSelector = this.getCharclassSelection();
+
+			// Clear all child nodes first
+			while(classSelector.hasChildNodes()) {
+				classSelector.removeChild(classSelector.lastChild);
+			}
+
+			let charClassOptions = this.characterDetails.getAttributeClassOptions();
+			console.log('Setting character class options: ' + charClassOptions)
+			charClassOptions.forEach(classOption => {
+				let selectorOption = this.createSelectorOption(classOption.id, classOption.text)
+				classSelector.append(selectorOption);
+			});
+
+			console.log(classSelector)
+
+		} else {
+			throw new RangeError('Character class options were not set correctly!')
+		}
+	}
+
+	/**
 	 * Simply builds a <form> element for character stats
 	 * @returns HTMLElement for the <form>
 	 */
@@ -310,9 +331,9 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		classSelector.setAttribute('id', _CHAR_CLASS_SELECTION_ID);
 		classSelector.setAttribute('disabled', false);
 
-		CLASS_OPTIONS.forEach(classOption => {
-			classSelector.append(this.createSelectorOption(classOption.id, classOption.text));
-		});
+		// Wait until the underlying model has the data we need from the server
+		// Then we can set the correct UI values
+		this.characterDetails.on(characterDetailsEvents.SET_CLASS_OPTIONS, () => { this.updateCharacterClassOptions() });
 
 		//	'Attributes' section
 		var statsTable = this.createStatsTable();
@@ -363,12 +384,21 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		this.getStatsCharacterNameJquery().val(name);
 	}
 
-	getStatsCharacterClass () {
+	getCharacterClassValue () {
 		return jquery('#' + _CHAR_CLASS_SELECTION_ID, this.doc).val();
 	}
 
+	getCharacterClassSelectorJquery () {
+		return jquery('#' + _CHAR_NAME_INPUT_ID, this.doc);
+	}
+
+	getCharacterClassSelector() {
+		return this.getCharacterClassSelectorJquery()[0];
+	}
+
+
 	getClassOptionIndex (optionId) {
-		return CLASS_OPTIONS.findIndex(obj => { return obj.id == optionId } );
+		return this.characterClassOptions.findIndex(obj => { return obj.id == optionId } );
 	}
 
 	// Set the stats charClass choice to a given selection number
@@ -403,7 +433,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	getViewStats () {
 		return {
 			'charname': this.getStatsCharacterNameVal(),
-			'charclass': this.getStatsCharacterClass(),
+			'charclass': this.getCharacterClassValue(),
 			'attributes': this.getAttributes()
 		};
 	}

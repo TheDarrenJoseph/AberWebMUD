@@ -6,10 +6,10 @@ import logging
 import json
 from flask import request
 from flask_socketio import SocketIO, emit, join_room, leave_room
-from pyfiles import playerController, characterController, userInput
+from pyfiles import playerController, characterController, userInput, sessionHandler
 from pyfiles.model import overworld
-from pyfiles.sockets import sessionHandler
-from pyfiles.db import database
+from pyfiles.db import database, attributes
+from pyfiles.model.session import SESSION_ID_JSON_NAME, SESSION_USERNAME_JSON_NAME, SESSION_JSON_NAME
 
 class SocketHandler:
 
@@ -26,7 +26,7 @@ class SocketHandler:
         sessionHandler.add_connected_session(request.sid)
 
         logging.debug('OUT| connection-response to: '+request.sid)
-        emit('connection-response', {'chat-data': 'Welcome to AberWebMUD! Please create a character or login by typing \'user [username]\' ', 'sessionId': request.sid}, room=request.sid)
+        emit('connection-response', {'chat-data': 'Welcome to AberWebMUD! Please create a character or login by typing \'user [username]\' ', SESSION_ID_JSON_NAME: request.sid}, room=request.sid)
         #emit('status-response',statusResponse)
         sessionHandler.list_sessions()
         client_rooms = self.socketHandler.server.rooms(sid=request.sid);
@@ -58,40 +58,31 @@ class SocketHandler:
         logging.info('Client with request SID: ' + request.sid + ' left room: ' + left_room + ' joining..')
         leave_room(left_room)
 
-    def validate_sessionid(self, sid):
-        logging.info('Validating SID: ')
-        logging.info(sid)
-        if not sessionHandler.connected_session_exists(sid) and not sessionHandler.active_session_exists(sid):
+    def check_session_id(self, sid):
+        if not sessionHandler.is_sessionid_connected_or_active(sid):
             logging.info('Invalid SID, current rooms: ')
             logging.info(self.get_rooms())
             emit('invalid-sid', sid, room=request.sid)
-            return False
+
+
+    def get_session_id(self, session_json):
+        session_json = sessionHandler.extract_session_json(session_json)
+        if session_json is not None and SESSION_ID_JSON_NAME in session_json:
+            return session_json[SESSION_ID_JSON_NAME]
         else:
-            return True
+            return None
 
-    """
-        Checks for a valid (active) session ID and proxies to the right event handler if true
-        callback - the function to pass to if there's an active session
-        data     - The data from SocketIO
-    """
-    def verify_active_and_call(self, callback, data):
+    def is_valid_session_json(self, session_json):
+        if SESSION_USERNAME_JSON_NAME not in session_json:
+            raise ValueError('Expected Session username in Session JSON: [{}]'.format(SESSION_USERNAME_JSON_NAME))
+        if SESSION_ID_JSON_NAME not in session_json:
+            raise ValueError('Expected Session ID in Session JSON: [{}]'.format(SESSION_ID_JSON_NAME))
 
-        if data is not None:
-            if sessionHandler.contains_session_json(data):
-                session_json = data['sessionJson']
-                sid = session_json['sessionId']
+        username = session_json[SESSION_USERNAME_JSON_NAME]
+        session_id = session_json[SESSION_ID_JSON_NAME]
+        valid = sessionHandler.valid_player_session(username, session_id, playerController.find_player(username))
+        return all(valid)
 
-                if self.validate_sessionid(sid) and sessionHandler.active_session_exists(sid):
-                    logging.info('Proxying event for request SID: '+sid)
-                    callback(data)
-                else:
-                    logging.error('Checking for active session before proxying to: ' + callback.__name__ +
-                                  '.. Could not find an active session for SID: ' + sid);
-            else:
-                logging.error('Checking for active session before proxying to: ' + callback.__name__ +
-                              '.. sessionJson not provided!');
-        else:
-            logging.info('No data for proxy call to: ' + callback.__name__ + ' SocketIO Event: ' + json.dumps(request.event))
 
     def hookup_callbacks(self):
         self.socketHandler.on_event('connect', self.handle_connect)
@@ -99,7 +90,7 @@ class SocketHandler:
         self.socketHandler.on_event('join', self.handle_join)
         self.socketHandler.on_event('leave', self.handle_leave)
 
-        self.socketHandler.on_event('validate-sid', lambda sid: self.validate_sessionid(sid))
+        self.socketHandler.on_event('validate-sid', lambda sid: self.check_session_id(sid))
 
         # Messages can be received at any point, so no active session check
         self.socketHandler.on_event('new-chat-message', lambda data: self.handle_message(data))
@@ -107,15 +98,16 @@ class SocketHandler:
         # pass authentication directly to our handler
         self.socketHandler.on_event('client-auth', lambda data: self.authenticate_user(data))
 
-        self.socketHandler.on_event('map-data-request', lambda: self.verify_active_and_call(self.send_map_data, request.get_json()))
-        self.socketHandler.on_event('movement-command', lambda json: self.verify_active_and_call(self.handle_movement, json))
+        self.socketHandler.on_event('map-data-request', lambda: sessionHandler.verify_active_and_call(self.send_map_data, request.get_json()))
+        self.socketHandler.on_event('movement-command', lambda json: sessionHandler.verify_active_and_call(self.handle_movement, json))
 
         #socket_server.on_event('request-character-details', send_char_details)
-        self.socketHandler.on_event('character-details', lambda json :self.verify_active_and_call(self.handle_char_details, json))
+        self.socketHandler.on_event('character-details', lambda json : sessionHandler.verify_active_and_call(self.handle_char_details, json))
+        self.socketHandler.on('get-attribute-class-options', lambda json_data: sessionHandler.verify_active_and_call(self.handle_get_attribute_class_options, json_data))
 
     def send_server_message(self, message : dict or str, toAll : bool) -> None:
         """ Builds an ad-hoc sessionJson for the server and passes on the message data """
-        messageData = {'chat-data': message, 'sessionJson': {'username':'server'}}
+        messageData = {'chat-data': message, SESSION_JSON_NAME: {[SESSION_USERNAME_JSON_NAME]:'server'}}
         self.send_message(messageData, toAll)
 
     def send_message(self, messageData : dict, toAll : bool) -> None:
@@ -133,7 +125,7 @@ class SocketHandler:
             sends the current sessionId and a player-status data object
         """
         logging.debug('OUT| login success: '+str(status_response))
-        emit('login-success', {'sessionId':session_id, 'player-status':status_response}, room=session_id)
+        emit('login-success', {SESSION_ID_JSON_NAME:session_id, 'player-status':status_response}, room=session_id)
         sessionHandler.list_sessions() #List sessions for debug/info
 
     def send_help_message(self) -> None:
@@ -166,7 +158,7 @@ class SocketHandler:
 
     def parse_login(self, session_id : str, username : str) -> None:
         #user inputted username from client message
-        user_and_account = self.valid_player_session(username, session_id) # (userExists, logged_in)
+        user_and_account = sessionHandler.valid_player_session(username, session_id, playerController.find_player(username)) # (userExists, logged_in)
 
         #Exists but not logged in
         if user_and_account[0] is True and user_and_account[1] is False:
@@ -182,15 +174,21 @@ class SocketHandler:
         if not user_and_account[0]:
             #Send the password creation request for a new account
             logging.debug('OUT| request-new-password for: '+username)
-            emit('request-new-password', username,  room=session_id)
+            emit('request-new-password', username,  room=session_id
+
+
+
+
+
+                 )
 
     def handle_message(self, data: dict) -> None:
         logging.info('IN| player message: '+str(data))
 
         #Store locally and Remove the sessionId so we don't rebroadcast it to anyone
-        if 'sessionJson' in data and 'sessionId' in data['sessionJson'] :
-            sid = data['sessionJson']['sessionId']
-            del data['sessionJson']['sessionId']
+        if SESSION_JSON_NAME in data and SESSION_ID_JSON_NAME in data[SESSION_JSON_NAME] :
+            sid = data[SESSION_JSON_NAME][SESSION_ID_JSON_NAME]
+            del data[SESSION_JSON_NAME][SESSION_ID_JSON_NAME]
         else:
             logging.info('Message missing sessionJson / sessionId! : ' + str(data))
             return False
@@ -205,13 +203,13 @@ class SocketHandler:
 
             #Login choice
             if user_choice == 1:
-                username = input_params['chat-data']['username'] #Username is here for a login
+                username = input_params['chat-data'][SESSION_USERNAME_JSON_NAME] #Username is here for a login
                 self.parse_login(sid, username)
 
             #Message choice
             elif user_choice == 2:
                 #user inputted username from client message
-                username = data['sessionJson']['username'] #Username from sessionJSON otherwise
+                username = data[SESSION_JSON_NAME][SESSION_USERNAME_JSON_NAME] #Username from sessionJSON otherwise
                 found_player = playerController.find_player(username)
 
                 if found_player is not None:
@@ -229,82 +227,65 @@ class SocketHandler:
             logging.info('Failed to parse message: ' + str(data))
             return  False
 
-    """ Checks that a player with username exists and has a valid active session (logged in)
-    returns (bool, bool) meaning (found_player,valid_session_exists)
-    or that the check otherwise failed (bad data)
-    """
-    def valid_player_session(self, username : str, session_id : str) -> (bool, bool):
-        #import pdb; pdb.set_trace()
+    # Alerts all clients to a character movement
+    def send_movement_update(self, username, old_position, new_position):
+        movement_update = {
+                              [SESSION_USERNAME_JSON_NAME]: username,
+                              'old_position': {
+                                  'pos_x': old_position[0],
+                                  'pos_y': old_position[1]
+                              },
+                              'position': {
+                                  'pos_x': new_position[0],
+                                  'pos_y': new_position[1]
+                              }
+        }
+        logging.debug('OUT| movement UPDATE : ' + str(movement_update))
+        emit('movement-update', movement_update, broadcast=True)
 
-        # Empty String check
-        if username and session_id:
-                found_player = playerController.find_player(username)
-
-                if found_player is not None:
-                    if sessionHandler.check_active_session(session_id, username):
-                        return (True, True)
-                    return (True, False)
-                return (False, False)
+    def handle_get_attribute_class_options(self, json_data):
+        session_id = self.get_session_id(json_data)
+        if session_id is not None:
+            score_options = attributes.Attributes.get_json_attribute_score_options()
+            emit('attribute-class-options', score_options, room=session_id)
         else:
-            return (False, False)
+            logging.error('Invalid Session JSON when calling for attribute class options!')
 
     def handle_movement(self, message: dict) -> None:
         """ Handles a player movement command message send over SocketsIO """
         #If the movment returns True, all is good and we can send back a movement response
         #move_player also checks if the username exists for us
         logging.debug('IN| MOVEMENT MESSAGE: '+str(message))
-
         move_x = message['moveX']
         move_y = message['moveY']
-        session_json = message['sessionJson']
-        username = session_json['username']
-        session_id = session_json['sessionId']
+        session_json = sessionHandler.extract_session_json(message)
 
-        found_player = playerController.find_player(username)
-        valid = self.valid_player_session(username, session_id)
-
-        if all(valid):
+        if self.is_valid_session_json(session_json):
+            username = session_json[SESSION_USERNAME_JSON_NAME]
             player_pos = playerController.get_player_pos(username)
 
             if player_pos is not None:
-                old_x = player_pos[0]
-                old_y = player_pos[1]
                 movement_success = False
-                logging.info('Character move made from location'+str(old_x)+' '+str(old_y))
-
                 if playerController.move_player(username, move_x, move_y) is True:
                     movement_success = True
                     new_pos = playerController.get_player_pos(username)
-
                     #Update every client to the new movement
-                    logging.debug('OUT| movement UPDATE')
-                    emit('movement-update', {
-                        'username': username,
-                        'old_position': {
-                            'pos_x': old_x,
-                            'pos_y': old_y
-                        },
-                        'position': {
-                            'pos_x': new_pos[0],
-                            'pos_y': new_pos[1]
-                        }
-                    }, broadcast=True)
-
-                    logging.info('movement success for'+found_player.username)
-                    logging.info(str(old_x)+str(old_y)+" "+str(new_pos[0])+str(new_pos[1]))
+                    self.send_movement_update(username, player_pos, new_pos)
                 logging.debug('OUT| movement RESPONSE, success: '+str(movement_success))
-                emit('movement-response', {'success':movement_success}, broadcast=False)
-        if valid[0] and not valid[1]:
-            logging.info('Valid user not in activeSessions, requesting password')
-            emit('request-password', username, room=session_id) #Client has a valid user, but not logged in
+                emit('movement-response', {'success': movement_success}, broadcast=False)
+        else:
+            logging.error('No valid session for movement attempt, request.sid: ' + request.sid)
+
 
     def handle_char_details(self, message: dict) -> None:
         """ Receives character data from the client, validates it, and updates the DB """
         logging.info('CHAR DETAILS: '+str(message))
 
-        if 'sessionJson' in message and 'username' in message['sessionJson']:
-            sessionData = [message['sessionJson']['username'], request.sid]
-            if all(self.valid_player_session(sessionData[0], sessionData[1])):
+        if SESSION_JSON_NAME in message and SESSION_USERNAME_JSON_NAME in message[SESSION_JSON_NAME]:
+            sessionData = [message[SESSION_JSON_NAME][SESSION_USERNAME_JSON_NAME], request.sid]
+            username = sessionData[0]
+            sessionId = sessionData[1]
+            if all(sessionHandler.valid_player_session(username, sessionId, playerController.find_player(username))):
                 update_success = False
                 character_data = {}
 
@@ -313,7 +294,7 @@ class SocketHandler:
                     logging.info('Updating char details: '+str(message))
                     update_success = characterController.update_character_details(message)
                     logging.info('CHARACTER UPDATE SUCCESS: '+str(update_success))
-                    username = message['sessionJson']['username']
+                    username = message[SESSION_JSON_NAME][SESSION_USERNAME_JSON_NAME]
 
                     character_data = playerController.get_character_json(username)['character']
                 else:
@@ -352,13 +333,13 @@ class SocketHandler:
 
         data = jsonData['data']
 
-        if 'username' not in data or 'password' not in data:
+        if SESSION_USERNAME_JSON_NAME not in data or 'password' not in data:
             logging.error('Failed to find expected parameters, username or password in dta: ' + json.dumps(data))
             return
 
         requested_sid = request.sid
         logging.info('Authentication requested by request SID: ' + requested_sid)
-        username = data['username']
+        username = data[SESSION_USERNAME_JSON_NAME]
         password = data['password']
 
         # Check for pre-existing session

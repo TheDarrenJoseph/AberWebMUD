@@ -15,7 +15,7 @@ export const MIN_ATTRIB_VAL = 1;
 export const MAX_ATTRIB_VAL = 100;
 export const DEFAULT_FREE_POINTS = 9;
 
-export const EVENTS = { SET_DETAILS : 'set-details', SET_ATTRIBS : 'set-attributeScores' };
+export const EVENTS = { SET_DETAILS : 'set-details', SET_ATTRIBS : 'set-attributeScores', SET_CLASS_OPTIONS: 'set-class-options' };
 
 const INVALID_CHAR_UPDATE_DATA_ERROR = 'Character update data is invalid: ';
 
@@ -70,6 +70,22 @@ export default class CharacterDetails extends EventMapping {
 
 		return (nameGood && attributes && charclassGood && healthGood);
 	};
+
+	getAttributeClassOptions() {
+		return this.characterClassOptions;
+	}
+
+	setCharacterClassOptions(characterClassOptions){
+		this.characterClassOptions = characterClassOptions;
+		this.emit(EVENTS.SET_CLASS_OPTIONS)
+		console.info('Character class options set!');
+	}
+
+	isCharacterClassOptionsDefined() {
+		let charclassOptions = this.getAttributeClassOptions();
+		return (charclassOptions !== undefined && charclassOptions.length > 0);
+	}
+
 
 	/**
 	 * Validates character stats (STR, DEX, CON, etc)

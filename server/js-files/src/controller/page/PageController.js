@@ -7,10 +7,11 @@ import { PageView, _MAIN_WINDOW_ID, _GAME_WINDOW_ID } from 'src/view/page/PageVi
 import  { _INVENTORY_WINDOW_ID } from 'src/view/page/PageInventoryView.js';
 
 //	Hooking up to a bunch of other controllers for now
-import { Session } from 'src/model/Session.js';
+import { EVENTS as sessionEvents, Session } from 'src/model/Session.js';
 
 //	We're going to call out to the SocketHandler from here for now
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
+import { FetchHandler } from 'src/handler/http/FetchHandler.js';
 
 import ValidationHandler from 'src/handler/ValidationHandler.js';
 import PageInventoryView from 'src/view/page/PageInventoryView.js';
@@ -47,6 +48,12 @@ export default class PageController {
 		this.SOCKET_HANDLER = SocketHandler.getInstance();
 
 		this.characterDetails = new CharacterDetails();
+
+		let docUrlParts = document.URL.split('/');
+		let protocol = docUrlParts[0]+'//'
+		let baseUrl = docUrlParts[2];
+		console.info('PageController FetchHandler URL: ' + protocol + baseUrl)
+		this.fetchHandler = new FetchHandler(protocol + baseUrl);
 
 		// Use the base document if we've not provided one
 		if (doc == undefined) {
@@ -157,19 +164,56 @@ export default class PageController {
 		return this.charDetailsConfirmed;
 	}
 
+	extractAttributeClassOptions(jsonData) {
+		let classOptions = [];
+		let availableOptions = jsonData.options;
+
+		for (let i=0; i < availableOptions.length; i++) {
+			let availOpt = availableOptions[i];
+
+			let thisOption = {
+				id: availOpt.toLowerCase(),
+				text: availOpt
+			}
+			classOptions.push(thisOption);
+		}
+
+		return classOptions;
+	}
+
+	handleAttributeClassOptions(jsonData) {
+		let attributeClassOptions = this.extractAttributeClassOptions(jsonData)
+		this.pageCharacterDetailsView.characterDetails.setCharacterClassOptions(attributeClassOptions);
+	}
+
 	// Builds UI Components
 	setupUI () {
 		if (!this.isSetup) {
+
+			this.SOCKET_HANDLER.bind()
+
 			// Ensure our HTML DOM content is built
 			this.pageView.buildView();
-			let pageCharDetailsView = this.pageCharacterDetailsView.buildView();
-			let pageChatView        = this.pageChatView.buildView();
-			let pageInventoryView   = this.pageInventoryView.buildView();
-			let pageLoginView       = this.pageLoginView.buildView();
+
+			let pageChatWindow        = this.pageChatView.buildView();
+			let charDetailsWindow = this.pageCharacterDetailsView.buildView();
+			let pageInventoryWindow   = this.pageInventoryView.buildView();
+			let pageLoginWindow       = this.pageLoginView.buildView();
+
+			Session.ActiveSession.once(sessionEvents.ACTIVE_SESSION, () => {
+				console.info('Active Session for Character Details View!')
+
+				// Make a request for the character class options
+				this.fetchAttributeClassOptions().then(jsonData => {
+					let attributeClassOptions = this.extractAttributeClassOptions(jsonData)
+					this.pageCharacterDetailsView.characterDetails.setCharacterClassOptions(attributeClassOptions);
+					console.info('Character Details View class options set, building view!')
+				}).catch(reason => { throw reason })
+			})
 
 			//TODO perform this step somewhere graceful to avoid passing the pageView into every view element
-			this.pageView.appendToGameWindow(pageInventoryView);
-			this.pageView.appendToGameWindow(pageLoginView);
+			this.pageView.appendToGameWindow(pageInventoryWindow);
+			this.pageView.appendToGameWindow(pageLoginWindow);
 
 			this.pageView.showElement(_MAIN_WINDOW_ID);
 			this.pageView.showElement(_GAME_WINDOW_ID);
@@ -182,6 +226,13 @@ export default class PageController {
 			this.isSetup = true;
 		}
 	}
+
+
+	fetchAttributeClassOptions() {
+		let response = this.fetchHandler.get('/attributes-class-options');
+		return response;
+	}
+
 
 	showLogin() {
 		this.pageLoginView.showLoginWindow();

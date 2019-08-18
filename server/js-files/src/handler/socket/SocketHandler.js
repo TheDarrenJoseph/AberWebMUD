@@ -2,6 +2,7 @@
 
 import io from 'socket.io-client';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
+import { DATA_JSON_NAME } from './MessageHandler'
 
 const CONNECTION_EVENT = 'connect';
 const CONNERROR_EVENT = 'connect_error';
@@ -59,6 +60,15 @@ export default class SocketHandler {
 			console.log('Session info missing for movement command.');
 		}
 	}
+
+
+	/**
+	fetchAttributeClassOptions() {
+		// Make sure we send session info with this
+		let message = MessageHandler.attachSessionJson({});
+		this.io.emit('get-attribute-class-options', message);
+	}
+	 **/
 
 	//	Send the user's password to the sever
 	sendAuthentication (username, passwordFieldVal) {

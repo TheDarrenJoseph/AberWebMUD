@@ -92,6 +92,11 @@ export class GameControllerClass {
 		this.socketHandler.bind('movement-update', pixiController.getMapController().handleMovementUpdate);
 
 		this.socketHandler.bind('character-details-update',  (data) => { pageController.handleCharacterUpdateResponse(data) });
+
+		this.socketHandler.bind('attribute-class-options', (data) => {
+			pageController.handleAttributeClassOptions(data)
+		});
+
 		//  Request for existing password
 		this.socketHandler.bind('request-password',  (username) => {
 			pageController.requestUserPassword(username, 'Please enter your password: ');
@@ -125,6 +130,8 @@ export class GameControllerClass {
 		try {
 			// Save this data for our session
 			Session.ActiveSession.setClientSessionData(data);
+			Session.ActiveSession.setActiveSession(true)
+
 			if (!data.hasOwnProperty('character')) {
 				this.viewController.pageController.getPageChatView().updateMessageLog('Player Character details not present, please enter them..', 'client');
 				this.viewController.pageController.getPageCharacterDetailsView().requestCharacterDetails();

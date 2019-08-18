@@ -1,11 +1,9 @@
-import passlib, ssl, logging, pdb
+import logging, pdb
 
 import flaskHandler
-from pyfiles import userInput, playerController, crypto
+from pyfiles import playerController
 from pyfiles.db import database
-from pyfiles.sockets import socketHandler, sessionHandler
 #from pyfiles.db import player
-from flask_socketio import SocketIO
 
 #Using TLS for HTTPS Support
 #context = ssl.SSLContext(ssl.PROTOCOL_TLS)
