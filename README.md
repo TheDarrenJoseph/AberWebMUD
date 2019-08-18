@@ -60,8 +60,9 @@ Once this is built it will be served by the Python server (Flask) through the HT
 6. visit 'localhost:5000' in a browser
 
 ### Running Python server tests (unittest)
-1. change directory to 'server'
-2. Run: 'python -m unittest discover' OR 'python -m unittest discover tests "*.py"'
+1. Change directory to 'server'
+2. Activate the venv using: `source locenv/bin/activate`
+3. Run: 'python tests/main.py'
 
 ## Postgres vs SQLite
 The project currently uses an SQLite DB in-memory in order to run locally for development and demonstration.

@@ -6,7 +6,7 @@ from pony.orm import *
 class Player(db_instance.DatabaseInstance._database.Entity):
     username = PrimaryKey(str)
     password = Required(str)
-    character = Optional(character.Character)
+    character = Optional(character.Character, cascade_delete=True)
 
     def get_username(self) -> str :
         return self.username
@@ -34,11 +34,7 @@ class Player(db_instance.DatabaseInstance._database.Entity):
         This gets given to the client as a status response for a player
     """
     def get_json(self) -> dict:
-        #this_player = Player[self.username] #find the database entity for this (allows db_session)
-
         response = {'username': self.username}
         if self.character is not None:
             response.update(self.character.get_json())
-
-        logging.debug('OUT| playerJSON: '+str(response))
         return response

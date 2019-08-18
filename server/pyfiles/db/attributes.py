@@ -4,6 +4,10 @@ from pyfiles.db import db_instance, attributeScore
 from pyfiles import jsonChecker
 
 ATTRIBUTE_NAMES = ['Strength', 'Agility', 'Arcana', 'Stealth']
+ATTRIBUTES_JSON_NAME = 'attributes'
+ATTRIBUTE_SCORES_JSON_NAME = 'scores'
+ATTRIBUTE_FREEPOINTS_JSON_NAME = 'free_points'
+
 
 class Attributes(db_instance.DatabaseInstance._database.Entity):
     # 1-1 Reverse attribute
@@ -15,7 +19,8 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
     @db_session
     def with_default_attributes(self):
         self.attribute_scores = [
-            attributeScore.AttributeScore(attributes=self, name=ATTRIBUTE_NAMES[0], description='Influences your health and damage.'),
+            attributeScore.AttributeScore(attributes=self, name=ATTRIBUTE_NAMES[0],
+                                          description='Influences your health and damage.'),
             attributeScore.AttributeScore(attributes=self, name=ATTRIBUTE_NAMES[1],
                                           description='Influences your ability to dodge attacks and land hits on your opponents.'),
             attributeScore.AttributeScore(attributes=self, name=ATTRIBUTE_NAMES[2],
@@ -27,10 +32,11 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
 
     @db_session
     def get_attribute(self, name):
-        return self.attribute_scores.select(lambda attrib: attrib.name == name).first()
+        matching = self.attribute_scores.select(lambda attrib: attrib.name == name).first()
+        return matching
 
     @db_session
-    def set_attribute_value(self, name, value) :
+    def set_attribute_value(self, name, value):
         attrib = self.get_attribute(name)
         attrib.value = value
 
@@ -43,30 +49,20 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
 
         return score
 
-    def total_attribute_scores(self, attribJson: dict) -> int:
+    def sum_attribute_scores(self, attrib_json: dict) -> int:
         score = 0;
-        attribs_exist = jsonChecker.character_attribues_exist(attribJson, ATTRIBUTE_NAMES)
+        attribs_exist = jsonChecker.character_attribues_exist(attrib_json, ATTRIBUTE_NAMES)
         if (attribs_exist):
             for attribName in self.ATTRIBUTE_NAMES:
-                attrib = attribJson[attribName]
+                attrib = attrib_json[attribName]
                 logging.info('Current score for data: ' + attrib.name + ' is ' + attrib.value)
             return score
         return score
 
     @db_session
-    def update_attribs_from_json(self, these_attribs: dict) -> None:
-        for attribName in ATTRIBUTE_NAMES:
-            if attribName in these_attribs:
-                attribute_value = these_attribs[attribName]
-                self.set_attribute_value(attribName, attribute_value)
-            else:
-                logging.error('Could not find attribute: ' + attribName + ' in update input.')
-        logging.info('--UPDATED CHAR ATTRIBS--')
-
-    @db_session
     def is_change_valid(self, new_attributes: dict) -> bool:
         old_score_total = self.get_total_attribute_scores()
-        changed_score_total = self.total_attribute_scores(new_attributes)
+        changed_score_total = self.sum_attribute_scores(new_attributes)
 
         diff_score = old_score_total - changed_score_total
 
@@ -75,17 +71,32 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
             return True
         return False
 
+    def update_from_json(self, json_data: dict) -> None:
+        attribute_scores = json_data[ATTRIBUTES_JSON_NAME][ATTRIBUTE_SCORES_JSON_NAME]
+
+        for attribName in ATTRIBUTE_NAMES:
+            if attribName in attribute_scores:
+                attribute_value = attribute_scores[attribName]
+                self.set_attribute_value(attribName, attribute_value)
+            else:
+                logging.error('Could not find attribute: ' + attribName + ' in update input.')
+        logging.info('--UPDATED CHAR ATTRIBS--')
+
     @db_session
     def get_json(self) -> dict:
-
         scores = {}
         for attribName in ATTRIBUTE_NAMES:
-            scores[attribName] = self.get_attribute(ATTRIBUTE_NAMES[0])
+            attrib = self.get_attribute(attribName)
+            if attrib is not None:
+                scores[attribName] = attrib.value
 
-        attributes = {'attributes': {
-            'free_points': self.free_points
-            }
-        }
-        attributes['scores'] = scores
+        attributes = {ATTRIBUTES_JSON_NAME: {
+            ATTRIBUTE_FREEPOINTS_JSON_NAME: self.free_points,
+            ATTRIBUTE_SCORES_JSON_NAME: scores
+        }}
         logging.debug(attributes)
         return attributes
+
+    @staticmethod
+    def get_json_attribute_score_options():
+        return {'options' : ATTRIBUTE_NAMES}

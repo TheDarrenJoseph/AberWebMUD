@@ -1,15 +1,19 @@
-from pyfiles.db import db_instance, attributes   #position, player, database
+from pyfiles.db import db_instance, attributes
+from pyfiles.model import characterClass
+from pyfiles.db.attributes import ATTRIBUTES_JSON_NAME, ATTRIBUTE_SCORES_JSON_NAME
 from pony.orm import Required, Optional, db_session
+
+CHARACTER_DATA_JSON_NAME = 'character'
 
 class Character(db_instance.DatabaseInstance._database.Entity):
     # char_id = PrimaryKey(int, auto=True)
     charname = Required(str, unique=True)
+    charclass = Required(str, default=characterClass.CharacterClass.Fighter.value)
     player = Required('Player', unique=True)
     # Positions are stored relative to the map
     position = Required('Position')
     health_val = Required(int, default=100)
-    charclass = Required(str, default='fighter')
-    attributes = Optional(attributes.Attributes)
+    attributes = Optional(attributes.Attributes, cascade_delete=True)
 
     def get_charname(self) -> str:
         return self.charname
@@ -39,12 +43,17 @@ class Character(db_instance.DatabaseInstance._database.Entity):
         if this_health_val is not None:
             self.health_val = this_health_val
 
-    def get_charclass(self) -> str:
-        return self.charclass
+    def get_charclass(self) -> characterClass.CharacterClass:
+        return characterClass.CharacterClass[self.charclass]
 
-    def set_charclass(self, this_charclass) -> None:
+    def set_charclass(self, this_charclass: characterClass.CharacterClass) -> None:
         if this_charclass is not None:
-            self.charclass = this_charclass
+            if isinstance(this_charclass, characterClass.CharacterClass):
+                self.charclass = this_charclass.value
+            else:
+                raise TypeError('Expected a CharacterClass instance! received: ' + str(this_charclass))
+        else:
+            raise ValueError('Provider CharacterClass was None!')
 
     def get_attributes(self):
         return self.attributes
@@ -53,14 +62,30 @@ class Character(db_instance.DatabaseInstance._database.Entity):
         if this_attributes is not None:
             self.attributes = this_attributes
 
+    # Allows external adjustments to this Character
+    # Not all fields can be adjusted by this method
+    def update_from_json(self, json_data):
+        character = json_data[CHARACTER_DATA_JSON_NAME]
+
+        print('Update character from: ' + str(character))
+        character_name = character['charname']
+        character_class_str = character['charclass']
+        character_class = characterClass.CharacterClass[character_class_str]
+        self.set_charname(character_name)
+        self.set_charclass(character_class)
+        self.position.update_from_json(character)
+
+        # Pick out only the 'attributes' from 'data'
+        self.attributes.update_from_json(character)
+        return True
+
     def get_json(self) -> dict:
         response = {
-            'character': {
+            CHARACTER_DATA_JSON_NAME: {
                     'charname': self.charname,
                     'health': self.health_val,
                     'charclass': self.charclass,
-                    'pos_x': self.position.pos_x,
-                    'pos_y': self.position.pos_y
+                    'position': self.position.get_json()['position']
                    }
             }
 

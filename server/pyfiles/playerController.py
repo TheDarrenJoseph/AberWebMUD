@@ -62,6 +62,13 @@ def new_player(username: str, password : str) -> player.Player or None:
             return username #Username return confirms creation
     return None
 
+@db_session
+def remove_player(username: str):
+    found_player = find_player(username)
+    if found_player is not None:
+        found_player.delete()
+        print('Deleted player: ' + username)
+
 def check_movement(username: str, move_x: int, move_y: int) -> bool:
     """ Returns true or false based on whether or not the movement is valid
         'valid' means within a +1 or -1 range of player(username)'s position
