@@ -9,7 +9,7 @@ const PORT = 5001;
 module.exports = function (config) {
 	config.set({
 		// base path that will be used to resolve all patterns (eg. files, exclude)
-		basePath: '../static/',
+		basePath: '../static',
 		// frameworks to use
 		// available frameworks: https://npmjs.org/browse/keyword/karma-adapter
 		frameworks: ['qunit'],
@@ -67,7 +67,8 @@ module.exports = function (config) {
 		autoWatch: true,
 		// start these browsers
 		// available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-		browsers: ['Firefox'],
+		// Set to 'Firefox' for a normal visible browser
+		browsers: ['FirefoxHeadless'],
 		// Continuous Integration mode
 		// if true, Karma captures browsers, runs the tests and exits
 		singleRun: true,
