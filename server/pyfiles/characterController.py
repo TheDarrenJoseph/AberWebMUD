@@ -41,6 +41,15 @@ def new_character(charname : str, username : str) -> player.Player:
     else:
         raise ValueError('Character with name \'%s\' already exists' % charname)
 
+
+@db_session
+def remove_character(charname: str):
+    found_character = find_character(charname)
+    if found_character is not None:
+        found_character.delete()
+        print('Deleted character: ' + charname)
+
+
 # Checks for the Character in the DB using PonyORM
 @db_session
 def get_character_json(character_name : str) -> dict or None:

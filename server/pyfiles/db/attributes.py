@@ -5,6 +5,8 @@ from pyfiles import jsonChecker
 
 ATTRIBUTE_NAMES = ['Strength', 'Agility', 'Arcana', 'Stealth']
 ATTRIBUTES_JSON_NAME = 'attributes'
+ATTRIBUTE_MIN_VALUE_JSON_NAME = 'min_value'
+ATTRIBUTE_MAX_VALUE_JSON_NAME = 'max_value'
 ATTRIBUTE_SCORES_JSON_NAME = 'scores'
 ATTRIBUTE_FREEPOINTS_JSON_NAME = 'free_points'
 
@@ -12,6 +14,8 @@ ATTRIBUTE_FREEPOINTS_JSON_NAME = 'free_points'
 class Attributes(db_instance.DatabaseInstance._database.Entity):
     # 1-1 Reverse attribute
     character = Required('Character', unique=True)
+    min_value = Required(int, default=0)
+    max_value = Required(int, default=100)
     free_points = Required(int, default=5)
 
     attribute_scores = Set('AttributeScore')
@@ -82,20 +86,30 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
                 logging.error('Could not find attribute: ' + attribName + ' in update input.')
         logging.info('--UPDATED CHAR ATTRIBS--')
 
-    @db_session
-    def get_json(self) -> dict:
+    def get_scores(self):
         scores = {}
         for attribName in ATTRIBUTE_NAMES:
-            attrib = self.get_attribute(attribName)
-            if attrib is not None:
-                scores[attribName] = attrib.value
+                attrib = self.get_attribute(attribName)
+                if attrib is not None:
+                    scores[attribName] = attrib.value
+        return scores
 
+    @db_session
+    def get_json(self) -> dict:
+        scores = self.get_scores()
         attributes = {ATTRIBUTES_JSON_NAME: {
+            ATTRIBUTE_MIN_VALUE_JSON_NAME: self.min_value,
+            ATTRIBUTE_MAX_VALUE_JSON_NAME: self.max_value,
             ATTRIBUTE_FREEPOINTS_JSON_NAME: self.free_points,
             ATTRIBUTE_SCORES_JSON_NAME: scores
         }}
         logging.debug(attributes)
         return attributes
+
+    @db_session
+    def get_json_attribute_scores(self):
+        scores = self.get_scores()
+        return {'scores': scores}
 
     @staticmethod
     def get_json_attribute_score_options():

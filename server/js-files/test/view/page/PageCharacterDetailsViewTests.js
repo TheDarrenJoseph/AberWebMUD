@@ -5,7 +5,8 @@ import jquery from 'jquery';
 
 import { jQueryUtils } from 'test/utils/jQueryUtils.js';
 
-import {TEST_SESSIONID, TEST_SCORES, TEST_CHARDATA, TEST_CHARUPDATE_DATA} from 'test/utils/data/TestSessionData.js';
+import { TEST_SESSIONID, TEST_CHARUPDATE_DATA } from 'test/utils/data/TestSessionData.js';
+import { TEST_CHARACTER_CLASS_OPTIONS } from 'test/utils/data/TestCharacterDetails.js';
 
 import { PageController, LOGIN_FAILURE_MESSAGE_PWD,
 	LOGIN_FAILURE_MESSAGE_PLAYER,
@@ -20,7 +21,31 @@ import { Session } from 'src/model/Session.js';
 import { Page } from 'src/model/page/Page.js';
 import { EVENTS as pageCharacterDetailsViewEvents, SET_CHARDETAILS_PROMPT_MESSAGE, PageCharacterDetailsView } from 'src/view/page/PageCharacterDetailsView.js';
 import { PageView } from 'src/view/page/PageView.js';
-import { CharacterDetails, DEFAULT_JSON } from 'src/model/page/CharacterDetails.js'
+import { CharacterDetails } from 'src/model/page/CharacterDetails.js'
+import { ArraySet } from 'src/model/ArraySet.js'
+import { AttributeScores, JSON_ATTRIBUTE_MIN_VALUE_NAME, JSON_ATTRIBUTE_MAX_VALUE_NAME, JSON_ATTRIBUTE_FREEPOINTS_NAME, JSON_ATTRIBUTE_SCORES_NAME } from 'src/model/page/AttributeScores.js';
+import { CharacterDetailsBuilder } from 'src/model/page/CharacterDetailsBuilder.js'
+
+import * as TestCharacterDetails from 'test/utils/data/TestCharacterDetails.js';
+import { TEST_CHARCLASSOPTIONS } from '../../utils/data/TestCharacterDetails'
+
+export const DEFAULT_JSON = {
+	'character' : {
+		'charname': '',
+		'charclass': '',
+		'health': 0,
+		'attributes': {
+			[JSON_ATTRIBUTE_MIN_VALUE_NAME]: 0,
+			[JSON_ATTRIBUTE_MAX_VALUE_NAME] : 0,
+			[JSON_ATTRIBUTE_FREEPOINTS_NAME]: 0,
+			[JSON_ATTRIBUTE_SCORES_NAME]: {}
+		},
+		'position': {
+			'pos_x': 0,
+			'pos_y': 0
+		}
+	}
+};
 
 
 var TEST_TAG = '|PAGE CHARACTER-DETAILS VIEW|';
@@ -29,9 +54,6 @@ var pageView;
 var pageCharacterDetailsView;
 
 var TEST_DOCUMENT = document;
-
-// Unmodified char details for reference
-var DEFAULT_CHARACTERDETAILS = new CharacterDetails();
 
 // View based events can be a little sluggish
 // These should take < 10s realistically but view init seems slow
@@ -45,7 +67,9 @@ function beforeAll (assert) {
 
 // Setup / assertions before each test
 function beforeEachTest (assert) {
-	pageCharacterDetailsView = new PageCharacterDetailsView(pageView, new CharacterDetails());
+
+	let detailsBuilder = new CharacterDetailsBuilder().withDefaults();
+	pageCharacterDetailsView = new PageCharacterDetailsView(pageView, detailsBuilder.build());
 	assert.ok(pageCharacterDetailsView instanceof PageCharacterDetailsView, 'Ensure the character details view is instanciated.');
 	pageView.buildView();
 	pageCharacterDetailsView.buildView();
@@ -59,7 +83,7 @@ function afterEachTest (assert) {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('PageCharacterDetailsTests', { before: beforeAll, beforeEach: beforeEachTest, afterEach: afterEachTest });
+QUnit.module('PageCharacterDetailsViewTests', { before: beforeAll, beforeEach: beforeEachTest, afterEach: afterEachTest });
 
 QUnit.test(TEST_TAG + 'buildView', function (assert) {
 
@@ -85,19 +109,21 @@ QUnit.test(TEST_TAG + 'buildView', function (assert) {
  * Then we should emit an event for submitting these stats
  * And this should contain valid stat data
  */
-QUnit.test(TEST_TAG + 'Setting Character Details Emitting', function (assert) {
+QUnit.test(TEST_TAG + 'Setting Character Details - Emitting', function (assert) {
 	assert.timeout(MAX_TIMEOUT);
 
 	// This async callback proves the stats are being submitted
 	let submissionCallback = assert.async(1);
 	function statsSubmitted(data) {
-		assert.ok(CharacterDetails.isValidCharacterData(data), 'Double-check the data returned is valid with the underlying model.');
+		let charDetails = pageCharacterDetailsView.getCharacterDetails();
+		assert.ok(CharacterDetails.validateJson(data), 'Double-check the data returned is valid with the underlying model.');
 		console.log('Test details submitted: ' + JSON.stringify(data));
 		submissionCallback();
 	}
 
 	// Ensure we have some valid data in the view fields
-	pageCharacterDetailsView.setStatsFromJsonResponse(TEST_CHARDATA);
+	// Update the underlying data model, this should update the view.
+	pageCharacterDetailsView.getCharacterDetails().setFromJson(TestCharacterDetails.TEST_CHARDATA);
 
 	// Bind to the testing func
 	pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, statsSubmitted);
@@ -107,29 +133,67 @@ QUnit.test(TEST_TAG + 'Setting Character Details Emitting', function (assert) {
 	pageCharacterDetailsView.getSaveStatsButtonJquery().trigger('click');
 });
 
+
+QUnit.test(TEST_TAG + 'Set Character Class Options', function (assert) {
+	assert.timeout(MAX_TIMEOUT);
+
+	let currentStats = pageCharacterDetailsView.getJson();
+	let expectedViewDefaultJson = {
+		'charname' : '',
+		'charclass': null,
+		'attributes': {
+			'free_points' : 0,
+			'scores' : {}
+		}
+	}
+	assert.deepEqual(currentStats, expectedViewDefaultJson, 'Check character details are their defaults in the view.')
+	pageCharacterDetailsView.characterDetails.setCharacterClassOptions(TestCharacterDetails.TEST_CHARCLASSOPTIONS)
+
+	assert.deepEqual(pageCharacterDetailsView.getCharacterClassOptions());
+});
+
 /**
  * Given that the character details view is bound to it's model
  * When the CharacterDetails model is set
  * Then view should automatically update to show these values
  */
-QUnit.test(TEST_TAG + 'Setting Character Details View Update', function (assert) {
+QUnit.test(TEST_TAG + 'Setting Character Details - View Update', function (assert) {
 	assert.timeout(MAX_TIMEOUT);
 
-	let currentStats = pageCharacterDetailsView.characterDetails.getCharacterDetailsJson();
-	assert.deepEqual(currentStats, DEFAULT_JSON, 'Check character details are their defaults in the view.')
+	let currentStats = pageCharacterDetailsView.getJson();
+	let expectedViewDefaultJson = {
+		'charname' : '',
+		'charclass': null,
+		'attributes': {
+			'free_points' : 0,
+			'scores' : {}
+		}
+	}
+	assert.deepEqual(currentStats, expectedViewDefaultJson, 'Check character details are their defaults in the view.')
 
 	// Test callback for VIEW_STATS_SET
 	let statsSetCallback = assert.async(1);
 	function checkStats() {
-		currentStats = pageCharacterDetailsView.characterDetails.getCharacterDetailsJson();
-		assert.deepEqual(currentStats, TEST_CHARDATA, 'Check character details are updated in the view.');
+		let expectedViewJson = {
+			'charname' : TestCharacterDetails.TEST_CHARNAME,
+			'charclass': TestCharacterDetails.TEST_CHARCLASS,
+			'attributes': {
+				'free_points' : 5,
+				'scores' : TestCharacterDetails.TEST_SCORES
+			}
+		}
+		currentStats = pageCharacterDetailsView.getJson()
+		assert.deepEqual(currentStats, expectedViewJson, 'Check updated character details are displayed in the view.');
 		console.log('Test stats set in view.');
 		statsSetCallback();
 	}
 
 	// Add an extra binding for when the set event is emitted
+	let testJson = TestCharacterDetails.testCharacterDetails.getJson();
 	pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.VIEW_STATS_SET, checkStats)
-
-	// Perform the update of the underlying model
-	pageCharacterDetailsView.characterDetails.setCharacterDetails(TEST_CHARDATA);
+	// Ensure we have some options we can display
+	pageCharacterDetailsView.characterDetails.setCharacterClassOptions(TestCharacterDetails.TEST_CHARCLASSOPTIONS);
+	// Set some standard returned attribute scores
+	pageCharacterDetailsView.characterDetails.setAttributeScores(TestCharacterDetails.TEST_ATTRIBUTE_SCORES);
+	pageCharacterDetailsView.characterDetails.setFromJson(testJson);
 });

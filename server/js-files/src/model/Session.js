@@ -40,10 +40,10 @@ class SessionModel extends EventMapping {
 	}
 
 	_checkSessionId(sessionId) {
-		let hasSessionId = ValidationHandler.notUndefOrNull(sessionId) && typeof sessionId === 'string'
-		//	Update the client session to contain our new data
-		if (!hasSessionId) {
-			if (!hasSessionId) throw new Range('Expected a defined sessionId!')
+		if (ValidationHandler.validString(sessionId)) {
+			return true;
+		} else {
+			throw new RangeError('Expected a Session ID string!')
 		}
 	}
 
@@ -114,7 +114,7 @@ class SessionModel extends EventMapping {
 	//	return this.clientSession.characterDetails;
 	//}
 
-	//setCharacterDetails (charDetails) {
+	//setFromJson (charDetails) {
 	//	this.clientSession.characterDetails = charDetails;
 	//}
 

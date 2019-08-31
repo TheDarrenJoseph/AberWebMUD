@@ -1,61 +1,95 @@
-import ValidationHandler from 'src/handler/ValidationHandler.js';
+import ValidationHandler from 'src/handler/ValidationHandler.js'
 
-import { EventMapping } from 'src/helper/EventMapping.js';
+import { EventMapping } from 'src/helper/EventMapping.js'
+
 import jquery from 'jquery'
+import { CharacterClassOptions } from 'src/model/page/CharacterClassOptions.js'
+import { ArraySet } from 'src/model/ArraySet.js'
+import {
+	AttributeScores,
+	JSON_ATTRIBUTE_FREEPOINTS_NAME,
+	JSON_ATTRIBUTE_SCORES_NAME
+} from 'src/model/page/AttributeScores.js'
 
-export var CHARACTER_UPDATE_ATTRIBS = ['success','character'];
-export var CHARACTER_DATA_ATTRIBS = ['charname', 'pos_x','pos_y', 'health', 'charclass', 'free_points', 'attributes'];
+export var CHARACTER_UPDATE_ATTRIBS = ['success', 'character']
+export var CHARACTER_DATA_ATTRIBS = ['charname', 'pos_x', 'pos_y', 'health', 'charclass', 'free_points', 'attributes']
 
 //	2 arrays of the same length to allow looping for creating each line of the table
 // Fortitude, Intellect, Awareness, Arcana, Agility
-export const DEFAULT_ATTRIBUTES = {'FOR':1, 'INT': 1, 'AWR' : 1, 'ARC': 1 , 'AGL' : 1};
-export const ATTRIB_NAMES = Object.keys(DEFAULT_ATTRIBUTES);
-export const ATTRIB_INPUT_IDS = ['forNumber', 'intNumber', 'awrNumber', 'arcNumber', 'aglNumber'];
-export const MIN_ATTRIB_VAL = 1;
-export const MAX_ATTRIB_VAL = 100;
-export const DEFAULT_FREE_POINTS = 9;
 
-export const EVENTS = { SET_DETAILS : 'set-details', SET_ATTRIBS : 'set-attributeScores', SET_CLASS_OPTIONS: 'set-class-options' };
+// TODO This does not belong in the model, refactor/dynamically generate!
+export const EVENTS = {
+	SET_DETAILS: 'set-details', // For full setter calls
+	SET_ATTRIB_SCORES: 'set-attribute-scores', //Any attrib score updates
+	SET_CLASS_OPTIONS: 'set-class-options'  // Any class option update
+}
 
-const INVALID_CHAR_UPDATE_DATA_ERROR = 'Character update data is invalid: ';
+const INVALID_CHAR_UPDATE_DATA_ERROR = 'Character update data is invalid: '
 
-// this might be a little messy
-// but we want to be able to store a simple ID and the Option display text
-// While still allowing indexing from option number
+// TODO Remove this
 export var CLASS_OPTIONS = [
-	{ id: 'fighter', text : 'Fighter'},
-	{ id: 'spellcaster', text : 'Spellcaster'}
-];
+	{ id: 'fighter', text: 'Fighter' },
+	{ id: 'spellcaster', text: 'Spellcaster' }
+]
 
-export const DEFAULT_JSON = {
-	'character' : {
-		'charname': '',
-		'charclass': CLASS_OPTIONS[0],
-		'health': MAX_ATTRIB_VAL,
-		'attributes': {
-			'free_points': DEFAULT_FREE_POINTS,
-			'scores': DEFAULT_ATTRIBUTES
-		},
-		'position': {
-			'pos_x': 0,
-			'pos_y': 0
-		}
-	}
-};
+export const CHARACTER_JSON_NAME = 'character'
+export const ATTRIBUTES_JSON_NAME = 'attributes'
+export const CHARNAME_JSON_NAME = 'charname'
+export const POSITION_JSON_NAME = 'position'
+export const POSITION_X_JSON_NAME = 'pos_x'
+export const POSITION_Y_JSON_NAME = 'pos_y'
+export const HEALTH_JSON_NAME = 'health'
+export const CHARCLASS_JSON_NAME = 'charclass'
 
 export default class CharacterDetails extends EventMapping {
-	constructor (charname="", grid_x=0, grid_y=0) {
-			super(EVENTS);
-			// Boolean to check if us/the user has confirmed these to be set correctly
-			this.charname = charname;
-			this.charclass = CLASS_OPTIONS[0];
+	constructor (characterClassOptions, attributeScores, minScoreValue, maxScoreValue, posX, posY, health, freePoints) {
+		super(EVENTS)
 
-			this.attributeScores = DEFAULT_ATTRIBUTES;
+		if (characterClassOptions === undefined || !characterClassOptions instanceof CharacterClassOptions) {
+			throw new RangeError('Character class options required!')
+		}
 
-			this.pos_x = grid_x;
-			this.pos_y = grid_y;
-			this.health = MAX_ATTRIB_VAL;
-			this.free_points = DEFAULT_FREE_POINTS;
+		if (attributeScores === undefined) {
+			throw new RangeError('Attribute scores JSON required!')
+		}
+
+		if (minScoreValue === undefined) {
+			throw new RangeError('Minimum attribute score value required!')
+		}
+
+		if (maxScoreValue === undefined) {
+			a
+			throw new RangeError('Maximum attribute score value required!')
+		}
+
+		if (posX === undefined || posY === undefined) {
+			throw new RangeError('Position attributes posX and posY are required!')
+		}
+
+		if (health === undefined) {
+			throw new RangeError('Character health value required!')
+		}
+
+		if (freePoints === undefined) {
+			throw new RangeError('Free attribute points value required!')
+		}
+
+		// Boolean to check if us/the user has confirmed these to be set correctly
+		this.charname = '';
+		this.charclass = '';
+
+		this.posX = posX;
+		this.posY = posY;
+		this.health = health;
+
+		this.attributeClassOptions = characterClassOptions;
+		this.defaultAttributeScores = new AttributeScores(attributeScores, minScoreValue, maxScoreValue, freePoints);
+		this.attributeScores = new AttributeScores(attributeScores, minScoreValue, maxScoreValue, freePoints);
+	}
+
+	getAttributeNames () {
+		let attribNames = Object.keys(this.getAttributeScores())
+		return attribNames
 	}
 
 	/**
@@ -63,199 +97,247 @@ export default class CharacterDetails extends EventMapping {
 	 * @returns {boolean}
 	 */
 	characterDetailsExist () {
-		let nameGood = (this.charname !== undefined && this.charname !== null);
-		let attributes = (this.attributeScores !== undefined && this.attributeScores !== null);
-		let charclassGood = (this.charclass !== undefined && this.charclass !== null);
-		let healthGood = (this.health !== undefined && this.health !== null);
+		let nameGood = (this.charname !== undefined && this.charname !== null)
+		let attributes = (this.attributeScores !== undefined && this.attributeScores !== null)
+		let charclassGood = (this.charclass !== undefined && this.charclass !== null)
+		let healthGood = (this.health !== undefined && this.health !== null)
 
-		return (nameGood && attributes && charclassGood && healthGood);
+		return (nameGood && attributes && charclassGood && healthGood)
 	};
 
-	getAttributeClassOptions() {
-		return this.characterClassOptions;
+	getCharacterClassOptions () {
+		return this.attributeClassOptions;
 	}
 
-	setCharacterClassOptions(characterClassOptions){
-		this.characterClassOptions = characterClassOptions;
-		this.emit(EVENTS.SET_CLASS_OPTIONS)
-		console.info('Character class options set!');
+	setCharacterClassOptions (characterClassOptions) {
+		if (characterClassOptions !== undefined && characterClassOptions !== null && characterClassOptions !== {}) {
+			let charClassOptions = CharacterClassOptions.fromOptionsList(characterClassOptions)
+			this.attributeClassOptions = charClassOptions
+			this.emit(EVENTS.SET_CLASS_OPTIONS, charClassOptions)
+			console.info('Character class options set!')
+		} else {
+			throw new RangeError('Invalid character class options.')
+		}
 	}
 
-	isCharacterClassOptionsDefined() {
-		let charclassOptions = this.getAttributeClassOptions();
-		return (charclassOptions !== undefined && charclassOptions.length > 0);
+	isCharacterClassOptionsDefined () {
+		let charclassOptions = this.getCharacterClassOptions()
+		return (charclassOptions !== undefined && charclassOptions.length > 0)
 	}
-
 
 	/**
-	 * Validates character stats (STR, DEX, CON, etc)
-	 * @param attribJson JSON e.g { A : 1, B : 2}
-	 * @returns {boolean}
+	 * Checks scores are valid and that all expected default keys are provided
+	 * @param JSON score name-value mappings i.e { A:1, B:2 }
+	 * @returns {boolean} whether all attributes are valid and recognised
 	 */
-	static isValidAttributes(attribJson) {
-		let valid = false;
-
-		if (attribJson !== undefined) {
-
-			let containsFreePoints = attribJson.hasOwnProperty('free_points');
-			let containsScores= attribJson.hasOwnProperty('scores');
-
-			if (containsFreePoints && containsScores) {
-				let scores = attribJson['scores'];
-
-				let attribCount = Object.keys(scores).length;
-				if (attribCount > 0) {
-					let validAttribCount = 0;
-					Object.keys(DEFAULT_ATTRIBUTES).forEach(attribName => {
-						let theAttrib = scores[attribName];
-						let attribDefined = theAttrib != undefined && theAttrib != null;
-						let attribValid = (theAttrib >= MIN_ATTRIB_VAL && theAttrib <= MAX_ATTRIB_VAL);
-
-						// Definitely log invalid values
-						if (attribDefined && !attribValid) {
-							console.log('Char Stats: ' + scores + ' value for attribute invalid: ' + attribName);
-							return false;
-						} else if (!attribDefined || !attribValid) {
-							console.log('Char Stats: ' + scores + ' attribute or value invalid: ' + attribName + ' : ' + theAttrib);
-							return false;
-						} else {
-							validAttribCount++;
-						}
-
-					});
-
-					// Check we validated each attrib
-					valid = (validAttribCount === attribCount);
-				}
-
-			} else {
-				console.error('Character Attributes missing \'free_points\' and/or \'scores\' attributeScores')
-			}
+	validateAttributeScores (scoresJson) {
+		if (!this.getDefaultAttributeScores().size > 0) {
+			throw new RangeError('Default attribute scores are undefined!')
 		}
 
-		return valid;
-	}
+		scoresJson.validate()
 
+		this.getDefaultAttributeScores().keys().forEach(key => {
+			if (!scoresJson.has(key)) {
+				throw new RangeError('Missing default attribute score key/value pair: ' + key)
+			}
+		})
+
+	}
 
 	// Checks for the presence of data for character update
 	//	Example JSON
 	//{"charname":"roo","pos_x":10,"pos_y":10,"health":100,
 	// "charclass":"fighter","free_points":5,
 	// "attributeScores": {"STR":1,"DEX":1,"CON":1,"INT":1,"WIS":1,"CHA":1}};
-	static isValidCharacterData (updateJSON) {
+	static validateJson (updateJSON) {
+		console.log('CharacterDetails validating: ' + JSON.stringify(updateJSON))
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
+			let characterDataExists = ValidationHandler.checkDataAttributes(updateJSON, [CHARACTER_JSON_NAME])
+			let characterData = updateJSON[CHARACTER_JSON_NAME]
+			let positionData = characterData[POSITION_JSON_NAME]
+			let coreAttribs = [
+				CHARNAME_JSON_NAME,
+				POSITION_JSON_NAME,
+				HEALTH_JSON_NAME,
+				CHARCLASS_JSON_NAME,
+				ATTRIBUTES_JSON_NAME
+			]
 
-			let characterDataExists = ValidationHandler.checkDataAttributes(updateJSON, ['character']);
-			let characterData = updateJSON['character'];
+			let positionAttribs = [POSITION_X_JSON_NAME, POSITION_Y_JSON_NAME]
 
-			let coreDataExists = ValidationHandler.checkDataAttributes(characterData, [
-			  'charname',
-				'position',
-				'health',
-				'charclass',
-				'attributes'
-			]);
+			let coreDataExists = characterDataExists && ValidationHandler.checkDataAttributes(characterData, coreAttribs)
+			let positionExists = characterDataExists && ValidationHandler.checkDataAttributes(positionData, positionAttribs)
+			let attributesExist = characterDataExists && AttributeScores.validateAttributesJson(characterData[ATTRIBUTES_JSON_NAME])
 
-			let positionExists = 	ValidationHandler.checkDataAttributes(characterData['position'], ['pos_x', 'pos_y']);
-			let attributesExist = CharacterDetails.isValidAttributes(characterData['attributes']);
-			return characterDataExists && coreDataExists && positionExists && attributesExist;
+			if (!characterDataExists) {
+				throw new RangeError('\'character\' data not defined')
+			}
+
+			if (!coreDataExists) {
+				throw new RangeError('Core attributes data not defined, expected: ' + JSON.stringify(coreAttribs))
+			}
+
+			if (!positionExists) {
+				throw new RangeError('Position data: ' + JSON.stringify(positionData) + ' does not contain expected attribs: ' + positionAttribs)
+			}
+
+			if (!attributesExist) {
+				throw new RangeError('\'attributes\' data not defined')
+			}
+
+			return characterDataExists && coreDataExists && positionExists && attributesExist
 		} else {
-			console.log('Missing character update data.');
-			return false;
+			throw new RangeError('updateJSON undefined')
 		}
 	}
 
-	setCharacterDetails (data) {
-		if (CharacterDetails.isValidCharacterData(data)) {
-			let characterData = data['character'];
+	updateAttributeScores (scoresJson) {
+		let currentScoresJson = this.getAttributeScores().getScoresJson();
 
-			this.charname = characterData['charname'];
+		if (currentScoresJson.length > 0) {
+			console.debug('Updating scores: ' + JSON.stringify(scoreAttributes));
+			let updatedCount = 0;
+			Object.keys(currentScoresJson).forEach(attribName => {
+				console.debug('Setting CharacterDetails: ' + attribName + ' ' + scoresJson[attribName])
+				this.attributeScores.setScore(attribName, scoresJson[attribName])
+				updatedCount++
+			});
+			console.debug(this.getAttributeScores())
+			if (updatedCount > 0) {
+				this.emit(EVENTS.SET_ATTRIB_SCORES, this.getAttributeScores())
+			} else {
+				console.warn('Attribute scores not updated!')
+			}
+		} else {
+			console.log('No existing scores to update!');
+			console.trace();
+		}
+	}
 
-			let position = characterData['position'];
-			this.pos_x = position['pos_x'];
-			this.pos_y = position['pos_y'];
+	updateAttributes (attributesJson) {
+		let free_points = attributesJson[JSON_ATTRIBUTE_FREEPOINTS_NAME]
+		this.attributeScores.setFreePoints(free_points)
+		let scoresJson = attributesJson[JSON_ATTRIBUTE_SCORES_NAME]
+		this.updateAttributeScores(scoresJson)
+	}
 
-			this.health = characterData['health'];
-			this.charclass = characterData['charclass'];
+	setFromJson (characterDetailsJson) {
+		if (CharacterDetails.validateJson(characterDetailsJson)) {
+			console.debug('Setting CharacterDetails from data: ' + JSON.stringify(characterDetailsJson));
+			let characterData = characterDetailsJson[CHARACTER_JSON_NAME]
 
+			let charname = characterData[CHARNAME_JSON_NAME]
+			this.setCharacterName(charname)
+
+			let charclass = characterData[CHARCLASS_JSON_NAME]
+			this.setCharacterClass(charclass)
+
+			let position = characterData[POSITION_JSON_NAME]
+			this.posX = position[POSITION_X_JSON_NAME]
+			this.posY = position[POSITION_Y_JSON_NAME]
+			this.health = characterData[HEALTH_JSON_NAME]
 
 			// Copy each of the stat attribs over
+			let attributes = characterData[ATTRIBUTES_JSON_NAME]
+			this.setAttributesFromJson(attributes)
 
-			if (characterData.hasOwnProperty('attributes')) {
-				let attributes = characterData['attributes'];
-
-				let free_points = attributes['free_points'];
-				this.free_points = free_points;
-				let scores = attributes['scores'];
-				Object.keys(DEFAULT_ATTRIBUTES).forEach(attribName => {
-					this.attributeScores[attribName] = scores[attribName];
-				});
-			}
-
-			this.emit(EVENTS.SET_DETAILS);
+			this.emit(EVENTS.SET_DETAILS)
+			return this
 		} else {
-			throw new RangeError(INVALID_CHAR_UPDATE_DATA_ERROR + JSON.stringify(data));
+			throw new RangeError(INVALID_CHAR_UPDATE_DATA_ERROR + JSON.stringify(characterDetailsJson))
 		}
 
 	};
 
-	getCharacterName() {
-		return this.charname;
+	getCharacterName () {
+		return this.charname
 	}
 
-	setCharacterName(charname) {
-		this.charname = charname;
+	setCharacterName (charname) {
+		this.charname = charname
 	}
 
-	getCharacterClass() {
-		return this.charclass;
+	getCharacterClass () {
+		return this.charclass
 	}
 
-	setCharacterClass(charclass) {
-		this.charclass = charclass;
+	setCharacterClass (charclass) {
+		this.charclass = charclass
 	}
 
-	getAttributes () {
-		return this.attributeScores;
+	getPosition () {
+		return [this.posX, this.posY];
 	}
 
-	setAttributes(charStats) {
-		if (CharacterDetails.isValidAttributes(charStats) ) {
-			this.attributeScores = charStats;
-			this.emit(EVENTS.SET_ATTRIBS, this.attributeScores);
+	getHealth() {
+		return this.health;
+	}
+
+	/*
+	 *
+	 * @param attributeScoresJson i.e { A:1, B:2}
+	 */
+	setAttributeScores (attributeScores) {
+		if (attributeScores instanceof AttributeScores) {
+			attributeScores.validate()
+			// Set defaults on first set call
+			if (this.getDefaultAttributeScores().size === 0) {
+				this.defaultAttributeScores = AttributeScores.fromJson(attributeScores.getJson())
+			}
+			this.attributeScores = attributeScores
+			this.emit(EVENTS.SET_ATTRIB_SCORES, this.getAttributeScores())
+		} else {
+			throw new RangeError('Expected an instance of AttributeScores! received: ' + attributeScoresJson)
 		}
 	}
 
+	/**
+	 *
+	 * @param attribsJson i.e {'scores' : {A:1, B:2}, 'free_points': 1}
+	 */
+	setAttributesFromJson (attribsJson) {
+		if (AttributeScores.validateAttributesJson(attribsJson)) {
+			this.setAttributeScores(AttributeScores.fromJson(attribsJson))
+		}
+	}
+
+
+	getDefaultAttributeScores () {
+		return this.defaultAttributeScores
+	}
+
+	getAttributeScores () {
+		return this.attributeScores
+	}
+
 	//	Grabs Character Name, Class, and Attribute values
-	getCharacterDetailsJson () {
+	getJson () {
 		return {
-			'character' : {
+			'character': {
 				'charname': this.charname,
 				'charclass': this.charclass,
 				'position': {
-					'pos_x': this.pos_x,
-					'pos_y': this.pos_y
+					'pos_x': this.posX,
+					'pos_y': this.posY
 				},
 				'health': this.health,
-				'attributes': {
-					'free_points': this.free_points,
-					'scores': this.attributeScores
-				}
+				'attributes': this.attributeScores.getJson()
 			}
-		};
+		}
 	}
 
 	static isValidCharacterUpdateData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
-			return ValidationHandler.checkDataAttributes(updateJSON, CHARACTER_UPDATE_ATTRIBS);
+			return ValidationHandler.checkDataAttributes(updateJSON, CHARACTER_UPDATE_ATTRIBS)
 			//if (bodyValid) {
-				//let contentValid = CharacterDetails.isValidCharacterData(updateJSON);
+			//let contentValid = CharacterDetails.validateJson(updateJSON);
 			//}
 		}
 
-		return false;
+		return false
 	}
 
 }
 
-export { CharacterDetails };
+export { CharacterDetails }

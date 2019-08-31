@@ -7,7 +7,7 @@ import json
 from flask import request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from pyfiles import playerController, characterController, userInput, sessionHandler
-from pyfiles.model import overworld
+from pyfiles.model import overworld, characterClass
 from pyfiles.db import database, attributes
 from pyfiles.model.session import SESSION_ID_JSON_NAME, SESSION_USERNAME_JSON_NAME, SESSION_JSON_NAME
 
@@ -103,7 +103,7 @@ class SocketHandler:
 
         #socket_server.on_event('request-character-details', send_char_details)
         self.socketHandler.on_event('character-details', lambda json : sessionHandler.verify_active_and_call(self.handle_char_details, json))
-        self.socketHandler.on('get-attribute-class-options', lambda json_data: sessionHandler.verify_active_and_call(self.handle_get_attribute_class_options, json_data))
+        # self.socketHandler.on('get-attribute-class-options', lambda json_data: sessionHandler.verify_active_and_call(self.handle_get_attribute_class_options, json_data))
 
     def send_server_message(self, message : dict or str, toAll : bool) -> None:
         """ Builds an ad-hoc sessionJson for the server and passes on the message data """
@@ -174,13 +174,7 @@ class SocketHandler:
         if not user_and_account[0]:
             #Send the password creation request for a new account
             logging.debug('OUT| request-new-password for: '+username)
-            emit('request-new-password', username,  room=session_id
-
-
-
-
-
-                 )
+            emit('request-new-password', username,  room=session_id)
 
     def handle_message(self, data: dict) -> None:
         logging.info('IN| player message: '+str(data))
@@ -242,14 +236,6 @@ class SocketHandler:
         }
         logging.debug('OUT| movement UPDATE : ' + str(movement_update))
         emit('movement-update', movement_update, broadcast=True)
-
-    def handle_get_attribute_class_options(self, json_data):
-        session_id = self.get_session_id(json_data)
-        if session_id is not None:
-            score_options = attributes.Attributes.get_json_attribute_score_options()
-            emit('attribute-class-options', score_options, room=session_id)
-        else:
-            logging.error('Invalid Session JSON when calling for attribute class options!')
 
     def handle_movement(self, message: dict) -> None:
         """ Handles a player movement command message send over SocketsIO """

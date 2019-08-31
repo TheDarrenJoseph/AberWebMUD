@@ -57,7 +57,7 @@ export default class MapController {
 		var posX = position['pos_x'];
 		var posY = position['pos_y'];
 
-		if (ValidationHandler.isValidMovementUpdateData(updateJSON)) {
+		if (ValidationHandler.validateMovementUpdateData(updateJSON)) {
 			//	If it's the player, follow them with the view
 			if (username === Session.ActiveSession.getClientSessionUsername()) {
 				this.showMapPosition(posX, posY);

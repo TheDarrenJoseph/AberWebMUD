@@ -5,7 +5,8 @@ import jquery from 'jquery';
 
 import { jQueryUtils } from 'test/utils/jQueryUtils.js';
 
-import {TEST_SESSIONID, TEST_SCORES, TEST_CHARDATA, TEST_CHARUPDATE_DATA} from 'test/utils/data/TestSessionData.js';
+import { TEST_SESSIONID, TEST_CHARUPDATE_DATA} from 'test/utils/data/TestSessionData.js';
+import { TEST_ATTRIBUTESCORES, TEST_SCORES, TEST_CHARDATA, TEST_ATTRIBUTE_SCORE_OPTIONS, TEST_CHARACTER_CLASS_OPTIONS} from 'test/utils/data/TestCharacterDetails.js';
 
 import { PageController, LOGIN_FAILURE_MESSAGE_PWD,
 	LOGIN_FAILURE_MESSAGE_PLAYER,
@@ -24,8 +25,12 @@ import { CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
 import { INVALID_USERNAME_MSG } from 'src/model/Player.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { EVENTS as characterDetailsEvents, CharacterDetails } from 'src/model/page/CharacterDetails.js';
+import { AttributeScores } from 'src/model/page/AttributeScores.js'
+
 import PageInventoryView from '../../../src/view/page/PageInventoryView'
 import PageLoginView from '../../../src/view/page/PageLoginView'
+import CharacterClassOptions from '../../../src/model/page/CharacterClassOptions'
+import CharacterDetailsBuilder from '../../../src/model/page/CharacterDetailsBuilder'
 
 var TEST_TAG = '|PAGE CONTROLLER|';
 
@@ -40,7 +45,11 @@ var TEST_WINDOW;
 var TEST_DOCUMENT;
 
 // Unmodified char details for reference
-const DEFAULT_CHARACTERDETAILS = new CharacterDetails();
+let testMap = new Map();
+testMap.set('a','b');
+console.log('MAP: ' + JSON.stringify(testMap))
+
+var DEFAULT_CHARACTERDETAILS = new CharacterDetailsBuilder().withDefaults().build();
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
@@ -54,7 +63,7 @@ function beforeEachTest (assert) {
 	// To prevent knock-on state changes
 	let pageModel 						= new Page(TEST_DOCUMENT);
 	pageView 									= new PageView(pageModel);
-	let charDets 							= new CharacterDetails();
+	let charDets 							= DEFAULT_CHARACTERDETAILS;
 	pageCharacterDetailsView 	= new PageCharacterDetailsView(pageView, charDets);
 	pageChatView 							= new PageChatView(pageView);
 	let pageInventoryView 		= new PageInventoryView(TEST_DOCUMENT);
@@ -85,15 +94,16 @@ QUnit.skip(TEST_TAG + 'setupUI', function (assert) {
 
 QUnit.test(TEST_TAG + 'onceCharacterDetailsSet', function (assert) {
 	// Clear the session character
-	pageController.characterDetails = new CharacterDetails();
+
+	let defaultCharacterDetails = new CharacterDetailsBuilder().withDefaults().build();
 	var characterDetails = pageController.characterDetails;
-	assert.deepEqual(DEFAULT_CHARACTERDETAILS, characterDetails, 'Check character details are their default values.');
+	assert.deepEqual(defaultCharacterDetails, characterDetails, 'Check character details are their default values.');
 
 	// this must be called for this test to pass
 	let onConfirmCb = assert.async(1);
 	pageController.onceCharacterDetailsSet(onConfirmCb);
 
-	pageController.characterDetails.setCharacterDetails(TEST_CHARDATA);
+	pageController.characterDetails.setFromJson(DEFAULT_CHARACTERDETAILS.getJson())
 	characterDetails = pageController.characterDetails;
 	assert.ok((characterDetails !== undefined && characterDetails !== null && characterDetails !== {}), 'Check some character details are set.');
 
@@ -123,7 +133,7 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_blankJSON', function (asser
 	assert.throws( () => {
 		pageController.handleCharacterUpdateResponse({});
 	}, RangeError,
-	'Ensure a RangeError is thrown if no character update data is returned.');
+	'Ensure a RangeError is thrown if no character upda data is returned.');
 });
 
 QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_noData', function (assert) {
@@ -173,7 +183,7 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 	// 1. Valid update
 	pageCharacterDetailsView.clearStatsInfoField();
 	assert.ok(pageController.saveCharacterData(TEST_CHARDATA), 'Ensure we can save our test char data.');
-	let stats = pageCharacterDetailsView.characterDetails.getCharacterDetailsJson();
+	let stats = pageCharacterDetailsView.characterDetails.getJson();
 	assert.deepEqual(stats, TEST_CHARDATA, 'Check our stats are set as expected');
 
 	// 2. Bad data
@@ -188,7 +198,7 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 	};
 
 	try {
-		assert.notOk(pageController.saveCharacterData(badResponse), 'Ensure we fail to save our bad data.');
+		assert.throws(pageController.saveCharacterData(badResponse), new RangeError(), 'Ensure we fail to save our bad data.');
 	} catch (err) {
 		assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save bad character data.');
 	}
@@ -196,7 +206,7 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 	// 3. Empty data
 	var emptyData = {};
 	try {
-		assert.notOk(pageController.saveCharacterData(emptyData), 'Ensure we fail to save our bad data.');
+		assert.throws(pageController.saveCharacterData(emptyData),  new RangeError(),'Ensure we fail to save our bad data.');
 	} catch (err) {
 		assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save empty character data.');
 	}

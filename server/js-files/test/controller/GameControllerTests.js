@@ -1,9 +1,11 @@
-import {TEST_SESSIONID, TEST_SCORES, TEST_CHARDATA, TEST_CHARUPDATE_DATA} from 'test/utils/data/TestSessionData.js';
+import {TEST_SESSIONID, TEST_CHARUPDATE_DATA} from 'test/utils/data/TestSessionData.js';
+import {TEST_SCORES, TEST_CHARDATA} from 'test/utils/data/TestCharacterDetails.js';
 
 import { GameControllerClass } from 'src/controller/GameController.js';
 import { CharacterDetails } from 'src/model/page/CharacterDetails.js'
 import { Session, SessionModel } from 'src/model/Session.js';
 import  * as TestWindow from 'test/utils/TestWindow.js'
+import { CharacterDetailsBuilder } from '../../src/model/page/CharacterDetailsBuilder'
 
 var TEST_TAG = '|GAME CONTROLLER|';
 var TEST_WINDOW = null;
@@ -29,6 +31,11 @@ function beforeEachTest (assert) {
 // Hookup before each test setup / assertion
 QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTest })
 
+/**
+ * GIVEN I have a new GameController
+ * WHEN I handle the player login data from the server's login success response
+ * THEN I expect the background client session model to update to reflect the values returned
+ */
 QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
 	var sessionInfoJson = Session.ActiveSession.getSessionInfoJSON();
 	var expectedSessionJson = {
@@ -38,7 +45,7 @@ QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
 
 	assert.deepEqual(sessionInfoJson, expectedSessionJson, 'Check session info JSON is blank');
 
-	assert.ok(CharacterDetails.isValidCharacterData(TEST_CHARDATA), 'Check our test char data is valid');
+	assert.ok(CharacterDetails.validateJson(TEST_CHARDATA), 'Check our test char data is valid');
 	var loginData = {'sessionId': TEST_SESSIONID, 'player-status' : { 'username': 'foo', 'char-details': TEST_CHARDATA }};
 
 	gameController.handlePlayerLogin(loginData);

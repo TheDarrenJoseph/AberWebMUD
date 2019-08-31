@@ -114,7 +114,7 @@ export default class AtlasHelper {
 			// Remove it from the queue
 			let eventMapping = eventMappings[queueIndex];
 			//Remove it
-			eventMappings.splice(queueIndex, 1);
+			eventMappings.splice(queueIndex);
 			// console.log("Cleared event mapping for: "+eventMapping.event);
 		}
 		

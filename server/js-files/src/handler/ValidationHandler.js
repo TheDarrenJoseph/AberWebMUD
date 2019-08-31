@@ -14,30 +14,30 @@ export default class ValidationHandler {
 	 * @returns {boolean}
 	 */
 	static checkDataAttributes(data, attributeNamesArray) {
-		var dataDefined = (ValidationHandler.notUndefOrNull(data) && data.constructor == Object && Object.keys(data).length > 0);
+		var dataDefined = (ValidationHandler.notUndefOrNull(data) && typeof data === "object" && Object.keys(data).length > 0);
 
 		var attribsDefined = (ValidationHandler.notUndefOrNull(attributeNamesArray) &&
 		attributeNamesArray instanceof Array &&
 		attributeNamesArray.length > 0);
 
-		if (dataDefined && attribsDefined) {
-			var allValid = true;
-			for (var i = 0; i < attributeNamesArray.length; i++) {
-				let attributeName = attributeNamesArray[i];
-
-				let attribDefined = ValidationHandler.notUndefOrNull(data[attributeName]);
-				if (!attribDefined) {
-					console.log('Expected data attribute not defined: (' + attributeName + ') in data: ' + JSON.stringify(data));
-					allValid = false;
-				}
-			}
-			// console.log('Validated: (' + attributeNamesArray + ') result : ' + allValid);
-			return allValid;
+		if (!dataDefined) {
+			throw new RangeError('Data input undefined / not an object with keys!');
 		}
-		
-		throw new RangeError('Bad arguments for validation. Data / Attributes to validate invalid.\n args: ' + JSON.stringify(arguments));
 
-		return false;
+		if (!attribsDefined) {
+			throw new RangeError('No attributes provided to check for!');
+		}
+
+		for (var i = 0; i < attributeNamesArray.length; i++) {
+			let attributeName = attributeNamesArray[i];
+
+			let attribDefined = ValidationHandler.notUndefOrNull(data[attributeName]);
+			if (!attribDefined) {
+				throw new RangeError('Expected data attribute not defined: (' + attributeName + ') in data: ' + JSON.stringify(data));
+			}
+		}
+
+		return true;
 	}
 	
 	static notUndefOrNull(data) {
@@ -54,7 +54,7 @@ export default class ValidationHandler {
 	 * @param updateJSON
 	 * @returns {boolean}
 	 */
-	static isValidMovementUpdateData (updateJSON) {
+	static validateMovementUpdateData (updateJSON) {
 		if (ValidationHandler.notUndefOrNull(updateJSON)) {
 			let topLevelAttribsExist = (ValidationHandler.checkDataAttributes(updateJSON, MOVEMENT_UPDATE_ATTRIBS));
 
@@ -67,6 +67,8 @@ export default class ValidationHandler {
 
 				return topLevelAttribsExist && positionAttribsExist;
 			}
+		} else {
+			throw new RangeError('Arguement undefined!');
 		}
 		
 		return false;

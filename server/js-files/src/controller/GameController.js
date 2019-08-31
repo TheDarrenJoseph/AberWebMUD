@@ -94,7 +94,7 @@ export class GameControllerClass {
 		this.socketHandler.bind('character-details-update',  (data) => { pageController.handleCharacterUpdateResponse(data) });
 
 		this.socketHandler.bind('attribute-class-options', (data) => {
-			pageController.handleAttributeClassOptions(data)
+			pageController.handleCharacterClassOptions(data)
 		});
 
 		//  Request for existing password
@@ -119,15 +119,7 @@ export class GameControllerClass {
 		this.viewController.pageController.getPageChatView().updateMessageLog(messageData, username);
 	}
 
-	//	data -- {"sessionId":"66063e8275f945769481ba21674be1cf",
-	//	"player-status":{"username":"foo",
-	//	"char-details" : {
-	//		"charname" : "foo"
-	//		"pos_x
-	//	}
-	//	}}
 	handlePlayerLogin (data) {
-		try {
 			// Save this data for our session
 			Session.ActiveSession.setClientSessionData(data);
 			Session.ActiveSession.setActiveSession(true)
@@ -136,11 +128,6 @@ export class GameControllerClass {
 				this.viewController.pageController.getPageChatView().updateMessageLog('Player Character details not present, please enter them..', 'client');
 				this.viewController.pageController.getPageCharacterDetailsView().requestCharacterDetails();
 			}
-		} catch (err) {
-			let errMsg = 'Unexpected error when handling login response data.';
-			this.viewController.pageController.getPageChatView().updateMessageLog(errMsg, 'client');
-			console.log(errMsg + ' : ' + err);
-		}
 	}
 
 }

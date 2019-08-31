@@ -63,7 +63,7 @@ export default class SocketHandler {
 
 
 	/**
-	fetchAttributeClassOptions() {
+	fetchCharacterClassOptions() {
 		// Make sure we send session info with this
 		let message = MessageHandler.attachSessionJson({});
 		this.io.emit('get-attribute-class-options', message);

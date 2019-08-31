@@ -13,9 +13,13 @@ import { EVENTS as sessionEvents, Session } from 'src/model/Session.js';
 import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 import { FetchHandler } from 'src/handler/http/FetchHandler.js';
 
+import { EVENTS as pageLoginEvents, PageLoginView } from 'src/view/page/PageLoginView.js';
+
 import ValidationHandler from 'src/handler/ValidationHandler.js';
 import PageInventoryView from 'src/view/page/PageInventoryView.js';
-import { EVENTS as pageLoginEvents, PageLoginView } from 'src/view/page/PageLoginView.js';
+import AttributeScores from '../../model/page/AttributeScores'
+import CharacterClassOptions from '../../model/page/CharacterClassOptions'
+import CharacterDetailsBuilder from '../../model/page/CharacterDetailsBuilder'
 
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
 export var LOGIN_FAILURE_MESSAGE_PLAYER = 'Login failure (player does not exist)';
@@ -46,8 +50,9 @@ export default class PageController {
 		this.charDetailsConfirmed = false;
 
 		this.SOCKET_HANDLER = SocketHandler.getInstance();
-
-		this.characterDetails = new CharacterDetails();
+		// No details to display for now to blank/default them
+		let defaultCharacterDetails = new CharacterDetailsBuilder().withDefaults().build();
+		this.characterDetails = defaultCharacterDetails
 
 		let docUrlParts = document.URL.split('/');
 		let protocol = docUrlParts[0]+'//'
@@ -164,72 +169,83 @@ export default class PageController {
 		return this.charDetailsConfirmed;
 	}
 
-	extractAttributeClassOptions(jsonData) {
-		let classOptions = [];
-		let availableOptions = jsonData.options;
-
-		for (let i=0; i < availableOptions.length; i++) {
-			let availOpt = availableOptions[i];
-
-			let thisOption = {
-				id: availOpt.toLowerCase(),
-				text: availOpt
-			}
-			classOptions.push(thisOption);
+	handleCharacterClassOptions(jsonData) {
+		let classOptions = jsonData.options;
+		if (classOptions !== undefined) {
+			this.pageCharacterDetailsView.characterDetails.setCharacterClassOptions(attributeClassOptions);
+			console.info('Character Details View class options set.')
+		} else {
+			throw new RangeError('Cannot handle undefined character class options!')
 		}
-
-		return classOptions;
 	}
 
-	handleAttributeClassOptions(jsonData) {
-		let attributeClassOptions = this.extractAttributeClassOptions(jsonData)
-		this.pageCharacterDetailsView.characterDetails.setCharacterClassOptions(attributeClassOptions);
+	handleAttributeScoreOptions(jsonData) {
+		if (jsonData !== undefined) {
+			// Set these as the current defaults as it's our first time grabbing them
+			let attributeScores = AttributeScores.fromJson(jsonData);
+			this.pageCharacterDetailsView.setAttributes(attributeScores);
+		} else {
+			throw new RangeError('Cannot handle undefined attribute score options!')
+		}
+	}
+
+	buildView() {
+		// Ensure our HTML DOM content is built
+		this.pageView.buildView();
+
+		this.pageChatWindow        = this.pageChatView.buildView();
+		this.charDetailsWindow = this.pageCharacterDetailsView.buildView();
+		this.pageInventoryWindow   = this.pageInventoryView.buildView();
+		this.pageLoginWindow       = this.pageLoginView.buildView();
+	}
+
+	bindActiveSessionEvents() {
+		Session.ActiveSession.once(sessionEvents.ACTIVE_SESSION, () => {
+			console.info('Active Session for Character Details View!')
+
+			this.fetchCharacterClassOptions().then(jsonData => {
+				this.handleCharacterClassOptions(jsonData);
+			}).catch(reason => { throw reason })
+
+			this.fetchAttributeScores().then(jsonData => {
+				this.handleAttributeScoreOptions(jsonData)
+			}).catch(reason => { throw reason })
+		})
+	}
+
+	setupViewElements() {
+		//TODO perform this step somewhere graceful to avoid passing the pageView into every view element
+		this.pageView.appendToGameWindow(this.pageInventoryWindow);
+		this.pageView.appendToGameWindow(this.pageLoginWindow);
+
+		this.pageView.showElement(_MAIN_WINDOW_ID);
+		this.pageView.showElement(_GAME_WINDOW_ID);
+
+		this.pageCharacterDetailsView.hideStatsWindow();
+		this.pageChatView.hideMessageWindow();
+		//this.pageInventoryView.hideInventoryWindow();
+		this.pageLoginView.hideLoginWindow();
 	}
 
 	// Builds UI Components
 	setupUI () {
 		if (!this.isSetup) {
-
 			this.SOCKET_HANDLER.bind()
-
-			// Ensure our HTML DOM content is built
-			this.pageView.buildView();
-
-			let pageChatWindow        = this.pageChatView.buildView();
-			let charDetailsWindow = this.pageCharacterDetailsView.buildView();
-			let pageInventoryWindow   = this.pageInventoryView.buildView();
-			let pageLoginWindow       = this.pageLoginView.buildView();
-
-			Session.ActiveSession.once(sessionEvents.ACTIVE_SESSION, () => {
-				console.info('Active Session for Character Details View!')
-
-				// Make a request for the character class options
-				this.fetchAttributeClassOptions().then(jsonData => {
-					let attributeClassOptions = this.extractAttributeClassOptions(jsonData)
-					this.pageCharacterDetailsView.characterDetails.setCharacterClassOptions(attributeClassOptions);
-					console.info('Character Details View class options set, building view!')
-				}).catch(reason => { throw reason })
-			})
-
-			//TODO perform this step somewhere graceful to avoid passing the pageView into every view element
-			this.pageView.appendToGameWindow(pageInventoryWindow);
-			this.pageView.appendToGameWindow(pageLoginWindow);
-
-			this.pageView.showElement(_MAIN_WINDOW_ID);
-			this.pageView.showElement(_GAME_WINDOW_ID);
-
-			this.pageCharacterDetailsView.hideStatsWindow();
-			this.pageChatView.hideMessageWindow();
-			//this.pageInventoryView.hideInventoryWindow();
-			this.pageLoginView.hideLoginWindow();
-
+			this.buildView();
+			this.bindActiveSessionEvents();
+			this.setupViewElements();
 			this.isSetup = true;
 		}
 	}
 
 
-	fetchAttributeClassOptions() {
+	fetchCharacterClassOptions() {
 		let response = this.fetchHandler.get('/attributes-class-options');
+		return response;
+	}
+
+	fetchAttributeScores() {
+		let response = this.fetchHandler.get('/attributes-score-options');
 		return response;
 	}
 
@@ -262,6 +278,8 @@ export default class PageController {
 	 * @param data JSON character update data
 	 */
 	handleCharacterUpdateResponse (data) {
+
+		let charDetails = this.pageCharacterDetailsView.getCharacterDetails();
 		if (CharacterDetails.isValidCharacterUpdateData(data)) {
 			let success = data['success'];
 
@@ -284,13 +302,14 @@ export default class PageController {
 
 	/**
 	 * External setter for char stats from the server
-	 * @param characterData
+	 * @param detailsJson
 	 * @returns {boolean}
 	 */
-	saveCharacterData (characterData) {
-		if (CharacterDetails.isValidCharacterData(characterData)) {
+	saveCharacterData (detailsJson) {
+		if (CharacterDetails.validateJson(detailsJson)) {
 			// Set the underlying view model so the view reacts
-			this.pageCharacterDetailsView.characterDetails.setCharacterDetails(characterData);
+			let charDetails = this.pageCharacterDetailsView.getCharacterDetails();
+			charDetails.setFromJson(detailsJson);
 			return true;
 		} else {
 			throw new RangeError(INVALID_JSON_CHARACTER_DATA);

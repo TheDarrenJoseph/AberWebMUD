@@ -8,11 +8,13 @@ export class PageHtmlView extends EventMapping {
 
 	/**
 	 *
-	 * @param EVENTS
+	 * @param mappableEvents
 	 * @param htmlIdMappings -- mappings of local window IDs to their HTML equivalents for CSS selectors
 	 */
-	constructor (doc, EVENTS, htmlIdMappings) {
-		super(EVENTS)
+	constructor (doc, mappableEvents, htmlIdMappings) {
+		super(mappableEvents)
+
+		this.viewBuilt = false;
 
 		if (doc == undefined) {
 			throw new RangeError("No Document provided for a PageHtmlView");
@@ -25,6 +27,14 @@ export class PageHtmlView extends EventMapping {
 		} else {
 			this.idSelectorMappings = htmlIdMappings;
 		}
+	}
+
+	isViewBuilt() {
+		return this.viewBuilt;
+	}
+
+	setViewBuilt(viewBuilt) {
+		this.viewBuilt = viewBuilt;
 	}
 
 	getHtmlIdMapping(mappingId) {

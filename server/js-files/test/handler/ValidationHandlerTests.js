@@ -144,7 +144,7 @@ TEST_TAG + 'notUndefOrNull_true', function (assert) {
 
 QUnit.test(
 TEST_TAG + 'notUndefOrNull_false', function (assert) {
-	assert.notOk(ValidationHandler.notUndefOrNull(undefined), 'Check undefined data fails validation');
+	assert.notOk(ValidationHandler.notUndefOrNull(undefined), RangeError, 'Check undefined data fails validation');
 	assert.notOk(ValidationHandler.notUndefOrNull(null), 'Check null data fails validation');
 });
 
@@ -156,29 +156,29 @@ TEST_TAG + 'notUndefOrNull_crazy', function (assert) {
 });
 
 QUnit.test(
-TEST_TAG + 'isValidMovementUpdateData_good', function (assert) {
-	assert.ok(ValidationHandler.isValidMovementUpdateData(VALID_MOVEMENT_UPDATE), 'Check valid movement data is okay');
+TEST_TAG + 'validateMovementUpdateData_good', function (assert) {
+	assert.ok(ValidationHandler.validateMovementUpdateData(VALID_MOVEMENT_UPDATE), 'Check valid movement data is okay');
 });
 
 QUnit.test(
-TEST_TAG + 'isValidMovementUpdateData_bad', function (assert) {
+TEST_TAG + 'validateMovementUpdateData_bad', function (assert) {
 	// Stringify and parse the valid data to clone it;
 	let invalidData = JSON.parse(JSON.stringify(VALID_MOVEMENT_UPDATE));
 	invalidData.username = undefined;
-	assert.notOk(ValidationHandler.isValidMovementUpdateData(invalidData), 'Check no username fails validation');
+	assert.throws(() =>ValidationHandler.validateMovementUpdateData(invalidData), RangeError,'Check no username fails validation');
 
 	// Stringify and parse the valid data to clone it;
 	let invalidDataOldX = JSON.parse(JSON.stringify(VALID_MOVEMENT_UPDATE));
 	invalidDataOldX.old_position.pos_x = undefined;
-	assert.notOk(ValidationHandler.isValidMovementUpdateData(invalidDataOldX), 'Check no old pos_x fails validation');
+	assert.throws(() => ValidationHandler.validateMovementUpdateData(invalidDataOldX), RangeError, 'Check no old pos_x fails validation');
 
 	let invalidDataOldY = JSON.parse(JSON.stringify(VALID_MOVEMENT_UPDATE));
 	invalidDataOldY.old_position.pos_y = undefined;
-	assert.notOk(ValidationHandler.isValidMovementUpdateData(invalidDataOldY), 'Check no old pos_y fails validation');
+	assert.throws(() => ValidationHandler.validateMovementUpdateData(invalidDataOldY), RangeError, 'Check no old pos_y fails validation');
 });
 
 QUnit.test(
-TEST_TAG + 'isValidMovementUpdateData_crazy', function (assert) {
-	assert.notOk(ValidationHandler.isValidMovementUpdateData(undefined), 'Check undefined fails validation');
-	assert.notOk(ValidationHandler.isValidMovementUpdateData(null), 'Check null fails validation');
+TEST_TAG + 'validateMovementUpdateData_crazy', function (assert) {
+	assert.throws(() => ValidationHandler.validateMovementUpdateData(undefined), RangeError, 'Check undefined fails validation');
+	assert.throws(() => ValidationHandler.validateMovementUpdateData(null), RangeError, 'Check null fails validation');
 });

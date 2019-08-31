@@ -7,6 +7,7 @@ import Player from 'src/model/Player.js';
 import { MapPositionHelper } from 'src/helper/MapPositionHelper.js';
 import { MapCharacter } from 'src/model/pixi/map/MapCharacter.js';
 import { DEFAULT_TILE_SIZE } from 'src/model/pixi/map/MapModel.js';
+import { CharacterDetailsBuilder } from 'src/model/page/CharacterDetailsBuilder.js'
 
 export var DEFAULT_TILE_MAPPINGS = ['grass-plain', 'barn-front'];
 
@@ -322,7 +323,9 @@ export default class PixiMapView {
 			if (this.isPositionRelativeToView(localX, localY)) {
 				// We need to await so we can return this Sprite
 				var characterSprite = await this.promiseSpriteForPlayer(localX, localY);
-				let mapCharacter = new MapCharacter(charactername, gridX, gridY, characterSprite);
+
+				let characterDetails = new CharacterDetailsBuilder().withDefaults().build();
+				let mapCharacter = new MapCharacter(characterDetails, characterSprite);
 				let newPlayer = new Player('Person', mapCharacter);
 				this.mapModel.addPlayer(localX, localY, newPlayer);
 				return newPlayer;

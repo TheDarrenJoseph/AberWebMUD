@@ -1,10 +1,18 @@
 import CharacterDetails from 'src/model/page/CharacterDetails.js';
 
 // Pixi Map Character model for Pixi Display (Pixi Representation)
-export default class MapCharacter extends CharacterDetails {
-	constructor (charname, x, y, sprite) {
-		super(charname, x, y);
+export default class MapCharacter {
+	constructor (characterDetails, sprite) {
+		this.characterDetails = characterDetails;
 		this.sprite = sprite;
+	}
+
+	getCharacterDetails() {
+		return this.characterDetails;
+	}
+
+	setCharacterDetails(characterDetails) {
+		this.characterDetails = characterDetails;
 	}
 
 	getSprite() {

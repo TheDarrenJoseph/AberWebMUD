@@ -6,8 +6,12 @@ var DEBUG = true;
  * Helps with MVC Observer pattern for simple callbacks
  */
 export default class EventMapping {
-	constructor (mappableEvents={}) {
-		this.mappableEvents = mappableEvents;
+	constructor (mappableEvents) {
+		if (mappableEvents !== undefined) {
+			this.mappableEvents = mappableEvents;
+		} else {
+			this.mappableEvents = {};
+		}
 		this.mappings = {};
 	}
 
@@ -15,7 +19,6 @@ export default class EventMapping {
 	dispatchEvent(dispatchedEvent) {
 		let callbacks = this.mappings[dispatchedEvent.type];
 		let data = dispatchedEvent.data;
-
 		if (callbacks !== undefined && callbacks.length > 0) {
 			for (let i in callbacks) {
 				let callback = callbacks[i];
@@ -30,7 +33,7 @@ export default class EventMapping {
 						// Splice out the 1 callback function if we need to remove it after calling
 						if (singleShot) {
 							if (DEBUG) console.log('Clearing single-shot mapping..');
-							this.mappings[dispatchedEvent.type].splice(i, 1);
+							this.mappings[dispatchedEvent.type].splice(i);
 						}
 					}
 				} else {
@@ -39,6 +42,8 @@ export default class EventMapping {
 
 				callback(data);
 			}
+		} else {
+			console.debug('No mappings left for event: ' + dispatchedEvent.type);
 		}
 	}
 
@@ -53,7 +58,7 @@ export default class EventMapping {
 
 		let mappableEventNames = Object.values(this.mappableEvents);
 		if (!mappableEventNames.includes(eventString)) {
-			throw new RangeError('Cannot bind to that event: ' + eventString + '. Mappable events are: ' + mappableEventNames);
+			throw new RangeError('Cannot bind to that event: ' + eventString + '. Mappable events are: ' + JSON.stringify(this.mappableEvents));
 		}
 	}
 

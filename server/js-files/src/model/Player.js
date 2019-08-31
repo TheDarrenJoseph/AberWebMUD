@@ -1,4 +1,5 @@
 import MapCharacter from 'src/model/pixi/map/MapCharacter.js'
+import CharacterDetailsBuilder from './page/CharacterDetailsBuilder'
 
 export const INVALID_USERNAME_MSG = 'Cannot set invalid username: ';
 
@@ -15,7 +16,8 @@ export default class Player {
 		this.username = username;
 
 		if (mapCharacter == undefined) {
-			this.mapCharacter = new MapCharacter();
+			let characterDetails = new CharacterDetailsBuilder().withDefaults().build()
+			this.mapCharacter = new MapCharacter(characterDetails);
 		} else {
 			this.mapCharacter = mapCharacter;
 		}
@@ -55,7 +57,7 @@ export default class Player {
 
 		// Optional parameter
 		if (jsonData.hasOwnProperty('character')) {
-			this.getCharacter().setCharacterDetails(jsonData['character']);
+			this.getCharacter().setFromJson(jsonData['character']);
 		}
 	}
 

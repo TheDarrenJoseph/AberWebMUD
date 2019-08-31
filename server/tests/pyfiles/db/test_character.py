@@ -11,16 +11,22 @@ TEST_CHARCLASS = characterClass.CharacterClass.Fighter
 
 DEFAULT_SCORES = {'Strength': 0, 'Agility': 0, 'Arcana': 0, 'Stealth': 0}
 
+DEFAULT_ATTRIBUTE_SCORES = {
+    'scores' : DEFAULT_SCORES
+}
+
 DEFAULT_CHARACTER_DETAILS = {
     'character' : {
         'charname': TEST_CHARNAME,
-        'charclass': TEST_CHARCLASS.value,
+        'charclass': 'Fighter',
         'position': {
             'pos_x': 11,
             'pos_y': 11
         },
         'health': 100,
         'attributes': {
+            'min_value': 0,
+            'max_value': 100,
             'free_points': 5,
             'scores': DEFAULT_SCORES
         }
@@ -30,6 +36,7 @@ DEFAULT_CHARACTER_DETAILS = {
 
 TEST_SCORES = {'Strength': 2, 'Agility': 2, 'Arcana': 2, 'Stealth': 2}
 
+# Slightly adjusted defaults
 TEST_CHARACTER_DETAILS = {
     'character' : {
         'charname': TEST_CHARNAME,
@@ -40,6 +47,8 @@ TEST_CHARACTER_DETAILS = {
         },
         'health': 100,
         'attributes': {
+            'min_value': 0,
+            'max_value': 100,
             'free_points': 5,
             'scores': TEST_SCORES
         }
@@ -70,16 +79,26 @@ class TestCharacter(unittest.TestCase):
 
     def test_get_json(self):
         self.maxDiff = None
-        test_character = characterController.new_character(TEST_CHARNAME, 'foo')
+        test_character = characterController.new_character('Woody', TEST_USERNAME)
         self.assertNotEqual(test_character, None, 'Check the character was created.')
         character_json = test_character.get_json()
         self.assertEqual(character_json, DEFAULT_CHARACTER_DETAILS, 'Ensure the character JSON representation is as expected')
+
+    # when I have created a new character
+    # their attribute scores should be set to the defaults
+    def test_get_json_attribute_scores(self):
+        json_scores = None
+        with db_session:
+            test_character = characterController.new_character('Woody', TEST_USERNAME)
+            these_attributes = test_character.get_attributes()
+            json_scores = these_attributes.get_json_attribute_scores()
+        self.assertEqual(json_scores, DEFAULT_ATTRIBUTE_SCORES)
 
     def test_update_from_json(self):
         self.maxDiff = None
         # character creation creates a db_session, we must have a top-level session to avoid losing it
         with db_session:
-            test_character = characterController.new_character(TEST_CHARNAME, TEST_USERNAME)
+            test_character = characterController.new_character('Woody', TEST_USERNAME)
             self.assertNotEqual(test_character, None, 'Check the character was created.')
             character_json = test_character.get_json()
             self.assertEqual(character_json, DEFAULT_CHARACTER_DETAILS, 'Ensure the character JSON representation is as expected')

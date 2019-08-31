@@ -1,25 +1,11 @@
 import { CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
 
-// Default human attributeScores w/ 27 free points
-export const TEST_SESSIONID = 12345678;
+import { JSON_ATTRIBUTE_MIN_VALUE_NAME, JSON_ATTRIBUTE_MAX_VALUE_NAME, JSON_ATTRIBUTE_FREEPOINTS_NAME, JSON_ATTRIBUTE_SCORES_NAME } from 'src/model/page/AttributeScores.js';
+import { TEST_CHARDATA } from 'test/utils/data/TestCharacterDetails.js'
 
-// Fortitude, Intellect, Awareness, Arcana, Agility
-export const TEST_SCORES = {'FOR':8, 'INT':8, 'AWR' : 8, 'ARC': 8 , 'AGL' : 8};
-export const TEST_CHARDATA = {
-	'character' : {
-		'charname': 'FooBar',
-		'position' : {
-			'pos_x': 4,
-			'pos_y': 4
-		},
-		'health': 100,
-		'charclass': 'spellcaster',
-		'attributes': {
-			'free_points': 27,
-			'scores': TEST_SCORES
-		}
-	}
-};
+// Default human attributeScores w/ 27 free points
+export const TEST_SESSIONID = '12345678';
 
 // For the 'character-details-update' event response
-export const TEST_CHARUPDATE_DATA = {'success': true, 'username': 'foo', 'character' : TEST_CHARDATA['character'], 'sessionId' : TEST_SESSIONID };
+export const TEST_CHARUPDATE_DATA = {'success': true, 'username': 'foo', 'character' : TEST_CHARDATA, 'sessionId' : TEST_SESSIONID };
+

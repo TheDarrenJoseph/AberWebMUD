@@ -6,9 +6,15 @@ class CharacterClass(Enum):
     Spellcaster = 'Spellcaster'
     Rogue = 'Rogue'
 
+
+    @staticmethod
+    def get_values():
+        # Iterate all CharacterClass options, and build a list of their values
+        return list(map(lambda charclass: charclass.value, CharacterClass.__iter__()))
+
     @staticmethod
     def get_json_options():
         keys = []
-        for charclass in CharacterClass:
-            keys.append(charclass.value)
+        for value in CharacterClass.get_values():
+            keys.append(value)
         return {'options': keys}
