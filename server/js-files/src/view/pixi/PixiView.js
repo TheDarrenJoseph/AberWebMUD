@@ -290,7 +290,7 @@ export default class PixiView extends EventMapping {
 	}
 
 	setHealthBarValue (health) {
-		this.getStatBar(STATBAR_ID_HEALTH).setValue(Session.ActiveSession.clientSession.player.getCharacter().health);
+		this.getStatBar(STATBAR_ID_HEALTH).setValue(Session.ActiveSession.clientSession.player.getMapCharacter().health);
 	}
 
 	showStatBars () {

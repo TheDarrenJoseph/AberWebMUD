@@ -6,10 +6,6 @@ import { EventMapping } from 'src/helper/EventMapping.js';
 const DEBUG=false;
 export const SESSION_ID_COOKIE_NAME = 'sessionId';
 
-// Login response validation
-export const EXPECTED_LOGIN_SUCCESS_PARAMS = ['sessionId', 'player-status'];
-export const ERROR_LOGIN_RS_MISSING_USERNAME = new RangeError('Username missing on login response!')
-export const ERROR_LOGIN_RS_MISSING_CHARDETAILS = new RangeError('Character details missing on login response!')
 
 // January 1, 1970, 00:00:00 UTC
 const EPOCH_DATE = Date(0);
@@ -43,7 +39,7 @@ class SessionModel extends EventMapping {
 		if (ValidationHandler.validString(sessionId)) {
 			return true;
 		} else {
-			throw new RangeError('Expected a Session ID string!')
+			throw new RangeError('Expected a Session ID string!, received: ' + sessionId)
 		}
 	}
 
@@ -74,7 +70,7 @@ class SessionModel extends EventMapping {
 		return this.clientSession.sessionId;
 	}
 
-	setSessionId (sessionId) {
+	_setSessionId (sessionId) {
 		//	Update the client session to contain our new data
 		this._checkSessionId(sessionId);
 		this.clientSession.sessionId = sessionId;
@@ -170,14 +166,14 @@ class SessionModel extends EventMapping {
 			if (cookieSid == null) {
 
 				console.log('Saving session ID: ' + JSON.stringify(sessionId))
-				this.setSessionId(sessionId);
+				this._setSessionId(sessionId);
 				//	Also save it in a cookie
 				this.saveSessionIdCookie(sessionId);
 				console.log('Handshaked with server, session ID given:' + sessionId);
 			} else {
 				console.log('Reconnected, using old SID: ');
 				console.log(cookieSid);
-				this.setSessionId(cookieSid);
+				this._setSessionId(cookieSid);
 			}
 
 			return this.getSessionId();
@@ -186,29 +182,18 @@ class SessionModel extends EventMapping {
 		}
 	};
 
-	/**
-	 * Sets the username, sessionid, and Character Details JSON for reference
-	 * @param data
-	 */
-	setClientSessionData (data) {
-		if (ValidationHandler.checkDataAttributes(data, EXPECTED_LOGIN_SUCCESS_PARAMS)) {
-
-			let expectedAttribs = ['sessionId', 'player-status'];
-			let attribsPresent = ValidationHandler.checkDataAttributes(data, expectedAttribs);
-
-			if (attribsPresent) {
-				let sid = data['sessionId'];
-				let playerStatus = data['player-status'];
-
-				console.log('Updating session with response data: ' + JSON.stringify(data));
-
-				// Update user details
-				Session.ActiveSession.setSessionId(sid)
-				Session.ActiveSession.clientSession.player.updateFromJson(playerStatus)
-			} else {
-				throw new RangeError('Missing attributes when setting client session data: ' + JSON.stringify(expectedAttribs));
-			}
+	setClientSessionID(sid) {
+		let idPresent = ValidationHandler.notUndefOrNull(sid);
+		if (idPresent) {
+			this._setSessionId(sid);
+		} else {
+			throw new RangeError('Session ID not defined!');
 		}
+	}
+
+
+	updatePlayer(jsonData) {
+		this.clientSession.player.updateFromJson(jsonData);
 	}
 
 	static validSessionId(sessionId) {

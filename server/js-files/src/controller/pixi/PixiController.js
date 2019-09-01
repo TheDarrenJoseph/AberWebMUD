@@ -82,7 +82,7 @@ class PixiController {
 					this.pixiView.hideContextControl(STATS_BUTTON_NAME);
 					this.pixiView.hideContextControl(INVENTORY_BUTTON_NAME);
 
-					this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getCharacter().health);
+					this.pixiView.setHealthBarValue(Session.ActiveSession.clientSession.player.getMapCharacter().health);
 
 					this.pixiView.showParentContainer(true);
 

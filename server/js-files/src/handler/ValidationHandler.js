@@ -7,6 +7,14 @@ var POSITION_ATTRIBS = [ 'pos_x', 'pos_y']
  */
 export default class ValidationHandler {
 
+	static validateAttribute(jsonData, expectedAttribute) {
+		if (jsonData.hasOwnProperty(expectedAttribute)) {
+			return true;
+		} else {
+			throw new RangeError (' Expected property \'' + expectedAttribute + '\' in jsonData: ' + JSON.stringify(jsonData));
+		}
+	}
+
 	/**
 	 *
 	 * @param data the JSON data to check

@@ -1,3 +1,4 @@
+import { Session } from 'src/model/Session.js'
 
 var DEBUG = true;
 
@@ -25,9 +26,29 @@ export default class FetchHandler {
 		});
 	}
 
+	getBasicAuthValue() {
+		let sessionInfo = Session.ActiveSession.getSessionInfoJSON();
+		let username = sessionInfo.username;
+		let sessionId = sessionInfo.sessionId;
+		console.debug('Building authentication, username: ' + username + ', sessionId: ' + sessionId);
+		let encodedValue = window.btoa(''+username+':'+sessionId);
+		console.debug('Base64 Encoded value:  ' + encodedValue);
+		return encodedValue;
+	}
+
+	getBasicAuthHeaderValue() {
+		return 'Basic '+this.getBasicAuthValue();
+	}
+
 	promiseGetJson(url){
 		if (DEBUG) console.debug('GET: ' + url)
-		return fetch(this.baseUrl + url).then(response => this.promiseResponseJson(response))
+		return fetch(this.baseUrl + url, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authentication' : this.getBasicAuthHeaderValue()
+			}
+		}).then(response => this.promiseResponseJson(response))
 	}
 
 	promisePostJson(url, dataObject) {
@@ -37,7 +58,8 @@ export default class FetchHandler {
 			method: 'POST',
 			mode: 'cors',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'Authentication' : this.getBasicAuthHeaderValue()
 			},
 			body: JSON.stringify(dataObject)
 		}).then(response => {

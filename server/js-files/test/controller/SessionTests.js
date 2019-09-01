@@ -22,7 +22,7 @@ QUnit.test(TEST_TAG + 'setSessionId_basic', function (assert) {
 	let sessionId = Session.ActiveSession.getSessionId();
 	assert.equal(sessionId, undefined, 'Check Session ID has not been set');
 
-	Session.ActiveSession.setSessionId(TEST_SESSION_ID);
+	Session.ActiveSession._setSessionId(TEST_SESSION_ID);
 	assert.equal(Session.ActiveSession.getSessionId(), TEST_SESSION_ID);
 });
 

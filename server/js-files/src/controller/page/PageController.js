@@ -20,6 +20,7 @@ import PageInventoryView from 'src/view/page/PageInventoryView.js';
 import AttributeScores from '../../model/page/AttributeScores'
 import CharacterClassOptions from '../../model/page/CharacterClassOptions'
 import CharacterDetailsBuilder from '../../model/page/CharacterDetailsBuilder'
+import { MessageHandler } from '../../handler/socket/MessageHandler'
 
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
 export var LOGIN_FAILURE_MESSAGE_PLAYER = 'Login failure (player does not exist)';
@@ -50,9 +51,8 @@ export default class PageController {
 		this.charDetailsConfirmed = false;
 
 		this.SOCKET_HANDLER = SocketHandler.getInstance();
-		// No details to display for now to blank/default them
-		let defaultCharacterDetails = new CharacterDetailsBuilder().withDefaults().build();
-		this.characterDetails = defaultCharacterDetails
+		this.mapCharacter = Session.ActiveSession.getPlayer().getMapCharacter();
+		this.characterDetails = this.mapCharacter.getCharacterDetails();
 
 		let docUrlParts = document.URL.split('/');
 		let protocol = docUrlParts[0]+'//'
@@ -271,6 +271,12 @@ export default class PageController {
 		}
 	}
 
+	handleCharacterDetailsMissing() {
+		// Almost guaranteed this is a data validation issue, missing player/character data.
+		this.getPageChatView().updateMessageLog('Player Character details not present, please enter them..', 'client');
+		this.getPageCharacterDetailsView().requestCharacterDetails();
+	}
+
 	/**
 	 * Parses the charcter update response
 	 * Extracts and sets the char details on success
@@ -286,7 +292,9 @@ export default class PageController {
 			if (success === true) {
 				// Try to save the returned character details
 				if (this.saveCharacterData(data)) {
-					Session.ActiveSession.setClientSessionData(data);
+					let sid = MessageHandler.extractSessionId(data);
+					console.debug('Setting client session ID: ' + sid);
+					Session.ActiveSession.setClientSessionID(sid);
 					this.pageCharacterDetailsView.updateStatsInfoLog(CHARACTER_UPDATE_SUCCESS_MESSAGE, 'server');
 				}
 			} else {

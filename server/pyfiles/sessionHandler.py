@@ -18,6 +18,9 @@ def add_active_session(session_id: str, username: str) -> None:
     logging.info('NEW ACTIVE SESSION ' + session_id)
     _active_sessions[session_id] = username
 
+def get_active_username(session_id: str) :
+    username = _active_sessions[session_id]
+    return username
 
 def list_sessions() -> None:
     """Prints the connected sessionIds and activeSessions to show auth handling"""

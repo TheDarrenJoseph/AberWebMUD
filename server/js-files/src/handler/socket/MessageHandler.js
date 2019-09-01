@@ -1,8 +1,11 @@
+import ValidationHandler from 'src/handler/ValidationHandler.js';
+
 import { Session, SessionModel } from 'src/model/Session.js';
 import { Player } from 'src/model/Player.js';
 
 //	Export vars we may want to unpack
 export const SESSION_JSON_NAME = 'sessionJson';
+export const SESSION_ID_JSON_NAME = 'sessionId';
 
 //	Other constants for message format
 export const DATA_JSON_NAME = 'data';
@@ -57,6 +60,15 @@ class MessageHandler {
 		message = MessageHandler.attachSessionJson(message);
 		return message;
 	}
+
+	static extractSessionId(data) {
+		let sid = data[SESSION_ID_JSON_NAME];
+		if (ValidationHandler.notUndefOrNull(sid)) {
+			return ''+sid;
+		}
+		return null;
+	}
+
 }
 
 export { MessageHandler };

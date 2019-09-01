@@ -121,12 +121,11 @@ class SocketHandler:
         emit('login-failure', {'playerExists' : found_player}, room=session_id)
 
     def send_login_success(self, session_id : str, status_response : bool) -> None:
-        """ Emits a login-success event to the client
-            sends the current sessionId and a player-status data object
+        """ Emits a login-success event to the client with the new session id
         """
-        logging.debug('OUT| login success: '+str(status_response))
-        emit('login-success', {SESSION_ID_JSON_NAME:session_id, 'player-status':status_response}, room=session_id)
-        sessionHandler.list_sessions() #List sessions for debug/info
+        logging.debug('OUT| login success: '+session_id)
+        emit('login-success', {SESSION_ID_JSON_NAME: session_id}, room=session_id)
+        sessionHandler.list_sessions()  # List sessions for debug/info
 
     def send_help_message(self) -> None:
         message = "Currently supported chat commands are:\n"
@@ -262,6 +261,13 @@ class SocketHandler:
         else:
             logging.error('No valid session for movement attempt, request.sid: ' + request.sid)
 
+    def send_char_details_update(self, update_success, character_data, sid) -> None:
+        logging.info('OUT| character-details-update '+str(character_data))
+        character_details_update = {
+            'success': update_success,
+            'character': character_data
+        }
+        emit('character-details-update', character_details_update, room=request.sid)
 
     def handle_char_details(self, message: dict) -> None:
         """ Receives character data from the client, validates it, and updates the DB """
@@ -272,26 +278,17 @@ class SocketHandler:
             username = sessionData[0]
             sessionId = sessionData[1]
             if all(sessionHandler.valid_player_session(username, sessionId, playerController.find_player(username))):
-                update_success = False
-                character_data = {}
-
                 #Check the details and emit a response based on that
                 if userInput.validate_character_update(message):
                     logging.info('Updating char details: '+str(message))
                     update_success = characterController.update_character_details(message)
                     logging.info('CHARACTER UPDATE SUCCESS: '+str(update_success))
                     username = message[SESSION_JSON_NAME][SESSION_USERNAME_JSON_NAME]
-
                     character_data = playerController.get_character_json(username)['character']
+                    self.send_char_details_update(update_success, character_data, request.sid)
                 else:
                     logging.info('Invalid character update data')
-
-                logging.info('OUT| character-details-update '+str(character_data))
-                character_details_update = {
-                    'success': update_success,
-                    'character': character_data
-                }
-                emit('character-details-update', character_details_update, room=request.sid)
+                    self.send_char_details_update(False, {}, request.sid)
             else:
                 logging.info('IN| (CHAR-STATS) stats save attempted for invalid session. SID: ' + str(request.sid))
         else:
@@ -301,11 +298,8 @@ class SocketHandler:
         logging.info('Logging in.. '+sid)
         sessionHandler.add_active_session(sid, username)
 
-        #thisPlayer = jsonpickle.encode(playerController.find_player(username))
-        status_response = playerController.get_player_status(username)
-        if status_response is not None:
-            logging.info('Player status response: '+str(status_response))
-            self.send_login_success(sid, status_response)
+        if playerController.find_player(username) is not None:
+            self.send_login_success(sid)
 
     """ Authenticates/logs in a user through username and password 
         Uses decoration for @socketio.on so we can directly invoke this instead of checking session validity

@@ -88,8 +88,8 @@ export default class ViewController {
 		this.pageView.hideElement('statWindowId');
 
 		// Show whatever player position is stored on the session model
-		this.pixiController.getMapController().showMapPosition(Session.ActiveSession.clientSession.player.getCharacter().pos_x,
-		Session.ActiveSession.clientSession.player.getCharacter().pos_y);
+		this.pixiController.getMapController().showMapPosition(Session.ActiveSession.clientSession.player.getMapCharacter().pos_x,
+		Session.ActiveSession.clientSession.player.getMapCharacter().pos_y);
 
 		//	Creates the new character to represent the player
 		// TODO Add a player and draw them

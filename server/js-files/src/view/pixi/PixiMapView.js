@@ -187,7 +187,7 @@ export default class PixiMapView {
 	 * @param username player username to find
 	 */
 	removePlayerFromView(x, y, username) {
-		let playerCharacterSprite = this.mapModel.getPlayer(x,y, username).getCharacter().getSprite();
+		let playerCharacterSprite = this.mapModel.getPlayer(x,y, username).getMapCharacter().getSprite();
 		if (playerCharacterSprite !== null) {
 			characterContainer.removeChild(playerCharacterSprite);
 		} else {
@@ -270,7 +270,7 @@ export default class PixiMapView {
 			for (var y = 0; y < this.mapSizeY; y++) {
 				// Extract the sprites for every player on the tile
 				// And add those to the container too
-				let mapCharacterSprites = this.mapModel.getPlayers(x,y).map(player => player.getCharacter().getSprite());
+				let mapCharacterSprites = this.mapModel.getPlayers(x,y).map(player => player.getMapCharacter().getSprite());
 				mapCharacterSprites.forEach(sprite => {
 					let charSprite  = mapCharacterSprites[i];
 					if (charSprite !== undefined && charSprite !== null) {
@@ -357,7 +357,7 @@ export default class PixiMapView {
 				// If there are players, get the top one, create a Sprite for them and draw them to the map
 				if (players != undefined && players != null && players.length >= 1) {
 
-					let playerSprite = players.get(0).getCharacter().getSprite();
+					let playerSprite = players.get(0).getMapCharacter().getSprite();
 
 					// Try simply adding the sprite if it's set
 					if (playerSprite != undefined && playerSprite != null) {
@@ -443,7 +443,7 @@ export default class PixiMapView {
 			for (var y = 0; y < this.mapModel.tileCount; y++) {
 				// Draw whatever's at the top of the array
 				//var thisCharacter = this.mapPlayerArray[x][y][0];
-				var thisCharacter = this.mapModel.getPlayers(x,y).get(0).getCharacter();
+				var thisCharacter = this.mapModel.getPlayers(x,y).get(0).getMapCharacter();
 
 				if (thisCharacter != null && thisCharacter.sprite != null) {
 					this.characterContainer.addChild(thisCharacter.sprite);

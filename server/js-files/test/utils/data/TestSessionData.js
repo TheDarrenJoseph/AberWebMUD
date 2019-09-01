@@ -7,5 +7,5 @@ import { TEST_CHARDATA } from 'test/utils/data/TestCharacterDetails.js'
 export const TEST_SESSIONID = '12345678';
 
 // For the 'character-details-update' event response
-export const TEST_CHARUPDATE_DATA = {'success': true, 'username': 'foo', 'character' : TEST_CHARDATA, 'sessionId' : TEST_SESSIONID };
+export const TEST_CHARUPDATE_DATA = {'success': true, 'username': 'foo', 'character' : TEST_CHARDATA['character'], 'sessionId' : TEST_SESSIONID };
 

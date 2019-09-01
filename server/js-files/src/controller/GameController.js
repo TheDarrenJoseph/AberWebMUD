@@ -8,15 +8,26 @@ import { SocketHandler } from 'src/handler/socket/SocketHandler.js';
 import { Session } from 'src/model/Session.js';
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 import { ViewController } from 'src/controller/ViewController.js';
-import { ERROR_LOGIN_RS_MISSING_CHARDETAILS } from '../model/Session.js'
+import { FetchHandler } from 'src/handler/http/FetchHandler.js';
 
 const SERVER_URL = 'http://localhost:5000';
+
+// Login response validation
+export const EXPECTED_LOGIN_SUCCESS_PARAMS = ['sessionId'];
+export const ERROR_LOGIN_RS_MISSING_USERNAME = new RangeError('Username missing on login response!')
+export const ERROR_LOGIN_RS_MISSING_CHARDETAILS = new RangeError('Character details missing on login response!')
 
 export class GameControllerClass {
 	
 	constructor(doc) {
 		this.socketHandler = SocketHandler.getInstance();
 		this.viewController = new ViewController(doc);
+
+		let docUrlParts = document.URL.split('/');
+		let protocol = docUrlParts[0]+'//'
+		let baseUrl = docUrlParts[2];
+		console.info('PageController FetchHandler URL: ' + protocol + baseUrl)
+		this.fetchHandler = new FetchHandler(protocol + baseUrl);
 	}
 
 	getSocketHandler() {
@@ -106,7 +117,9 @@ export class GameControllerClass {
 		});
 
 		this.socketHandler.bind('chat-message-response', (data) => {  this.handleMessageData(data); });
-		this.socketHandler.bind('login-success', (data) => { this.handlePlayerLogin(data); });
+		this.socketHandler.bind('login-success', (data) => {
+			this.handlePlayerLogin(data);
+		});
 		this.socketHandler.bind('login-failure', (data) => { pageController.handlePlayerLoginError(data); } );
 		this.socketHandler.bind('session-error', () => { this.socketHandler.handleSessionError(); } );
 	}
@@ -119,17 +132,41 @@ export class GameControllerClass {
 		this.viewController.pageController.getPageChatView().updateMessageLog(messageData, username);
 	}
 
-	handlePlayerLogin (data) {
-			// Save this data for our session
-			Session.ActiveSession.setClientSessionData(data);
-			Session.ActiveSession.setActiveSession(true)
-
-			if (!data.hasOwnProperty('character')) {
-				this.viewController.pageController.getPageChatView().updateMessageLog('Player Character details not present, please enter them..', 'client');
-				this.viewController.pageController.getPageCharacterDetailsView().requestCharacterDetails();
-			}
+	fetchPlayerData() {
+		return this.fetchHandler.get('/player');
 	}
 
+	handlePlayerData(data) {
+		try {
+			Session.ActiveSession.updatePlayer(data);
+		} catch(updateError) {
+			// Almost guaranteed this is a data validation issue, missing player/character data.
+			this.viewController.pageController.handleCharacterDetailsMissing();
+		}
+	}
+
+	retrieveAndUpdatePlayerData(){
+		this.fetchPlayerData().then(jsonData => {
+			this.handlePlayerData(jsonData)
+		}).catch(reason => { throw reason })
+	}
+
+	handlePlayerLogin (data) {
+		// Save this data for our session
+		// Session.ActiveSession.setClientSessionData(data);
+		let sid = MessageHandler.extractSessionId(data);
+		if (sid !== null) {
+			console.log('Updating session with response data: ' + JSON.stringify(data));
+			// Update user details
+			Session.ActiveSession.setClientSessionID(sid)
+			// If we have a legit SID then this session can be assumed to be active
+			Session.ActiveSession.setActiveSession(true)
+			// No we've got a successful session, grab the player info
+			this.retrieveAndUpdatePlayerData();
+		} else {
+			throw new RangeError('Session ID not returned upon successful login!');
+		}
+	}
 }
 
 export var GameController = new GameControllerClass();

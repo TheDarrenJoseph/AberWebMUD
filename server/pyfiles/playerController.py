@@ -34,13 +34,13 @@ def get_character_json(username: str) -> dict or None:
             return this_json
     else:
         logging.error('Could not find a character for the given username: ' + username)
-    return None
+    return {}
 
 """
 Returns either None or JSON describing the player in a client-friendly manner
 """
 @db_session
-def get_player_status(username: str) -> dict or None:
+def get_json(username: str) -> dict or None:
     if find_player(username) is not None:
         return player.Player[username].get_json()
     return None
