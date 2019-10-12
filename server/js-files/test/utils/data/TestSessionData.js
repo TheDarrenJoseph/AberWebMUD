@@ -1,6 +1,6 @@
 import { CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
 
-import { JSON_ATTRIBUTE_MIN_VALUE_NAME, JSON_ATTRIBUTE_MAX_VALUE_NAME, JSON_ATTRIBUTE_FREEPOINTS_NAME, JSON_ATTRIBUTE_SCORES_NAME } from 'src/model/page/AttributeScores.js';
+import { MIN_VALUE_NAME, MAX_VALUE_NAME, FREEPOINTS_NAME, SCORES_NAME } from 'src/model/page/AttributeScores.js';
 import { TEST_CHARDATA } from 'test/utils/data/TestCharacterDetails.js'
 
 // Default human attributeScores w/ 27 free points

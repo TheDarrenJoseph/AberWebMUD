@@ -1,6 +1,8 @@
 //import { as io} from 'libs/io.io.js';
 
-import io from 'socket.io-client';
+// import io from 'socket.io-client';
+import io from 'libs/socket.io.js';
+
 import { MessageHandler } from 'src/handler/socket/MessageHandler.js';
 import { DATA_JSON_NAME } from './MessageHandler'
 

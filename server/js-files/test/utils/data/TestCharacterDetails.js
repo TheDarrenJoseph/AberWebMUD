@@ -1,5 +1,5 @@
 // JSON to match the CharacterDetails below
-import { JSON_ATTRIBUTE_MIN_VALUE_NAME, JSON_ATTRIBUTE_MAX_VALUE_NAME, JSON_ATTRIBUTE_FREEPOINTS_NAME, JSON_ATTRIBUTE_SCORES_NAME  } from 'src/model/page/AttributeScores.js'
+import { MIN_VALUE_NAME, MAX_VALUE_NAME, FREEPOINTS_NAME, SCORES_NAME  } from 'src/model/page/AttributeScores.js'
 import { CharacterDetails } from 'src/model/page/CharacterDetails.js'
 import { CharacterDetailsBuilder } from 'src/model/page/CharacterDetailsBuilder.js'
 import { CharacterClassOptions } from 'src/model/page/CharacterClassOptions.js'
@@ -14,10 +14,10 @@ export const TEST_HEALTH = 100;
 // Fortitude, Intellect, Awareness, Arcana, Agility
 export const TEST_SCORES = {'Strength':1, 'Agility':1, 'Arcana' : 1, 'Stealth': 1};
 export const TEST_ATTRIBUTESCORES = {
-	[JSON_ATTRIBUTE_MIN_VALUE_NAME] : 0,
-	[JSON_ATTRIBUTE_MAX_VALUE_NAME] : 100,
-	[JSON_ATTRIBUTE_FREEPOINTS_NAME]: 5,
-	[JSON_ATTRIBUTE_SCORES_NAME]: TEST_SCORES
+	[MIN_VALUE_NAME] : 0,
+	[MAX_VALUE_NAME] : 100,
+	[FREEPOINTS_NAME]: 5,
+	[SCORES_NAME]: TEST_SCORES
 }
 export const TEST_POSITION = {
 	'pos_x': 4,

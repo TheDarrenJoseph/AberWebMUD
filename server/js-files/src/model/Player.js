@@ -1,4 +1,4 @@
-import MapCharacter from 'src/model/pixi/map/MapCharacter.js'
+import MapCharacter from '../model/pixi/map/MapCharacter.js'
 import CharacterDetailsBuilder from './page/CharacterDetailsBuilder'
 import ValidationHandler from '../handler/ValidationHandler'
 
@@ -36,6 +36,7 @@ export default class Player {
 	setUsername(username) {
 		if (this._validUsername(username)) {
 			this.username = username;
+			console.debug('Set Player username to: ' + username);
 		} else {
 			throw new RangeError(INVALID_USERNAME_MSG + username);
 		}
@@ -58,7 +59,7 @@ export default class Player {
 		this.setUsername(jsonData['username'])
 
 		ValidationHandler.validateAttribute(jsonData, 'character')
-		this.getMapCharacter().setFromJson(jsonData['character'])
+		this.getMapCharacter().getCharacterDetails().setFromJson(jsonData);
 	}
 
 	static validUsername(username) {

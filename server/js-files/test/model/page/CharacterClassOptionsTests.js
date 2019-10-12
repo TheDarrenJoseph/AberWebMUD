@@ -23,16 +23,15 @@ QUnit.test('new CharacterClassOptions', function (assert) {
 
 QUnit.test('fromOptionsList', function (assert) {
 	let testOptions = CharacterClassOptions.fromOptionsList(['Fighter', 'Spellcaster']);
-	assert.equal(testOptions, [
-		{
-			"id": "fighter",
-			"text": "Fighter"
-		},
-		{
-			"id": "spellcaster",
-			"text": "Spellcaster"
-		}
-	]);
+
+	// This comparison kind of sucks but it's the clearest way to compare against the custom List type
+	assert.ok(testOptions instanceof CharacterClassOptions, 'Check the object instanciated.');
+	assert.equal(2, testOptions.length, 'Expect 2 entries');
+	assert.equal(testOptions[0].id, "fighter", 'Check entry id');
+	assert.equal(testOptions[0].text, "Fighter", 'Check entry text');
+	assert.equal(testOptions[1].id, "spellcaster", 'Check entry id');
+	assert.equal(testOptions[1].text, "Spellcaster", 'Check entry text');
+
 });
 
 

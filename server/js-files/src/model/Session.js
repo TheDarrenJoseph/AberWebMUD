@@ -153,7 +153,9 @@ class SessionModel extends EventMapping {
 
 	//	Extracts the session data  (username and session ID) into a JSON object
 	getSessionInfoJSON () {
-		return {sessionId: this.getSessionId(), username: this.clientSession.player.getUsername()};
+		let json = {sessionId: this.getSessionId(), username: this.getPlayer().getUsername()};
+		console.debug('Session INFO: ' + JSON.stringify(json));
+		return json;
 	};
 
 	//	Save our given session id for later, and display the welcome message
@@ -193,7 +195,7 @@ class SessionModel extends EventMapping {
 
 
 	updatePlayer(jsonData) {
-		this.clientSession.player.updateFromJson(jsonData);
+		this.getPlayer().updateFromJson(jsonData);
 	}
 
 	static validSessionId(sessionId) {

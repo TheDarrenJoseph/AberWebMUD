@@ -6,7 +6,6 @@ var DEBUG = true;
 export default class FetchHandler {
 	constructor (baseUrl) {
 		if (baseUrl !== undefined && typeof baseUrl === 'string') {
-			console.log('New FetchHandler for: ' + baseUrl)
 			this.baseUrl = baseUrl
 		} else {
 			this.baseUrl = '/'
@@ -73,6 +72,14 @@ export default class FetchHandler {
 
 	post(){
 		return this.promisePostJson(url, dataObject)
+	}
+
+	static getInstance() {
+		let docUrlParts = document.URL.split('/');
+		let protocol = docUrlParts[0]+'//'
+		let baseUrl = docUrlParts[2];
+		console.info('new FetchHandler URL: ' + protocol + baseUrl)
+		return new FetchHandler(protocol + baseUrl);
 	}
 
 }

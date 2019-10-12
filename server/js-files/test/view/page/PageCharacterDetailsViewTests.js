@@ -1,7 +1,8 @@
 //const $ = require('jquery');
 //import $ from 'libs/jquery.js';
 
-import jquery from 'jquery';
+//import jquery from 'jquery';
+import jquery from 'libs/jquery-3.4.1.dev.js';
 
 import { jQueryUtils } from 'test/utils/jQueryUtils.js';
 
@@ -23,7 +24,7 @@ import { EVENTS as pageCharacterDetailsViewEvents, SET_CHARDETAILS_PROMPT_MESSAG
 import { PageView } from 'src/view/page/PageView.js';
 import { CharacterDetails } from 'src/model/page/CharacterDetails.js'
 import { ArraySet } from 'src/model/ArraySet.js'
-import { AttributeScores, JSON_ATTRIBUTE_MIN_VALUE_NAME, JSON_ATTRIBUTE_MAX_VALUE_NAME, JSON_ATTRIBUTE_FREEPOINTS_NAME, JSON_ATTRIBUTE_SCORES_NAME } from 'src/model/page/AttributeScores.js';
+import { AttributeScores, MIN_VALUE_NAME, MAX_VALUE_NAME, FREEPOINTS_NAME, SCORES_NAME } from 'src/model/page/AttributeScores.js';
 import { CharacterDetailsBuilder } from 'src/model/page/CharacterDetailsBuilder.js'
 
 import * as TestCharacterDetails from 'test/utils/data/TestCharacterDetails.js';
@@ -35,10 +36,10 @@ export const DEFAULT_JSON = {
 		'charclass': '',
 		'health': 0,
 		'attributes': {
-			[JSON_ATTRIBUTE_MIN_VALUE_NAME]: 0,
-			[JSON_ATTRIBUTE_MAX_VALUE_NAME] : 0,
-			[JSON_ATTRIBUTE_FREEPOINTS_NAME]: 0,
-			[JSON_ATTRIBUTE_SCORES_NAME]: {}
+			[MIN_VALUE_NAME]: 0,
+			[MAX_VALUE_NAME] : 0,
+			[FREEPOINTS_NAME]: 0,
+			[SCORES_NAME]: {}
 		},
 		'position': {
 			'pos_x': 0,
@@ -147,9 +148,22 @@ QUnit.test(TEST_TAG + 'Set Character Class Options', function (assert) {
 		}
 	}
 	assert.deepEqual(currentStats, expectedViewDefaultJson, 'Check character details are their defaults in the view.')
+
 	pageCharacterDetailsView.characterDetails.setCharacterClassOptions(TestCharacterDetails.TEST_CHARCLASSOPTIONS)
 
-	assert.deepEqual(pageCharacterDetailsView.getCharacterClassOptions());
+	// Expect the same but with the character class set
+	let expectedUpdatedJson = expectedViewDefaultJson;
+	expectedUpdatedJson.charclass = 'Fighter';
+	currentStats = pageCharacterDetailsView.getJson();
+	assert.deepEqual(currentStats, expectedUpdatedJson, 'Make sure the view data is updated with the current character class..');
+
+	// These are instances of Option, so have id/text attribs
+	let charclassOptions = pageCharacterDetailsView.getCharacterDetails().getCharacterClassOptions();
+
+	assert.equal(2, charclassOptions.length, 'Make sure the underlying character data is updated with character class options.');
+	assert.equal('fighter', charclassOptions[0].id, 'Make sure the underlying character data is updated with character class options.');
+	assert.equal('spellcaster', charclassOptions[1].id, 'Make sure the underlying character data is updated with character class options.');
+
 });
 
 /**

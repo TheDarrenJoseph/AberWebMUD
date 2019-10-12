@@ -1,5 +1,7 @@
 // Class ID mappings
-import jquery from 'jquery'
+//import jquery from 'jquery'
+import jquery from 'libs/jquery-3.4.1.dev.js';
+
 import { EventMapping } from 'src/helper/EventMapping.js';
 
 // this.idSelectorMappings = { mainWindowId: '#main-window', messageWindowId: '#message-window', inventoryWindowId: '#inventory-window' };

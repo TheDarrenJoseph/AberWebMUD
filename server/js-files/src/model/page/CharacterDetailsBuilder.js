@@ -1,9 +1,10 @@
 import ValidationHandler from 'src/handler/ValidationHandler.js';
 
-import jquery from 'jquery'
+//import jquery from 'jquery'
+import jquery from 'libs/jquery-3.4.1.dev.js';
 import { CharacterClassOptions } from 'src/model/page/CharacterClassOptions.js'
 import { ArraySet } from 'src/model/ArraySet.js'
-import { AttributeScores, JSON_ATTRIBUTE_FREEPOINTS_NAME, JSON_ATTRIBUTE_SCORES_NAME } from 'src/model/page/AttributeScores.js';
+import { AttributeScores, FREEPOINTS_NAME, SCORES_NAME } from 'src/model/page/AttributeScores.js';
 import { CharacterDetails } from 'src/model/page/CharacterDetails.js';
 
 export default class CharacterDetailsBuilder {

@@ -1,10 +1,12 @@
-import {TEST_SESSIONID, TEST_CHARUPDATE_DATA} from 'test/utils/data/TestSessionData.js';
-import {TEST_SCORES, TEST_CHARDATA} from 'test/utils/data/TestCharacterDetails.js';
+import sinon from 'libs/sinon-7.4.1.js';
 
-import { GameControllerClass } from 'src/controller/GameController.js';
-import { CharacterDetails } from 'src/model/page/CharacterDetails.js'
-import { Session, SessionModel } from 'src/model/Session.js';
-import  * as TestWindow from 'test/utils/TestWindow.js'
+import {TEST_SESSIONID, TEST_CHARUPDATE_DATA} from '../utils/data/TestSessionData.js';
+import {TEST_SCORES, TEST_CHARDATA, TEST_ATTRIBUTE_SCORE_OPTIONS, TEST_CHARACTER_CLASS_OPTIONS} from '../utils/data/TestCharacterDetails.js';
+
+import { GameControllerClass } from '../../src/controller/GameController.js';
+import { CharacterDetails } from '../../src/model/page/CharacterDetails.js'
+import { Session, SessionModel } from '../../src/model/Session.js';
+import  * as TestWindow from '../utils/TestWindow.js'
 import { CharacterDetailsBuilder } from '../../src/model/page/CharacterDetailsBuilder'
 
 var TEST_TAG = '|GAME CONTROLLER|';
@@ -18,6 +20,17 @@ function beforeAll (assert) {
 	TEST_WINDOW = TestWindow.buildTestWindow(TEST_TAG);
 	TEST_DOCUMENT = TEST_WINDOW.document;
 	gameController = new GameControllerClass(TEST_DOCUMENT);
+
+	let pageController = gameController.getViewController().getPageController();
+
+	// Stub out HTTP calls with promises for testing data
+	let fetchAttributeScoresStub = sinon.stub(pageController, 'fetchAttributeScores').resolves(TEST_ATTRIBUTE_SCORE_OPTIONS);
+	let fetchCharacterClassOptionsStub = sinon.stub(pageController, 'fetchCharacterClassOptions').resolves(TEST_CHARACTER_CLASS_OPTIONS);
+	let fetchPlayerDataStub = sinon.stub(gameController, 'fetchPlayerData').resolves(TEST_CHARUPDATE_DATA);
+}
+
+function afterAll (assert) {
+	sinon.restore()
 }
 
 // Setup / assertions before each test
@@ -29,7 +42,7 @@ function beforeEachTest (assert) {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTest })
+QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll })
 
 /**
  * GIVEN I have a new GameController
@@ -38,18 +51,19 @@ QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTe
  */
 QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
 	var sessionInfoJson = Session.ActiveSession.getSessionInfoJSON();
-	var expectedSessionJson = {
+	var blankSessionJson = {
 		'sessionId': null,
 		'username': ""
 	};
-
-	assert.deepEqual(sessionInfoJson, expectedSessionJson, 'Check session info JSON is blank');
+	assert.deepEqual(sessionInfoJson, blankSessionJson, 'Check session info JSON is blank');
 
 	assert.ok(CharacterDetails.validateJson(TEST_CHARDATA), 'Check our test char data is valid');
-	var loginData = {'sessionId': TEST_SESSIONID, 'player-status' : { 'username': 'foo', 'char-details': TEST_CHARDATA }};
-
-	gameController.handlePlayerLogin(loginData);
-
-	var resultingJson = Session.ActiveSession.getSessionInfoJSON();
-	assert.deepEqual(resultingJson, { 'sessionId': loginData.sessionId, 'username': loginData['player-status'].username }, 'Check session info JSON is now set.');
+	var loginData = {'sessionId': TEST_SESSIONID};
+	let playerLoginPromise = gameController.handlePlayerLogin(loginData);
+	let playerDataUpdated = assert.async(1);
+	playerLoginPromise.then( () => {
+		var resultingJson = Session.ActiveSession.getSessionInfoJSON();
+		assert.deepEqual(resultingJson, { 'sessionId': loginData.sessionId, 'username': 'foo' }, 'Check session info JSON is now set.');
+		playerDataUpdated();
+	});
 });

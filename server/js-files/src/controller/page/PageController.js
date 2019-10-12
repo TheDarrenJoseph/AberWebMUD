@@ -54,11 +54,7 @@ export default class PageController {
 		this.mapCharacter = Session.ActiveSession.getPlayer().getMapCharacter();
 		this.characterDetails = this.mapCharacter.getCharacterDetails();
 
-		let docUrlParts = document.URL.split('/');
-		let protocol = docUrlParts[0]+'//'
-		let baseUrl = docUrlParts[2];
-		console.info('PageController FetchHandler URL: ' + protocol + baseUrl)
-		this.fetchHandler = new FetchHandler(protocol + baseUrl);
+		this.fetchHandler = FetchHandler.getInstance();
 
 		// Use the base document if we've not provided one
 		if (doc == undefined) {
@@ -172,7 +168,7 @@ export default class PageController {
 	handleCharacterClassOptions(jsonData) {
 		let classOptions = jsonData.options;
 		if (classOptions !== undefined) {
-			this.pageCharacterDetailsView.characterDetails.setCharacterClassOptions(attributeClassOptions);
+			this.pageCharacterDetailsView.characterDetails.setCharacterClassOptions(classOptions);
 			console.info('Character Details View class options set.')
 		} else {
 			throw new RangeError('Cannot handle undefined character class options!')

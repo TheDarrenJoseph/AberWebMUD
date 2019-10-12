@@ -1,4 +1,6 @@
-import jquery from 'jquery';
+//import jquery from 'jquery';
+import jquery from 'libs/jquery-3.4.1.dev.js';
+
 import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
 import { _STATS_WINDOW_ID } from './PageCharacterDetailsView'
 

@@ -22,12 +22,7 @@ export class GameControllerClass {
 	constructor(doc) {
 		this.socketHandler = SocketHandler.getInstance();
 		this.viewController = new ViewController(doc);
-
-		let docUrlParts = document.URL.split('/');
-		let protocol = docUrlParts[0]+'//'
-		let baseUrl = docUrlParts[2];
-		console.info('PageController FetchHandler URL: ' + protocol + baseUrl)
-		this.fetchHandler = new FetchHandler(protocol + baseUrl);
+		this.fetchHandler = FetchHandler.getInstance();
 	}
 
 	getSocketHandler() {
@@ -139,18 +134,26 @@ export class GameControllerClass {
 	handlePlayerData(data) {
 		try {
 			Session.ActiveSession.updatePlayer(data);
+			console.debug('Updated Player to: ' + JSON.stringify(Session.ActiveSession.getPlayer()))
 		} catch(updateError) {
+			console.error(updateError);
 			// Almost guaranteed this is a data validation issue, missing player/character data.
 			this.viewController.pageController.handleCharacterDetailsMissing();
 		}
 	}
 
 	retrieveAndUpdatePlayerData(){
-		this.fetchPlayerData().then(jsonData => {
+		return this.fetchPlayerData().then(jsonData => {
+			console.debug('Recieved player data: ' + JSON.stringify(jsonData))
 			this.handlePlayerData(jsonData)
-		}).catch(reason => { throw reason })
+		})
 	}
 
+	/**
+	 *
+	 * @param data login response data to immediately save (sessionid, username, etc)
+	 * @returns a Promise that is resolved upon successfully retrieving the player's further details from the server
+	 */
 	handlePlayerLogin (data) {
 		// Save this data for our session
 		// Session.ActiveSession.setClientSessionData(data);
@@ -162,7 +165,7 @@ export class GameControllerClass {
 			// If we have a legit SID then this session can be assumed to be active
 			Session.ActiveSession.setActiveSession(true)
 			// No we've got a successful session, grab the player info
-			this.retrieveAndUpdatePlayerData();
+			return this.retrieveAndUpdatePlayerData();
 		} else {
 			throw new RangeError('Session ID not returned upon successful login!');
 		}

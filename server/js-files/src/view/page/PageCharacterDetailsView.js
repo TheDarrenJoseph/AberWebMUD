@@ -1,13 +1,13 @@
-import jquery from 'jquery';
-
+//import jquery from 'jquery';
+import jquery from 'libs/jquery-3.4.1.dev.js';
 //import EventMapping from 'src/helper/EventMapping.js';
 
 //import $ from 'libs/jquery.js';
 import { EVENTS as characterDetailsEvents, CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
-import { AttributeScores, JSON_ATTRIBUTE_FREEPOINTS_NAME, JSON_ATTRIBUTE_SCORES_NAME } from 'src/model/page/AttributeScores.js';
+import { AttributeScores, FREEPOINTS_NAME, SCORES_NAME } from 'src/model/page/AttributeScores.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
-import { JSON_ATTRIBUTE_MIN_VALUE_NAME } from '../../model/page/AttributeScores'
+import { MIN_VALUE_NAME } from '../../model/page/AttributeScores'
 
 // These should be in mostly hierarchical order
 export const _STATS_WINDOW_ID = 'stat-window';
@@ -550,14 +550,14 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	 */
 	getAttributesJson() {
 		let freePoints = this.getFreePointsValue();
-		let attribsJson = { [JSON_ATTRIBUTE_SCORES_NAME] : {},
-												[JSON_ATTRIBUTE_FREEPOINTS_NAME] : freePoints
+		let attribsJson = { [SCORES_NAME] : {},
+												[FREEPOINTS_NAME] : freePoints
 		};
 		this.attribNameIdMappings.forEach((attribIdValue, attribNameKey, map) => {
 				// Get the value of the first match for our field
 				let attribValue = this.getAttributeFieldJquery(attribIdValue).val();
 				if (attribValue !== undefined) {
-					attribsJson[JSON_ATTRIBUTE_SCORES_NAME][attribNameKey] = Number(attribValue);
+					attribsJson[SCORES_NAME][attribNameKey] = Number(attribValue);
 				} else {
 					console.error('Could not find an attribute field for ID: ' + attribIdValue);
 				}
@@ -585,7 +585,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 			console.warn('Cannot set displayed atftribute scores. No attribute score field mappings to use.');
 		}
 
-		let freePoints = attributeScoresJson[JSON_ATTRIBUTE_FREEPOINTS_NAME];
+		let freePoints = attributeScoresJson[FREEPOINTS_NAME];
 		this.setFreePointsValue(freePoints);
 	}
 
@@ -594,8 +594,8 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	 * @param attrValuesJSON {{free_points: number, scores: {}}}
 	 */
 	setAttributesFromJson (attrValuesJSON) {
-		let attribScores = attrValuesJSON[JSON_ATTRIBUTE_SCORES_NAME];
-		let freePoints = attrValuesJSON[JSON_ATTRIBUTE_FREEPOINTS_NAME];
+		let attribScores = attrValuesJSON[SCORES_NAME];
+		let freePoints = attrValuesJSON[FREEPOINTS_NAME];
 		this.setAttributeScoresFromJson(attribScores);
 		this.setFreePointsValue(freePoints);
 	}

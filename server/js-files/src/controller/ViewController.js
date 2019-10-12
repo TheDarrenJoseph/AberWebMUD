@@ -3,6 +3,7 @@ import { PixiController } from 'src/controller/pixi/PixiController.js';
 import { Session } from 'src/model/Session.js';
 import { PageController } from 'src/controller/page/PageController.js';
 import { PageView } from 'src/view/page/PageView.js';
+import { _STATS_WINDOW_ID } from 'src/view/page/PageCharacterDetailsView.js';
 
 export default class ViewController {
 
@@ -85,11 +86,12 @@ export default class ViewController {
 		console.log('CHARDETAILS CONFIRMED, session data: ' + Session.ActiveSession.clientSession);
 
 		//	Hide the stats window
-		this.pageView.hideElement('statWindowId');
+		this.pageView.hideElement(_STATS_WINDOW_ID);
 
 		// Show whatever player position is stored on the session model
-		this.pixiController.getMapController().showMapPosition(Session.ActiveSession.clientSession.player.getMapCharacter().pos_x,
-		Session.ActiveSession.clientSession.player.getMapCharacter().pos_y);
+		let mapCharacter = Session.ActiveSession.getPlayer().getMapCharacter();
+		let characterPosition = mapCharacter.getCharacterDetails().getPosition();
+		this.pixiController.getMapController().showMapPosition(characterPosition[0],characterPosition[1]);
 
 		//	Creates the new character to represent the player
 		// TODO Add a player and draw them
@@ -97,7 +99,6 @@ export default class ViewController {
 
 	bindComponents() {
 		this.pageController.pageView.bindStageClick(this.pixiController.stageClicked);
-
 
 		let pixiView = this.pixiController.pixiView;
 

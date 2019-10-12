@@ -1,8 +1,8 @@
 
-export const JSON_ATTRIBUTE_MIN_VALUE_NAME = 'min_value';
-export const JSON_ATTRIBUTE_MAX_VALUE_NAME = 'max_value';
-export const JSON_ATTRIBUTE_FREEPOINTS_NAME = 'free_points';
-export const JSON_ATTRIBUTE_SCORES_NAME = 'scores';
+export const MIN_VALUE_NAME = 'min_value';
+export const MAX_VALUE_NAME = 'max_value';
+export const FREEPOINTS_NAME = 'free_points';
+export const SCORES_NAME = 'scores';
 
 export default class AttributeScores extends Map {
 	constructor (attributeScores, minValue, maxValue, freePoints) {
@@ -25,18 +25,18 @@ export default class AttributeScores extends Map {
 		for (let [key, value] of Object.entries(attributeScores)) {
 			this.setScore(key, value)
 		}
-		this.set(JSON_ATTRIBUTE_MIN_VALUE_NAME, minValue);
-		this.set(JSON_ATTRIBUTE_MAX_VALUE_NAME, maxValue);
-		this.set(JSON_ATTRIBUTE_FREEPOINTS_NAME, freePoints);
+		this.set(MIN_VALUE_NAME, minValue);
+		this.set(MAX_VALUE_NAME, maxValue);
+		this.set(FREEPOINTS_NAME, freePoints);
 	}
 
 	static fromJson(attribsJson) {
 
 		console.debug('Building AttributeScores from JSON: ' + JSON.stringify(attribsJson))
-		let minValue = attribsJson[JSON_ATTRIBUTE_MIN_VALUE_NAME];
-		let maxValue = attribsJson[JSON_ATTRIBUTE_MAX_VALUE_NAME];
-		let freePoints = attribsJson[JSON_ATTRIBUTE_FREEPOINTS_NAME];
-		let attribScores = attribsJson[JSON_ATTRIBUTE_SCORES_NAME];
+		let minValue = attribsJson[MIN_VALUE_NAME];
+		let maxValue = attribsJson[MAX_VALUE_NAME];
+		let freePoints = attribsJson[FREEPOINTS_NAME];
+		let attribScores = attribsJson[SCORES_NAME];
 
 		let scores = new AttributeScores(attribScores, minValue, maxValue, freePoints)
 		console.debug('Created new AttributeScores: ' + JSON.stringify(scores.getJson()))
@@ -61,35 +61,35 @@ export default class AttributeScores extends Map {
 
 	getJson() {
 		return {
-			[JSON_ATTRIBUTE_MIN_VALUE_NAME]:  this.get(JSON_ATTRIBUTE_MIN_VALUE_NAME),
-			[JSON_ATTRIBUTE_MAX_VALUE_NAME]:  this.get(JSON_ATTRIBUTE_MAX_VALUE_NAME),
-			[JSON_ATTRIBUTE_FREEPOINTS_NAME]:  this.get(JSON_ATTRIBUTE_FREEPOINTS_NAME),
-			[JSON_ATTRIBUTE_SCORES_NAME]: this.getScoresJson()
+			[MIN_VALUE_NAME]:  this.get(MIN_VALUE_NAME),
+			[MAX_VALUE_NAME]:  this.get(MAX_VALUE_NAME),
+			[FREEPOINTS_NAME]:  this.get(FREEPOINTS_NAME),
+			[SCORES_NAME]: this.getScoresJson()
 		}
 	}
 
 	getMinimumAttributeValue() {
-		return this.get(JSON_ATTRIBUTE_MIN_VALUE_NAME);
+		return this.get(MIN_VALUE_NAME);
 	}
 
 	setMinimumAttributeValue(value) {
-		return this.set(JSON_ATTRIBUTE_MIN_VALUE_NAME, value);
+		return this.set(MIN_VALUE_NAME, value);
 	}
 
 	getMaximumAttributeValue() {
-		return this.get(JSON_ATTRIBUTE_MAX_VALUE_NAME);
+		return this.get(MAX_VALUE_NAME);
 	}
 
 	setMaximumAttributeValue(value) {
-		return this.set(JSON_ATTRIBUTE_MAX_VALUE_NAME, value);
+		return this.set(MAX_VALUE_NAME, value);
 	}
 
 	getFreePoints() {
-		return this.get(JSON_ATTRIBUTE_FREEPOINTS_NAME);
+		return this.get(FREEPOINTS_NAME);
 	}
 
 	setFreePoints(value) {
-		return this.set(JSON_ATTRIBUTE_FREEPOINTS_NAME, value);
+		return this.set(FREEPOINTS_NAME, value);
 	}
 
 	validateAttributes(minVal, maxVal) {

@@ -2,13 +2,14 @@ import ValidationHandler from 'src/handler/ValidationHandler.js'
 
 import { EventMapping } from 'src/helper/EventMapping.js'
 
-import jquery from 'jquery'
+//import jquery from 'jquery'
+import jquery from 'libs/jquery-3.4.1.dev.js';
 import { CharacterClassOptions } from 'src/model/page/CharacterClassOptions.js'
 import { ArraySet } from 'src/model/ArraySet.js'
 import {
 	AttributeScores,
-	JSON_ATTRIBUTE_FREEPOINTS_NAME,
-	JSON_ATTRIBUTE_SCORES_NAME
+	FREEPOINTS_NAME,
+	SCORES_NAME
 } from 'src/model/page/AttributeScores.js'
 
 export var CHARACTER_UPDATE_ATTRIBS = ['success', 'character']
@@ -216,9 +217,9 @@ export default class CharacterDetails extends EventMapping {
 	}
 
 	updateAttributes (attributesJson) {
-		let free_points = attributesJson[JSON_ATTRIBUTE_FREEPOINTS_NAME]
+		let free_points = attributesJson[FREEPOINTS_NAME]
 		this.attributeScores.setFreePoints(free_points)
-		let scoresJson = attributesJson[JSON_ATTRIBUTE_SCORES_NAME]
+		let scoresJson = attributesJson[SCORES_NAME]
 		this.updateAttributeScores(scoresJson)
 	}
 

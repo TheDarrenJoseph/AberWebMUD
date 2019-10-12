@@ -1,4 +1,5 @@
-import jquery from 'jquery';
+//import jquery from 'jquery';
+import jquery from 'libs/jquery-3.4.1.dev.js';
 
 //import $ from 'libs/jquery.js';
 import { PageHtmlView } from 'src/view/page/PageHtmlView.js';

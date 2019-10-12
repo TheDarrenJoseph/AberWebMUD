@@ -1,7 +1,8 @@
 //const $ = require('jquery');
 //import $ from 'libs/jquery.js';
 
-import jquery from 'jquery';
+//import jquery from 'jquery';
+import jquery from 'libs/jquery-3.4.1.dev.js';
 
 import { jQueryUtils } from 'test/utils/jQueryUtils.js';
 
