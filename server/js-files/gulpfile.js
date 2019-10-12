@@ -8,7 +8,7 @@ const alias = require('rollup-plugin-alias');
 // rollup util plugins to help us understand our libs
 const resolveNodePackages = require ('rollup-plugin-node-resolve');
 const commonjs = require ('rollup-plugin-commonjs');
-//const nodebuiltins = require ('rollup-plugin-node-builtins');
+const nodebuiltins = require ('rollup-plugin-node-builtins');
 //const nodeglobals = require ('rollup-plugin-node-globals');
 
 const del = require('delete');
@@ -107,33 +107,38 @@ function genTestMainfile(cb) {
 	return fileStream;
 }
 
+function promiseBundleWrite(bundle, outUri) {
+	console.log('Writing bundle: ' + outUri)
+	// Output as self-executing function
+	return bundle.write( { 
+		file: outUri, 
+		sourcemap: SOURCEMAP_GEN, 
+		format: 'iife'})
+		.then(() => {
+		    console.log('Bundle written to: ' + outUri)
+		});
+}
+
 function rollupBundleModule(inUri, outUri, cb) {
 	console.log('rollup bundling: ' + inUri);
-	
-	if (SOURCEMAP_GEN) {
-		console.log('With source mappings.')
-	}
+	if (SOURCEMAP_GEN) console.log('With source mappings.')
 
-	let bundlePromise = rollup.rollup({
-		input: inUri,
-		output: {sourcemap:SOURCEMAP_GEN},
-		plugins: [ sourcemaps(), alias ( paths ), resolveNodePackages({browser:true, preferBuiltins: false}), 
-			commonjs()]
+	//let rollupPlugins = [ sourcemaps(), alias ( paths ), resolveNodePackages({browser:true, preferBuiltins: true}), commonjs()]
+	let rollupPlugins = [ alias ( paths ), commonjs()]
+	console.log('Attempting rollup..');
+	return new Promise((resolve, reject) => {
+		rollup.rollup({
+			input: inUri,
+			output: {sourcemap:SOURCEMAP_GEN},
+			plugins: rollupPlugins
+		}).then((bundle) => {
+			console.log('bundle rolled up. trying to write to: ' + outUri);
+			return promiseBundleWrite(bundle, outUri)
+		}).then(() =>{
+			console.log('Bundle complete')
+			resolve();
+		}).catch(reject)
 	});
-	
-	let bundleWritePromise = bundlePromise.then(
-		(mainBundle) => { 
-			// Output as self-executing function
-			return mainBundle.write( { file: outUri, sourcemap: SOURCEMAP_GEN, format: 'iife'}) 
-		},
-		(err) => {
-			console.log('Failed to generate rollup bundle: ' + err);
-			console.log(err)
-			cb(new Error('Failed to generate rollup bundle for: ' + inUri));
-		}
-	);
-	
-	return bundleWritePromise.then(console.log('Bundle outputted as: ' + outUri));
 }
 
 
@@ -179,16 +184,14 @@ function build (cb) {
 
 // Clean, rebuild, and watch for changes
 function buildAndWatchFiles(cb) {
-	cleanInputFiles()
-	cleanOutputFiles();
-	genTestMainfile();
 	build(() => {
 		console.log('Build complete..')
 	}).then(() => {
 		console.log('Watching for changes..');
-		watch("src/**/*.js", series(cleanInputFiles, cleanOutputFiles, buildMain));
-		watch("test/**/*.js", series(cleanInputFiles, cleanOutputFiles, genTestMainfile, buildTest));
-		cb();
+		
+		let srcWatch = watch("src/**/*.js", series(cleanInputFiles, cleanOutputFiles, buildMain));
+		let testWatch = watch("test/**/*.js", series(cleanInputFiles, cleanOutputFiles, genTestMainfile, buildTest));
+		return Promise.all([srcWatch, testWatch]);
 	}).catch((reason) => {
 		console.log('Build and watch failed: ' + reason);
 		cb();
@@ -196,9 +199,9 @@ function buildAndWatchFiles(cb) {
 }
 
 console.log('=== AberWebMUD JS Client ===')
-exports.default = series(cleanInputFiles, cleanOutputFiles, genTestMainfile, build);
-exports.watch = buildAndWatchFiles;
-exports.build = build;
+exports.default = series(cleanInputFiles, cleanOutputFiles, genTestMainfile, promiseMainModule, promiseTestModule);
+exports.watch = series(cleanInputFiles, cleanOutputFiles, genTestMainfile, buildAndWatchFiles);
+exports.build = series(promiseMainModule, promiseTestModule);
 exports.buildTest = buildTest;
 exports.buildTestMain = genTestMainfile;
 exports.clean = series(cleanInputFiles, cleanOutputFiles);
