@@ -190,7 +190,7 @@ function buildAndWatchFiles(cb) {
 		console.log('Watching for changes..');
 		
 		let srcWatch = watch("src/**/*.js", series(cleanInputFiles, cleanOutputFiles, buildMain));
-		let testWatch = watch("test/**/*.js", series(cleanInputFiles, cleanOutputFiles, genTestMainfile, buildTest));
+		let testWatch = watch(["test/**/*.js", "!test/main.js"], series(cleanInputFiles, cleanOutputFiles, genTestMainfile, buildTest));
 		return Promise.all([srcWatch, testWatch]);
 	}).catch((reason) => {
 		console.log('Build and watch failed: ' + reason);
