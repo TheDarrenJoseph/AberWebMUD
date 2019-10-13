@@ -161,8 +161,11 @@ export class GameControllerClass {
 		if (sid !== null) {
 			console.log('Updating session with response data: ' + JSON.stringify(data));
 			// Update user details
-			Session.ActiveSession.setClientSessionID(sid)
-			// If we have a legit SID then this session can be assumed to be active
+			Session.ActiveSession.setClientSessionID(sid);
+			let username = data['username'];
+			Session.ActiveSession.getPlayer().setUsername(username);
+
+			// If we have a legit username and SID then this session can be assumed to be active
 			Session.ActiveSession.setActiveSession(true)
 			// No we've got a successful session, grab the player info
 			return this.retrieveAndUpdatePlayerData();

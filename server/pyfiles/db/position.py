@@ -36,6 +36,7 @@ class Position(db_instance.DatabaseInstance._database.Entity):
         else:
             raise ValueError('Could not find position in json_data under key: {}'.format(POSITION_JSON_NAME))
 
+    @db_session
     def get_json(self):
         return {'position': {
             POSITION_X_JSON_NAME: self.pos_x,

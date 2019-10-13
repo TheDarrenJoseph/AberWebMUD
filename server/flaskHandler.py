@@ -24,23 +24,30 @@ def main():
     """
     return render_template('play.html')
 
+
 def extract_authentication_header(request):
     if 'Authentication' in request.headers:
         auth_header = request.headers.get('Authentication')
         logging.info('Received authentication header: ' + str(auth_header))
-        value = str(base64.b64decode(auth_header))
-        logging.info('Decoded auth: ' + str(value))
-        splitvalues = value.split(':')
-        username = splitvalues[0]
-        sessionId = splitvalues[1]
+
+        if (auth_header.startswith('Basic ')):
+            basic_auth_value = auth_header.split('Basic ')[1]
+            value = str(base64.b64decode(basic_auth_value).decode('utf-8'))
+            logging.info('Decoded auth: ' + str(value))
+            splitvalues = value.split(':')
+            username = splitvalues[0]
+            sessionId = splitvalues[1]
+        else:
+            raise ValueError('Can only parse Basic Authentication headers! Received: ' + auth_header)
         return [username, sessionId]
     return []
 
 
 def check_authentication(request):
-    if len(extract_authentication_header(request)) > 0
+    if len(extract_authentication_header(request)) > 0:
         return True
     return False
+
 
 @_APP.route("/attributes-score-options", methods=['GET'])
 def get_attributes_score_options():
@@ -49,6 +56,7 @@ def get_attributes_score_options():
     else:
         abort(401)
 
+
 @_APP.route("/attributes-class-options", methods=['GET'])
 def get_attributes_class_options():
     if check_authentication(request):
@@ -56,15 +64,16 @@ def get_attributes_class_options():
     else:
         abort(401)
 
+
 @_APP.route("/player", methods=['GET'])
-def get_attributes_class_options():
+def get_player_details():
     if check_authentication(request):
         header_values = extract_authentication_header(request)
         sid = header_values[1]
         logging.info('Looking up  active username for SID: ' + sid)
         username = sessionHandler.get_active_username(sid)
-        active_player = playerController.find_player(username)
-        player_json = active_player.get_json()
+
+        player_json = playerController.get_json(username)
         return player_json
     else:
         abort(401)

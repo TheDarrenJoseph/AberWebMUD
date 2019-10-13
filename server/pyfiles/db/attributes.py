@@ -20,7 +20,6 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
 
     attribute_scores = Set('AttributeScore')
 
-    @db_session
     def with_default_attributes(self):
         self.attribute_scores = [
             attributeScore.AttributeScore(attributes=self, name=ATTRIBUTE_NAMES[0],
@@ -34,17 +33,14 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
         ]
         return self
 
-    @db_session
     def get_attribute(self, name):
         matching = self.attribute_scores.select(lambda attrib: attrib.name == name).first()
         return matching
 
-    @db_session
     def set_attribute_value(self, name, value):
         attrib = self.get_attribute(name)
         attrib.value = value
 
-    @db_session
     def get_total_attribute_scores(self) -> int:
         score = 0
         for attrib in self.attribute_scores:
@@ -63,7 +59,6 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
             return score
         return score
 
-    @db_session
     def is_change_valid(self, new_attributes: dict) -> bool:
         old_score_total = self.get_total_attribute_scores()
         changed_score_total = self.sum_attribute_scores(new_attributes)
@@ -94,7 +89,6 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
                     scores[attribName] = attrib.value
         return scores
 
-    @db_session
     def get_json(self) -> dict:
         scores = self.get_scores()
         attributes = {ATTRIBUTES_JSON_NAME: {
@@ -106,7 +100,6 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
         logging.debug(attributes)
         return attributes
 
-    @db_session
     def get_json_attribute_scores(self):
         scores = self.get_scores()
         return {'scores': scores}

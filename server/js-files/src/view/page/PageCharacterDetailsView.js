@@ -484,7 +484,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	}
 
 	setCharacterClassOption(optionId) {
-		if (optionId !== undefined) {
+		if (optionId !== undefined && optionId.length > 0) {
 			console.debug('Trying to set character class to: ' + optionId + ', available: ' + JSON.stringify(this.getCharacterDetails().getCharacterClassOptions()))
 
 			let characterClassOptions = this.getCharacterDetails().getCharacterClassOptions();

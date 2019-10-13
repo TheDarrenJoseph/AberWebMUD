@@ -120,11 +120,11 @@ class SocketHandler:
         logging.debug('OUT| login failure: '+str(request.sid))
         emit('login-failure', {'playerExists' : found_player}, room=session_id)
 
-    def send_login_success(self, session_id : str, status_response : bool) -> None:
+    def send_login_success(self, username : str, session_id : str) -> None:
         """ Emits a login-success event to the client with the new session id
         """
         logging.debug('OUT| login success: '+session_id)
-        emit('login-success', {SESSION_ID_JSON_NAME: session_id}, room=session_id)
+        emit('login-success', {'username': username, SESSION_ID_JSON_NAME: session_id}, room=session_id)
         sessionHandler.list_sessions()  # List sessions for debug/info
 
     def send_help_message(self) -> None:
@@ -299,7 +299,7 @@ class SocketHandler:
         sessionHandler.add_active_session(sid, username)
 
         if playerController.find_player(username) is not None:
-            self.send_login_success(sid)
+            self.send_login_success(username, sid)
 
     """ Authenticates/logs in a user through username and password 
         Uses decoration for @socketio.on so we can directly invoke this instead of checking session validity

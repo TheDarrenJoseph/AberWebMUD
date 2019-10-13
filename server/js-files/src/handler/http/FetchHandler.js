@@ -29,9 +29,10 @@ export default class FetchHandler {
 		let sessionInfo = Session.ActiveSession.getSessionInfoJSON();
 		let username = sessionInfo.username;
 		let sessionId = sessionInfo.sessionId;
-		console.debug('Building authentication, username: ' + username + ', sessionId: ' + sessionId);
-		let encodedValue = window.btoa(''+username+':'+sessionId);
-		console.debug('Base64 Encoded value:  ' + encodedValue);
+		console.debug('Building authentication from: ' + username + ':' + sessionId);
+		let appendedValue = username+':'+sessionId;
+		let encodedValue = window.btoa(appendedValue);
+		console.debug('Base64 Encoded value: ' + encodedValue);
 		return encodedValue;
 	}
 

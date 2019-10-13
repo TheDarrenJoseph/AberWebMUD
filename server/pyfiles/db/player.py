@@ -8,9 +8,6 @@ class Player(db_instance.DatabaseInstance._database.Entity):
     password = Required(str)
     character = Optional(character.Character, cascade_delete=True)
 
-    def get_username(self) -> str :
-        return self.username
-
     def set_username(self, this_username) -> None:
         if this_username is not None:
             self.username = this_username

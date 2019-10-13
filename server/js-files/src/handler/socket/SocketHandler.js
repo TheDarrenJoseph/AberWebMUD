@@ -23,7 +23,7 @@ export default class SocketHandler {
 	isSocketConnected () {
 		return this.io.connected;
 	}
-	
+
 	emit(eventType, messageData) {
 
 		if (this.io.connected) {
@@ -63,18 +63,10 @@ export default class SocketHandler {
 		}
 	}
 
-
-	/**
-	fetchCharacterClassOptions() {
-		// Make sure we send session info with this
-		let message = MessageHandler.attachSessionJson({});
-		this.io.emit('get-attribute-class-options', message);
-	}
-	 **/
-
 	//	Send the user's password to the sever
 	sendAuthentication (username, passwordFieldVal) {
-		this.emit('client-auth', {'username': username, 'password': passwordFieldVal});
+		// Emit directly as this is all the data we have at login
+		this.io.emit('client-auth', {'data' : {'username': username, 'password': passwordFieldVal}});
 	}
 
 	validateSessionId(currentSid) {
