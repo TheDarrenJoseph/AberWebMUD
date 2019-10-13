@@ -34,7 +34,7 @@ const paths = {
 };
 
 const EXCLUDED_TESTFILES = [TESTFILE_IN_URI, 'MapModelBuilder.js']
-const EXCLUDED_TESTPATHS = ['utils/']
+const EXCLUDED_TESTPATHS = ['utils/','resources/']
 
 /**
 function generateImport(vinylFile) {
@@ -79,32 +79,34 @@ function generateImportLine(vinylFile, enc, cb) {
 	} 
 }
 
-function genTestMainfile(cb) {
-	console.log('=== Generating the test main.js file ===')
+function appendImportsToFile(filePath, outputPath) {
+	return src(filePath).pipe(through.obj(generateImportLine))
+	.pipe(through.obj((file, enc, cb) => {
+		return fs.appendFile(outputPath, file.importLine + '\n' , cb );
+	}))
+}
+
+function appendBodyToFile(bodyPath, outputPath) {
+	console.log('Adding main test body: ' + bodyPath)
+	return src(bodyPath).pipe(through.obj((vinylFile, enc, cb) => {
+		return fs.appendFile(outputPath, vinylFile.contents , cb );
+	}));
+}
+
+function appendImportsToTestMainfile() {
 	let testFilesPath = paths['test']+"/**/*.js"
 	let outputPath = path.resolve(TESTFILE_IN_URI);
 	console.log(testFilesPath);
 	console.log(outputPath);
-	let fileStream = src(testFilesPath)
-	let imports = []
-	/**
-	fileStream.on('data', (vinylFile) => { 
-		let imp = generateImport(vinylFile) 
-		if (imp !== undefined) imports.push(imp);
-	})
-	//fileStream.on('readable', () => { generateImports(fileStream.read())})
-	fileStream.on('end',() =>{
-		console.log(imports);
-		cb()
-	})
-	**/
+	return appendImportsToFile(testFilesPath, TESTFILE_IN_URI);
 
-	fileStream.pipe(through.obj(generateImportLine))
-		.pipe(through.obj((file, enc, cb) => {
-			fs.appendFile(TESTFILE_IN_URI, file.importLine + '\n' , cb );
-		}))
 
-	return fileStream;
+}
+
+function appendBodyToTestMainfile() {
+	let mainBodyPath = paths['test'] + '/resources/main-body.js';
+	return appendBodyToFile(mainBodyPath, TESTFILE_IN_URI);
+
 }
 
 function promiseBundleWrite(bundle, outUri) {
@@ -199,6 +201,7 @@ function buildAndWatchFiles(cb) {
 }
 
 console.log('=== AberWebMUD JS Client ===')
+let genTestMainfile = series(appendImportsToTestMainfile, appendBodyToTestMainfile);
 exports.default = series(cleanInputFiles, cleanOutputFiles, genTestMainfile, promiseMainModule, promiseTestModule);
 exports.watch = series(cleanInputFiles, cleanOutputFiles, genTestMainfile, buildAndWatchFiles);
 exports.build = series(promiseMainModule, promiseTestModule);
