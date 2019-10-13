@@ -194,12 +194,12 @@ export default class CharacterDetails extends EventMapping {
 	}
 
 	updateAttributeScores (scoresJson) {
-		let currentScoresJson = this.getAttributeScores().getScoresJson();
+		let currentScoresMap = this.getAttributeScores().getScores();
 
-		if (currentScoresJson.length > 0) {
+		if (currentScoresMap.length > 0) {
 			console.debug('Updating scores: ' + JSON.stringify(scoreAttributes));
 			let updatedCount = 0;
-			Object.keys(currentScoresJson).forEach(attribName => {
+			currentScoresMap.keys().forEach(attribName => {
 				console.debug('Setting CharacterDetails: ' + attribName + ' ' + scoresJson[attribName])
 				this.attributeScores.setScore(attribName, scoresJson[attribName])
 				updatedCount++
@@ -282,8 +282,12 @@ export default class CharacterDetails extends EventMapping {
 	setAttributeScores (attributeScores) {
 		if (attributeScores instanceof AttributeScores) {
 			attributeScores.validate()
+
+			let existingDefaults = this.getDefaultAttributeScores();
+			let existingDefaultScores = existingDefaults.getScores();
+
 			// Set defaults on first set call
-			if (this.getDefaultAttributeScores().size === 0) {
+			if (existingDefaultScores.size === 0) {
 				this.defaultAttributeScores = AttributeScores.fromJson(attributeScores.getJson())
 			}
 			this.attributeScores = attributeScores

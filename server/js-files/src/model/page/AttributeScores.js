@@ -51,11 +51,16 @@ export default class AttributeScores extends Map {
 		return this.scores.set(attributeName, value);
 	}
 
+	getScores() {
+		return this.scores;
+	}
+
 	getScoresJson() {
 		let output = {};
 		this.scores.forEach((value, key, map) => {
 			output[key] = value;
 		});
+		console.debug('AttributeScoresJson : ' + JSON.stringify(output));
 		return output;
 	}
 

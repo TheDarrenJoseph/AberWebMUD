@@ -4,10 +4,9 @@ import jquery from 'libs/jquery-3.4.1.dev.js';
 
 //import $ from 'libs/jquery.js';
 import { EVENTS as characterDetailsEvents, CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
-import { AttributeScores, FREEPOINTS_NAME, SCORES_NAME } from 'src/model/page/AttributeScores.js';
 import { PageView } from 'src/view/page/PageView.js';
 import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
-import { MIN_VALUE_NAME } from '../../model/page/AttributeScores'
+import { AttributeScores, FREEPOINTS_NAME, SCORES_NAME, MAX_VALUE_NAME, MIN_VALUE_NAME } from '../../model/page/AttributeScores'
 
 // These should be in mostly hierarchical order
 export const _STATS_WINDOW_ID = 'stat-window';
@@ -279,7 +278,6 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		console.debug('Rebuilding character stats table using: ' + JSON.stringify(attributeScores))
 		this.attribNameIdMappings.forEach((attribIdvalue, attribNameKey) => {
 			this.getAttributeFieldJquery(attribIdvalue).remove();
-			console.debug('Removed: ' + attribIdvalue)
 		});
 		let oldStatsTable = this.getStatsAttributeTableJquery();
 		oldStatsTable.remove();
@@ -352,6 +350,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 			}
 
 			charClassOptions.forEach(classOption => {
+				console.debug('New charclass option: ' + classOption.text);
 				let selectorOption = this.createSelectorOption(classOption.id, classOption.text)
 				classSelector.append(selectorOption);
 			});
@@ -490,7 +489,12 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 
 			let characterClassOptions = this.getCharacterDetails().getCharacterClassOptions();
 			let classOption = characterClassOptions.indexOfId(optionId);
-			this.setStatsCharacterClass(classOption);
+
+			if (classOption >= 0) {
+				this.setStatsCharacterClass(classOption);
+			} else {
+				console.error('Could not set character class option, no existing option for ID: ' + optionId)
+			}
 		} else{
 			console.error('Expected optionId undefined.');
 		}
@@ -539,7 +543,6 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 
 	getAttributeFieldJquery(attributeId) {
 		let fieldId = '#' + attributeId;
-		console.debug('Looking for an element matching ID: ' + fieldId);
 		// Get the value of the first match for our field
 		return jquery(fieldId, this.doc);
 	}
@@ -563,6 +566,11 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 				}
 			});
 
+
+		let modelAttribs = this.getCharacterDetails().getAttributeScores();
+		// The view currently does not define these, so we can just return whatever is in the model here
+		attribsJson[MIN_VALUE_NAME] = modelAttribs.getMinimumAttributeValue();
+		attribsJson[MAX_VALUE_NAME] = modelAttribs.getMaximumAttributeValue();
 		return attribsJson;
 	}
 

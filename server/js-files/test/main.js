@@ -11,8 +11,8 @@ import 'test/helper/SpriteHelperTests.js'
 import 'test/model/AttributeScoresTests.js'
 import 'test/model/ListTests.js'
 import 'test/model/MapModelTests.js'
-import 'test/controller/pixi/PixiControllerTests.js'
 import 'test/controller/page/PageControllerTests.js'
+import 'test/controller/pixi/PixiControllerTests.js'
 import 'test/model/page/CharacterClassOptionsTests.js'
 import 'test/model/page/CharacterDetailsBuilderTests.js'
 import 'test/model/page/CharacterDetailsTests.js'
@@ -20,3 +20,9 @@ import 'test/view/page/PageCharacterDetailsViewTests.js'
 import 'test/view/page/PageChatViewTests.js'
 import 'test/view/pixi/PixiMapViewTests.js'
 import 'test/view/pixi/PixiViewTests.js'
+QUnit.testStart( function(testDetails) {
+	console.info('=== ' + testDetails.module + ' ' + testDetails.name + '===');
+});
+QUnit.testDone( function(testDetails) {
+	console.info('==============================');
+});
