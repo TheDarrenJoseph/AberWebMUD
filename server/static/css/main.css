@@ -89,6 +89,12 @@
 	z-index: 2;
 }
 
+#submit-login-input{
+	position: absolute;
+	right: 10%;
+	bottom: 10%;
+}
+
 .login-title{
 	font: normal 3em sans-serif;
 	fill: yellow !important;
@@ -98,6 +104,7 @@
 .login-label{
 	display: inline-block;
 	text-align: right;
+	padding: 2%;
 	width: 25%;
 }
 
@@ -117,28 +124,56 @@
 }
 
 #stat-table,td {
-	position: relative;
 	border-style: solid;
 	border-color: black;
 	border-width: 1px;
-	width: 60%;
+	width: 100%;
 	height: 14%;
 }
 
+.classLabel {
+	padding: 1%;
+}
+
+#char-name {
+	display: inline-block;
+}
+
+#char-name-input {
+	display: inline-block;
+}
+
+#char-class {
+	display: inline-block;
+}
+
+#class-selection {
+	display: inline-block;
+}
+
+#free-points-label {
+	display: inline-block;
+}
+
+#free-points {
+	display: inline-block;
+}
+
 #stats-info {
-	position: relative;
+	position: absolute;
 	overflow: scroll;
 	border-style: solid;
 	border-color: black;
 	border-width: 1px;
-	width: 60%;
+	width: 85%;
 	height: 14%;
+	bottom: 2%
 }
 
 #save-stats-button {
 	position: absolute;
-	width : 15%;
-	height : 10%;
+	width: 10%;
+	height: 10%;
 	right : 2%;
 	bottom : 2%;
 }
@@ -164,7 +199,7 @@
 	left:5%;
 	top:5%;
 	width:85%;
-	height:50%;
+	height:85%;
 }
 
 textarea {

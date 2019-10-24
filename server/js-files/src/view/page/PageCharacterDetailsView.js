@@ -8,16 +8,21 @@ import { PageView } from 'src/view/page/PageView.js';
 import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
 import { AttributeScores, FREEPOINTS_NAME, SCORES_NAME, MAX_VALUE_NAME, MIN_VALUE_NAME } from '../../model/page/AttributeScores'
 
+import { PageHelper } from '../../helper/page/PageHelper';
+
 // These should be in mostly hierarchical order
 export const _STATS_WINDOW_ID = 'stat-window';
 
 const _STATS_FORM_ID = 'stat-form';
 const _STATS_TABLE_ID = 'stat-table';
-const _FREE_POINTS_FIELD_ID = 'freePoints';
+const _FREE_POINTS_LABEL_ID = 'free-points-label';
+const _FREE_POINTS_FIELD_ID = 'free-points';
 const _STATS_INFO_FIELD_ID = 'stats-info';
 const _SAVE_STATS_BUTTON_ID = 'save-stats-button';
 
+const _CHAR_NAME_ID = 'char-name';
 const _CHAR_NAME_INPUT_ID = 'char-name-input';
+const _CHAR_CLASS_ID = 'char-class';
 const _CHAR_CLASS_SELECTION_ID = 'class-selection';
 
 const ATTRIBUTE_INPUT_CLASS = 'attributeInput';
@@ -280,9 +285,10 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 			this.getAttributeFieldJquery(attribIdvalue).remove();
 		});
 		let oldStatsTable = this.getStatsAttributeTableJquery();
-		oldStatsTable.remove();
-		let newStatsTable = this.createStatsTable(attributeScores);
-		statsForm.append(newStatsTable);
+		//oldStatsTable.remove();
+		//let newStatsTable = this.createStatsTable(attributeScores);
+		//statsForm.append(newStatsTable);
+		oldStatsTable = this.createStatsTable(attributeScores);
 	}
 
 	clearStatInfo () {
@@ -367,6 +373,16 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		}
 	}
 
+	buildNameInput() {
+		let nameInput = this.doc.createElement('input');
+		nameInput.setAttribute('type', 'text');
+		nameInput.setAttribute('id', 'char-name-input');
+		nameInput.setAttribute('required', 'required');
+		nameInput.setAttribute('pattern', '[\\w]{1,12}');
+		nameInput.setAttribute('Title', '1-12 characters using: a-Z, 0-9, and _');
+		return nameInput;
+	}
+
 	/**
 	 * Simply builds a <form> element for character stats
 	 * @returns HTMLElement for the <form>
@@ -377,21 +393,12 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		form.setAttribute('id', _STATS_FORM_ID);
 
 		//	'Character Name' section
-		var nameLabel = this.doc.createElement('p');
-		nameLabel.setAttribute('class', 'classLabel');
-		nameLabel.append(this.doc.createTextNode('Character Name'));
-
-		var nameInput = this.doc.createElement('input');
-		nameInput.setAttribute('type', 'text');
-		nameInput.setAttribute('id', 'char-name-input');
-		nameInput.setAttribute('required', 'required');
-		nameInput.setAttribute('pattern', '[\\w]{1,12}');
-		nameInput.setAttribute('Title', '1-12 characters using: a-Z, 0-9, and _');
+		let nameLabel = PageHelper.buildClassLabel(this.doc, _CHAR_NAME_ID,'Character Name');
+		let nameInput = this.buildNameInput();
 
 		//	'Character Class' section
-		var classLabel = this.doc.createElement('p');
-		classLabel.setAttribute('class', 'classLabel');
-		classLabel.append(this.doc.createTextNode('Character Class'));
+		let classLabel = PageHelper.buildClassLabel(this.doc, _CHAR_CLASS_ID,'Character Class');
+
 		//	Dropdown for class type
 		var classSelector = this.doc.createElement('select');
 		classSelector.setAttribute('id', _CHAR_CLASS_SELECTION_ID);
@@ -401,6 +408,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		let attribScores = this.characterDetails.getAttributeScores();
 		var statsTable = this.createStatsTable(attribScores);
 
+		let freePointsLabel = PageHelper.buildClassLabel(this.doc, _FREE_POINTS_LABEL_ID,'Free Attribute Points');
 		let freePointsField = this.buildAttributeNumberInputElement(_FREE_POINTS_FIELD_ID, _FREE_POINTS_FIELD_ID, attribScores.getFreePoints(),
 		attribScores.getMinimumAttributeValue(), attribScores.getMaximumAttributeValue());
 		freePointsField.setAttribute('readonly', true);
@@ -409,18 +417,17 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		var statsInfo = this.doc.createElement('textarea');
 		statsInfo.setAttribute('id', _STATS_INFO_FIELD_ID);
 
-		var saveButton = this.doc.createElement('input');
-		saveButton.setAttribute('type', 'submit');
-		saveButton.setAttribute('id', _SAVE_STATS_BUTTON_ID);
-		saveButton.setAttribute('value', 'Save');
+		let saveButton = PageHelper.buildSubmitButton(this.doc, _SAVE_STATS_BUTTON_ID, 'Save');
 
+		// Do not trigger the default DOM reload on submit!
 		form.setAttribute('onsubmit', 'return false');
 		form.append(nameLabel);
 		form.append(nameInput);
 		form.append(classLabel);
 		form.append(classSelector);
-		form.append(statsTable);
+		form.append(freePointsLabel);
 		form.append(freePointsField);
+		form.append(statsTable);
 		form.append(statsInfo);
 		form.append(saveButton);
 
