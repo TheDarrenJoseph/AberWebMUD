@@ -1,3 +1,4 @@
+import ValidationHandler from '../../handler/ValidationHandler'
 
 export const MIN_VALUE_NAME = 'min_value';
 export const MAX_VALUE_NAME = 'max_value';
@@ -31,15 +32,13 @@ export default class AttributeScores extends Map {
 	}
 
 	static fromJson(attribsJson) {
-
-		console.debug('Building AttributeScores from JSON: ' + JSON.stringify(attribsJson))
-		let minValue = attribsJson[MIN_VALUE_NAME];
-		let maxValue = attribsJson[MAX_VALUE_NAME];
-		let freePoints = attribsJson[FREEPOINTS_NAME];
-		let attribScores = attribsJson[SCORES_NAME];
-
-		let scores = new AttributeScores(attribScores, minValue, maxValue, freePoints)
-		console.debug('Created new AttributeScores: ' + JSON.stringify(scores.getJson()))
+		console.debug('Building AttributeScores from JSON: ' + JSON.stringify(attribsJson));
+		let minValue = ValidationHandler.validateAndGetAttribute(attribsJson, MIN_VALUE_NAME);
+		let maxValue = ValidationHandler.validateAndGetAttribute(attribsJson, MAX_VALUE_NAME);
+		let freePoints = ValidationHandler.validateAndGetAttribute(attribsJson, FREEPOINTS_NAME);
+		let attribScores = ValidationHandler.validateAndGetAttribute(attribsJson, SCORES_NAME);
+		let scores = new AttributeScores(attribScores, minValue, maxValue, freePoints);
+		console.debug('Created new AttributeScores: ' + JSON.stringify(scores.getJson()));
 		return scores;
 	}
 

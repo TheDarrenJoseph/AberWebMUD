@@ -7,7 +7,7 @@ CHARACTER_DATA_JSON_NAME = 'character'
 
 class Character(db_instance.DatabaseInstance._database.Entity):
     # char_id = PrimaryKey(int, auto=True)
-    charname = Required(str, unique=True)
+    charname = Optional(str, unique=False, default='')
     charclass = Required(str, default=characterClass.CharacterClass.Fighter.value)
     player = Required('Player', unique=True)
     # Positions are stored relative to the map

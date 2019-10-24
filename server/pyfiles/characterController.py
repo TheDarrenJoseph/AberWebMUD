@@ -101,10 +101,6 @@ def update_character_details(character_json : dict) -> bool:
     username = character_json['sessionJson']['username']
     charname = data['charname']
 
-    # New character if first sign in (no character yet)
-    if find_player_character(username, charname) is None:
-        new_character(charname, username)
-
     # If we can find the player, update the character
     if playerController.find_player(username) is not None:
         return update_character_from_json(character_json)

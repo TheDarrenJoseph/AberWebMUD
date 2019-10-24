@@ -33,6 +33,7 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
         ]
         return self
 
+    @db_session
     def get_attribute(self, name):
         matching = self.attribute_scores.select(lambda attrib: attrib.name == name).first()
         return matching

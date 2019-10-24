@@ -1,7 +1,7 @@
 import logging, pdb
 
 import flaskHandler
-from pyfiles import playerController
+from pyfiles import playerController, characterController
 from pyfiles.db import database
 #from pyfiles.db import player
 
@@ -11,13 +11,16 @@ from pyfiles.db import database
 #Sets up players, maps, etc
 from pyfiles.sockets.socketHandler import SocketHandler
 
+from pony.orm import  db_session
 
 def setup_instance(_dbHandler):
-    player1 = playerController.new_player('foo', 'test')
-    player2 = playerController.new_player('who', 'test')
+
+    with db_session:
+        player1 = playerController.new_player('foo', 'test')
+        character1 = characterController.new_character('', 'foo')
+        player1.set_character(character1)
 
     logging.info('TEST PLAYER 1:'+str(player1))
-    logging.info('TEST PLAYER 2:'+str(player2))
 
 #Checks that this is the first instance/main instance of the module
 if __name__ == "__main__":

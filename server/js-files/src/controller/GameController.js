@@ -99,9 +99,9 @@ export class GameControllerClass {
 
 		this.socketHandler.bind('character-details-update',  (data) => { pageController.handleCharacterUpdateResponse(data) });
 
-		this.socketHandler.bind('attribute-class-options', (data) => {
-			pageController.handleCharacterClassOptions(data)
-		});
+		//this.socketHandler.bind('character-class-options', (data) => {
+		//	pageController.handleCharacterClassOptions(data)
+		//});
 
 		//  Request for existing password
 		this.socketHandler.bind('request-password',  (username) => {

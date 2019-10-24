@@ -15,6 +15,11 @@ export default class ValidationHandler {
 		}
 	}
 
+	static validateAndGetAttribute(jsonData, expectedAttribute) {
+		this.validateAttribute(jsonData, expectedAttribute);
+		return jsonData[expectedAttribute];
+	}
+
 	/**
 	 *
 	 * @param data the JSON data to check

@@ -197,7 +197,7 @@ export default class PageController {
 
 	bindActiveSessionEvents() {
 		Session.ActiveSession.once(sessionEvents.ACTIVE_SESSION, () => {
-			console.info('Active Session for Character Details View!')
+			console.info('Active Session for Character Details View! Fetching data...')
 
 			this.fetchCharacterClassOptions().then(jsonData => {
 				this.handleCharacterClassOptions(jsonData);
@@ -236,12 +236,12 @@ export default class PageController {
 
 
 	fetchCharacterClassOptions() {
-		let response = this.fetchHandler.get('/attributes-class-options');
+		let response = this.fetchHandler.get('/character-class-options');
 		return response;
 	}
 
 	fetchAttributeScores() {
-		let response = this.fetchHandler.get('/attributes-score-options');
+		let response = this.fetchHandler.get('/attributes');
 		return response;
 	}
 

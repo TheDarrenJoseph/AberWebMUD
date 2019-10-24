@@ -346,7 +346,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	 * Ensures the latest character class options are displayed, unlikely to change but this lets them be dynamic
 	 */
 	updateCharacterClassOptions(charClassOptions) {
-		console.trace('Updating character class options..')
+		console.info('Updating character details view class options using : ' + JSON.stringify(charClassOptions));
 		if (this.characterDetails.isCharacterClassOptionsDefined()) {
 			let classSelector = this.getCharclassSelection();
 
@@ -491,19 +491,24 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	}
 
 	setCharacterClassOption(optionId) {
-		if (optionId !== undefined && optionId.length > 0) {
-			console.debug('Trying to set character class to: ' + optionId + ', available: ' + JSON.stringify(this.getCharacterDetails().getCharacterClassOptions()))
+		if (optionId !== undefined) {
 
-			let characterClassOptions = this.getCharacterDetails().getCharacterClassOptions();
-			let classOption = characterClassOptions.indexOfId(optionId);
+			if (typeof optionId === 'string' && optionId.length > 0) {
+				console.debug('Trying to set character class to: ' + optionId + ', available: ' + JSON.stringify(this.getCharacterDetails().getCharacterClassOptions()))
 
-			if (classOption >= 0) {
-				this.setStatsCharacterClass(classOption);
-			} else {
-				console.error('Could not set character class option, no existing option for ID: ' + optionId)
+				let characterClassOptions = this.getCharacterDetails().getCharacterClassOptions()
+				let classOption = characterClassOptions.indexOfId(optionId)
+
+				if (classOption >= 0) {
+					this.setStatsCharacterClass(classOption)
+				} else {
+					console.error('Could not set character class option, no existing option for ID: ' + optionId)
+				}
+			}	else {
+				console.error('Could not set character class option, invalid optionId')
 			}
 		} else{
-			console.error('Expected optionId undefined.');
+			console.error('Could not set character class option, provided optionId is undefined.');
 		}
 	}
 

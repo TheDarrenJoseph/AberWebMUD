@@ -43,24 +43,47 @@ def extract_authentication_header(request):
     return []
 
 
-def check_authentication(request):
-    if len(extract_authentication_header(request)) > 0:
+def check_authentication(req):
+    if len(extract_authentication_header(req)) > 0:
         return True
     return False
 
 
-@_APP.route("/attributes-score-options", methods=['GET'])
-def get_attributes_score_options():
+def get_active_username(req):
+    header_values = extract_authentication_header(req)
+    sid = header_values[1]
+    logging.info('Looking up  active username for SID: ' + sid)
+    username = sessionHandler.get_active_username(sid)
+    return username
+
+
+@_APP.route("/attributes", methods=['GET'])
+def get_attributes():
     if check_authentication(request):
-        return attributes.Attributes.get_json_attribute_score_options()
+        username = get_active_username(request)
+        attributes = playerController.get_character_attributes(username)
+        if attributes is not None:
+            attributes_json = attributes.get_json()
+            logging.debug('GET /attributes - RESPONSE\n' + str(attributes_json))
+            return attributes_json
+        else:
+            logging.error('Could not retrieve attributes for the username: ' + username)
+            abort(500)
     else:
         abort(401)
 
 
-@_APP.route("/attributes-class-options", methods=['GET'])
+@_APP.route("/character-class-options", methods=['GET'])
 def get_attributes_class_options():
     if check_authentication(request):
-        return characterClass.CharacterClass.get_json_options()
+        class_options = characterClass.CharacterClass.get_json_options()
+
+        if class_options is not None:
+            logging.debug('GET /character-class-options - RESPONSE\n' + str(class_options))
+            return class_options
+        else:
+            logging.error('Could not acquire character class options!')
+            abort(500)
     else:
         abort(401)
 
@@ -68,12 +91,13 @@ def get_attributes_class_options():
 @_APP.route("/player", methods=['GET'])
 def get_player_details():
     if check_authentication(request):
-        header_values = extract_authentication_header(request)
-        sid = header_values[1]
-        logging.info('Looking up  active username for SID: ' + sid)
-        username = sessionHandler.get_active_username(sid)
-
+        username = get_active_username(request)
         player_json = playerController.get_json(username)
-        return player_json
+        if player_json is not None:
+            logging.debug('GET /player - RESPONSE\n' + str(player_json))
+            return player_json
+        else:
+            logging.error('Could not retrieve player with username: ' + username)
+            abort(500)
     else:
         abort(401)

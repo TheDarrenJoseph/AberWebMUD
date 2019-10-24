@@ -12,6 +12,7 @@ def find_player(username: str) -> player.Player or None:
         return player.Player[username]
 
     except ObjectNotFound:
+        logging.error('Could not find a Player for the given username: ' + username)
         return None
 
 @db_session
@@ -23,6 +24,23 @@ def get_player_pos(username: str) -> (int, int) or None:
             position = this_player.character.position
             return(position.pos_x, position.pos_y)
         return None
+
+@db_session
+def get_player_character(username: str):
+    if find_player(username) is not None:
+        this_player = player.Player[username]
+        this_character = this_player.get_character()
+        if this_character is not None:
+            return this_character
+        else:
+            logging.error('Could not find a player character for the username: ' + username)
+            return None
+
+@db_session
+def get_character_attributes(username: str):
+    this_character = get_player_character(username)
+    if this_character is not None:
+        return this_character.get_attributes()
 
 @db_session
 def get_character_json(username: str) -> dict or None:
@@ -55,11 +73,11 @@ def new_player(username: str, password : str) -> player.Player or None:
             password_hash_string = crypto.hash_password(password)
 
             #Creating a new Player Entity through PonyORM
-            player.Player(character=None,
+            this_player = player.Player(character=None,
                           username=username,
                           password=password_hash_string)
 
-            return username #Username return confirms creation
+            return this_player
     return None
 
 @db_session
