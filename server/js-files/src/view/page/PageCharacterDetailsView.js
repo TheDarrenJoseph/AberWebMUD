@@ -4,9 +4,8 @@ import jquery from 'libs/jquery-3.4.1.dev.js';
 
 //import $ from 'libs/jquery.js';
 import { EVENTS as characterDetailsEvents, CLASS_OPTIONS } from 'src/model/page/CharacterDetails.js';
-import { PageView } from 'src/view/page/PageView.js';
 import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
-import { AttributeScores, FREEPOINTS_NAME, SCORES_NAME, MAX_VALUE_NAME, MIN_VALUE_NAME } from '../../model/page/AttributeScores'
+import { AttributeScores, ATTRIBUTES_NAME, FREEPOINTS_NAME, SCORES_NAME, MAX_VALUE_NAME, MIN_VALUE_NAME } from '../../model/page/AttributeScores'
 
 import { PageHelper } from '../../helper/page/PageHelper';
 
@@ -35,6 +34,8 @@ const DEBUG = true;
 export const EVENTS = {
 	// For submitting some values for confirmation
 	SUBMIT_STATS : 'submit-stats',
+	VIEW_CHARCLASSES_SET : 'charclasses-set',
+	VIEW_ATTRIBUTES_SET : 'attributes-set',
 	// This means the view has been updated
 	VIEW_STATS_SET : 'stats-set'
 };
@@ -69,8 +70,8 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	setupEmitting () {
 		try {
 			// When trying to save stats, ensure we submit them
-			let statsButtonJquery = this.getSaveStatsButtonJquery();
-			statsButtonJquery.click(() => { this.submitStats() });
+			let saveButtonJquery = this.getSaveStatsButtonJquery();
+			saveButtonJquery.click(() => { this.submitStats() });
 		} catch (err) {
 			throw new Error("Could not bind to save-stats button: " + err);
 		}
@@ -92,14 +93,21 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 
 		// Extract the JSON representation and send that
 		let statsData = this.characterDetails.getJson();
+		// This triggers a call to the server, etc
 		this.emit(EVENTS.SUBMIT_STATS, statsData);
 	}
 
-	updateDisplayedAttributeScores(attribScores) {
+	updateDisplayedAttributeScores(attributeScores) {
 		// Ensure we have the view elements to display the model
-		this.updateCharacterAttributeScores(attribScores)
-		// Actually display the scores
-		this.setAttributes(attribScores)
+		console.debug('Updating Character Attribute Scores using:  ' + JSON.stringify(attributeScores))
+		if (attributeScores !== undefined && attributeScores !== null && attributeScores instanceof AttributeScores) {
+			// Ensure we have the right display settings
+			this.rebuildStatsTable(attributeScores);
+			// Actually display everything
+			this.setAttributes(attributeScores)
+		} else {
+			throw new RangeError('Character attribute scores were not set correctly!')
+		}
 	}
 
 	/**
@@ -115,6 +123,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		// Ensure we update our view whenever the model is updated
 		this.characterDetails.on(characterDetailsEvents.SET_ATTRIB_SCORES, (attribScores) => {
 			this.updateDisplayedAttributeScores(attribScores)
+			this.emit(EVENTS.VIEW_ATTRIBUTES_SET)
 		});
 
 		// Wait until the underlying model has the data we need from the server
@@ -122,6 +131,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		this.characterDetails.on(characterDetailsEvents.SET_CLASS_OPTIONS, (charClassOptions) => {
 			// Ensure we can display these character class options
 			this.updateCharacterClassOptions(charClassOptions)
+			this.emit(EVENTS.VIEW_CHARCLASSES_SET)
 		});
 	}
 
@@ -232,6 +242,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	buildAttributeScoreRows (statsTable, attributesJson) {
 		let attributeNames = Object.keys(attributesJson);
 
+		let addedRows = 0;
 		for (var i = 0; i < attributeNames.length; i++) {
 			let attribName = attributeNames[i];
 			let attribValue  = attributesJson[attribName];
@@ -255,11 +266,15 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 			attributeRow.append(attributeValElem);
 
 			statsTable.append(attributeRow);
-			console.debug('Built attribute row, name: ' + attribName + ', id: ' + attribId)
+			console.debug('Built attribute row, name: ' + attribName + ', id: ' + attribId);
+			addedRows++;
 		}
+		console.debug('Created ' + addedRows + ' attribute score table rows.');
 	}
 
 	createStatsTable (attributeScores) {
+		console.debug('Creating stats table with these scores: ' )
+
 		var statsTable = this.doc.createElement('table');
 		statsTable.setAttribute('id', _STATS_TABLE_ID);
 
@@ -279,16 +294,9 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	}
 
 	rebuildStatsTable(attributeScores) {
-		let statsForm = this.getStatsFormJquery();
-		console.debug('Rebuilding character stats table using: ' + JSON.stringify(attributeScores))
-		this.attribNameIdMappings.forEach((attribIdvalue, attribNameKey) => {
-			this.getAttributeFieldJquery(attribIdvalue).remove();
-		});
 		let oldStatsTable = this.getStatsAttributeTableJquery();
-		//oldStatsTable.remove();
-		//let newStatsTable = this.createStatsTable(attributeScores);
-		//statsForm.append(newStatsTable);
-		oldStatsTable = this.createStatsTable(attributeScores);
+		let newStatsTable =  this.createStatsTable(attributeScores);
+		oldStatsTable.replaceWith(newStatsTable);
 	}
 
 	clearStatInfo () {
@@ -366,7 +374,9 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 	}
 
 	updateCharacterAttributeScores(attributeScores) {
-		if (attributeScores !== undefined && attributeScores !== null ) {
+		console.debug('Updating Character Attribute Scores.. ')
+		if (attributeScores !== undefined && attributeScores !== null && attributeScores instanceof AttributeScores) {
+			this.setFreePointsValue(attributeScores.getFreePoints());
 			this.rebuildStatsTable(attributeScores);
 		} else {
 			throw new RangeError('Character attribute scores were not set correctly!')
@@ -528,7 +538,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 				var optionChoice = options[selectionNo].value;
 				this.setCharclassSelection(optionChoice);
 			} else {
-				console.error('Invalid character class selection option: ' + selectionNo);
+				console.error('Invalid character class selection option: ' + selectionNo + '. Options are: ' + JSON.stringify(options));
 			}
 		} else {
 			console.error('Cannot set character classs selection to: '+selectionNo+'. No charclass options to choose from.')
@@ -549,7 +559,7 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		return {
 			'charname': this.getStatsCharacterNameVal(),
 			'charclass': this.getCharacterClassValue(),
-			'attributes': this.getAttributesJson()
+			...this.getAttributesJson()
 		};
 	}
 
@@ -559,10 +569,6 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		return jquery(fieldId, this.doc);
 	}
 
-	/**
-	 *
-	 * @returns {{free_points: number, scores: {}}}
-	 */
 	getAttributesJson() {
 		let freePoints = this.getFreePointsValue();
 		let attribsJson = { [SCORES_NAME] : {},
@@ -583,45 +589,39 @@ export default class PageCharacterDetailsView  extends PageHtmlView {
 		// The view currently does not define these, so we can just return whatever is in the model here
 		attribsJson[MIN_VALUE_NAME] = modelAttribs.getMinimumAttributeValue();
 		attribsJson[MAX_VALUE_NAME] = modelAttribs.getMaximumAttributeValue();
-		return attribsJson;
+		return {'attributes' : attribsJson };
 	}
 
-	setAttributeScoresFromJson(attributeScoresJson) {
-		try {
-			AttributeScores.validateAttributesJson(attributeScoresJson);
-		} catch(validationError) {
-			console.log('Cannot set displayed atftribute scores, Invalid AttributeScores: ' +  JSON.stringify(attributeScoresJson));
-			return;
-		}
-
+	setAttributeScores(attributeScoresJson) {
 		if (this.attribNameIdMappings.size > 0) {
+
 			this.attribNameIdMappings.forEach((attributeName, attributeId, map) => {
 				let inputVal = attributeScoresJson[attributeName];
 				// Set the value of the first match for our field
 				let statId = '#' + attributeId;
-				jquery(statId, this.doc).val(inputVal);
+				let fieldJquery = jquery(statId, this.doc);
+				fieldJquery.val(inputVal);
 			});
 		} else {
-			console.warn('Cannot set displayed atftribute scores. No attribute score field mappings to use.');
+			console.warn('Cannot set displayed attribute scores. No attribute score field mappings to use.');
 		}
-
-		let freePoints = attributeScoresJson[FREEPOINTS_NAME];
-		this.setFreePointsValue(freePoints);
 	}
 
-	/**
-	 * Displays a series of attributes for the character details
-	 * @param attrValuesJSON {{free_points: number, scores: {}}}
-	 */
-	setAttributesFromJson (attrValuesJSON) {
-		let attribScores = attrValuesJSON[SCORES_NAME];
-		let freePoints = attrValuesJSON[FREEPOINTS_NAME];
-		this.setAttributeScoresFromJson(attribScores);
-		this.setFreePointsValue(freePoints);
+	setFromJson(json) {
+		try {
+			AttributeScores.validateAttributesJson(json);
+			let attributeScoresJson = json[ATTRIBUTES_NAME];
+			this.setAttributeScores(attributeScoresJson);
+			let freePoints = attributeScoresJson[FREEPOINTS_NAME];
+			this.setFreePointsValue(freePoints);
+		} catch(validationError) {
+			console.error(validationError);
+			console.log('Cannot set displayed attribute scores, Invalid AttributeScores: ' +  JSON.stringify(json));
+		}
 	}
 
 	setAttributes(attributeScores) {
-		this.setAttributeScoresFromJson(attributeScores.getJson());
+		this.setFromJson(attributeScores.getJson());
 	}
 
 	/**

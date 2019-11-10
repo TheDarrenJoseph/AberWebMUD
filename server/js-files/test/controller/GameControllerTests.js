@@ -1,7 +1,7 @@
 import sinon from 'libs/sinon-7.4.1.js';
 
-import {TEST_SESSIONID, TEST_CHARUPDATE_DATA} from '../utils/data/TestSessionData.js';
-import {TEST_SCORES, TEST_CHARDATA, TEST_ATTRIBUTE_SCORE_OPTIONS, TEST_CHARACTER_CLASS_OPTIONS} from '../utils/data/TestCharacterDetails.js';
+import {TEST_SESSIONID, TEST_USERNAME, TEST_CHARUPDATE_DATA} from '../utils/data/TestSessionData.js';
+import {TEST_SCORES, TEST_CHARDATA, TEST_ATTRIBUTES_RESPONSE, TEST_CHARACTER_CLASS_OPTIONS} from '../utils/data/TestCharacterDetails.js';
 
 import { GameControllerClass } from '../../src/controller/GameController.js';
 import { CharacterDetails } from '../../src/model/page/CharacterDetails.js'
@@ -24,7 +24,7 @@ function beforeAll (assert) {
 	let pageController = gameController.getViewController().getPageController();
 
 	// Stub out HTTP calls with promises for testing data
-	let fetchAttributeScoresStub = sinon.stub(pageController, 'fetchAttributeScores').resolves(TEST_ATTRIBUTE_SCORE_OPTIONS);
+	let fetchAttributesStub = sinon.stub(pageController, 'fetchAttributes').resolves(TEST_ATTRIBUTES_RESPONSE);
 	let fetchCharacterClassOptionsStub = sinon.stub(pageController, 'fetchCharacterClassOptions').resolves(TEST_CHARACTER_CLASS_OPTIONS);
 	let fetchPlayerDataStub = sinon.stub(gameController, 'fetchPlayerData').resolves(TEST_CHARUPDATE_DATA);
 }
@@ -57,13 +57,12 @@ QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
 	};
 	assert.deepEqual(sessionInfoJson, blankSessionJson, 'Check session info JSON is blank');
 
-	assert.ok(CharacterDetails.validateJson(TEST_CHARDATA), 'Check our test char data is valid');
-	var loginData = {'sessionId': TEST_SESSIONID};
+	var loginData = {'sessionId': TEST_SESSIONID, 'username' : TEST_USERNAME};
 	let playerLoginPromise = gameController.handlePlayerLogin(loginData);
 	let playerDataUpdated = assert.async(1);
 	playerLoginPromise.then( () => {
 		var resultingJson = Session.ActiveSession.getSessionInfoJSON();
-		assert.deepEqual(resultingJson, { 'sessionId': loginData.sessionId, 'username': 'foo' }, 'Check session info JSON is now set.');
+		assert.deepEqual(resultingJson, { 'sessionId': loginData.sessionId, 'username': loginData.username }, 'Check session info JSON is now set.');
 		playerDataUpdated();
 	});
 });

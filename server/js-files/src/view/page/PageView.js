@@ -3,6 +3,7 @@ import jquery from 'libs/jquery-3.4.1.dev.js';
 
 //import $ from 'libs/jquery.js';
 import { PageHtmlView } from 'src/view/page/PageHtmlView.js';
+import { _STATS_WINDOW_ID } from './PageCharacterDetailsView'
 
 //export var this.doc = document;
 //export var this.doc = document.implementation.createHTMLDocument('PageView');
@@ -25,7 +26,7 @@ export class PageView extends PageHtmlView {
 		}
 
 		//let idSelectorMappings = { mainWindowId: '#main-window', messageWindowId: '#message-window', inventoryWindowId: '#inventory-window' };
-		super(pageModel.doc, EVENTS, { [_MAIN_WINDOW_ID]: '#'+_MAIN_WINDOW_ID, [_GAME_WINDOW_ID]: '#'+_GAME_WINDOW_ID });
+		super(pageModel.doc, EVENTS, { [_MAIN_WINDOW_ID]: '#'+_MAIN_WINDOW_ID, [_GAME_WINDOW_ID]: '#'+_GAME_WINDOW_ID, [_STATS_WINDOW_ID]: '#'+_STATS_WINDOW_ID });
 		this.pageModel = pageModel;
 	}
 

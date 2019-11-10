@@ -1,5 +1,5 @@
 import { AttributeScores } from 'src/model/page/AttributeScores.js';
-import { TEST_ATTRIBUTESCORES } from 'test/utils/data/TestCharacterDetails.js';
+import { TEST_ATTRIBUTES_RESPONSE } from 'test/utils/data/TestCharacterDetails.js';
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
@@ -30,7 +30,7 @@ QUnit.test('new AttributeScores', function (assert) {
 
 
 QUnit.test('fromJson', function (assert) {
-	let attributeScores = AttributeScores.fromJson(TEST_ATTRIBUTESCORES);
+	let attributeScores = AttributeScores.fromJson(TEST_ATTRIBUTES_RESPONSE);
 	assert.ok(attributeScores instanceof AttributeScores, 'Check our scores are instanciated');
 	assert.equal(attributeScores.getMinimumAttributeValue(), 0, 'Check minimum attribute value is set');
 	assert.equal(attributeScores.getMaximumAttributeValue(), 100, 'Check maxmimum attribute value is set');

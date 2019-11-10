@@ -21,6 +21,7 @@ import AttributeScores from '../../model/page/AttributeScores'
 import CharacterClassOptions from '../../model/page/CharacterClassOptions'
 import CharacterDetailsBuilder from '../../model/page/CharacterDetailsBuilder'
 import { MessageHandler } from '../../handler/socket/MessageHandler'
+import { CHARACTER_JSON_NAME } from '../../model/page/CharacterDetails'
 
 export var LOGIN_FAILURE_MESSAGE_PWD = 'Login failure (bad password)';
 export var LOGIN_FAILURE_MESSAGE_PLAYER = 'Login failure (player does not exist)';
@@ -47,7 +48,6 @@ export default class PageController {
 
 		this.isSetup = false;
 		this.uiEnabled = false;
-		// This is for
 		this.charDetailsConfirmed = false;
 
 		this.SOCKET_HANDLER = SocketHandler.getInstance();
@@ -153,21 +153,19 @@ export default class PageController {
 		this.pageCharacterDetailsView.setupEmitting();
 	}
 
-	onceCharacterDetailsSet (onConfirmedCb) {
+	onceCharacterDetailsConfirmed (onConfirmedCb) {
 		// Single-shot mapping for setting of the details to something
-		this.characterDetails.once(characterDetailsEvents.SET_DETAILS, () => {
-			this.charDetailsConfirmed = true;
-			onConfirmedCb();
-		});
+		this.characterDetails.onceCharacterDetailsConfirmed(onConfirmedCb);
 	}
 
 	isCharacterDetailsConfirmed() {
-		return this.charDetailsConfirmed;
+		return this.characterDetails.isDetailsConfirmed();
 	}
 
 	handleCharacterClassOptions(jsonData) {
 		let classOptions = jsonData.options;
 		if (classOptions !== undefined) {
+			console.info('Handling Character Class Options: ' + JSON.stringify(jsonData))
 			this.pageCharacterDetailsView.characterDetails.setCharacterClassOptions(classOptions);
 			console.info('Character Details View class options set.')
 		} else {
@@ -175,8 +173,9 @@ export default class PageController {
 		}
 	}
 
-	handleAttributeScoreOptions(jsonData) {
+	handleAttributeScores(jsonData) {
 		if (jsonData !== undefined) {
+			console.info('Handling Character Attribute Scores: ' + JSON.stringify(jsonData))
 			// Set these as the current defaults as it's our first time grabbing them
 			let attributeScores = AttributeScores.fromJson(jsonData);
 			this.pageCharacterDetailsView.setAttributes(attributeScores);
@@ -203,8 +202,8 @@ export default class PageController {
 				this.handleCharacterClassOptions(jsonData);
 			}).catch(reason => { throw reason })
 
-			this.fetchAttributeScores().then(jsonData => {
-				this.handleAttributeScoreOptions(jsonData)
+			this.fetchAttributes().then(jsonData => {
+				this.handleAttributeScores(jsonData)
 			}).catch(reason => { throw reason })
 		})
 	}
@@ -240,7 +239,7 @@ export default class PageController {
 		return response;
 	}
 
-	fetchAttributeScores() {
+	fetchAttributes() {
 		let response = this.fetchHandler.get('/attributes');
 		return response;
 	}
@@ -274,14 +273,13 @@ export default class PageController {
 	}
 
 	/**
-	 * Parses the charcter update response
+	 * Parses the character update response
 	 * Extracts and sets the char details on success
 	 * Also displays a message relevant to this
 	 * @param data JSON character update data
 	 */
 	handleCharacterUpdateResponse (data) {
 
-		let charDetails = this.pageCharacterDetailsView.getCharacterDetails();
 		if (CharacterDetails.isValidCharacterUpdateData(data)) {
 			let success = data['success'];
 
@@ -311,9 +309,10 @@ export default class PageController {
 	 */
 	saveCharacterData (detailsJson) {
 		if (CharacterDetails.validateJson(detailsJson)) {
-			// Set the underlying view model so the view reacts
+			// Set the underlying model so the view reacts
 			let charDetails = this.pageCharacterDetailsView.getCharacterDetails();
-			charDetails.setFromJson(detailsJson);
+			let attributesJson = charDetails.extractAttributesJson(charDetails.getJson());
+			charDetails.setAttributesFromJson(attributesJson);
 			return true;
 		} else {
 			throw new RangeError(INVALID_JSON_CHARACTER_DATA);

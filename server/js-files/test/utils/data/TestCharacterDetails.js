@@ -19,6 +19,7 @@ export const TEST_ATTRIBUTESCORES = {
 	[FREEPOINTS_NAME]: 5,
 	[SCORES_NAME]: TEST_SCORES
 }
+
 export const TEST_POSITION = {
 	'pos_x': 4,
 	'pos_y': 4
@@ -34,8 +35,15 @@ export const TEST_CHARDATA = {
 	}
 };
 
-export var TEST_CHARCLASS_OPTIONS = CharacterClassOptions.fromOptionsList(TEST_CHARCLASSOPTIONS)
-export var TEST_ATTRIBUTE_SCORES = AttributeScores.fromJson(TEST_ATTRIBUTESCORES);
+export const TEST_CHARCLASS_OPTIONS = CharacterClassOptions.fromOptionsList(TEST_CHARCLASSOPTIONS)
+
+// Example HTTP JSON responses for character details options
+export const TEST_ATTRIBUTES_RESPONSE = { 'attributes': TEST_ATTRIBUTESCORES };
+export const TEST_CHARACTER_CLASS_OPTIONS = {'options' : TEST_CHARCLASSOPTIONS };
+
+export const TEST_ATTRIBUTE_SCORES = AttributeScores.fromJson(TEST_ATTRIBUTES_RESPONSE);
+
+export const DEFAULT_CHARDETAILS = new CharacterDetailsBuilder().withDefaults().build();
 
 // Perform the update of the underlying model
 export var testCharacterDetails = new CharacterDetailsBuilder().withDefaults()
@@ -48,7 +56,3 @@ export var testCharacterDetails = new CharacterDetailsBuilder().withDefaults()
 .withCharacterClass(TEST_CHARCLASS)
 .build();
 
-
-// Example HTTP JSON responses for character details options
-export const TEST_ATTRIBUTE_SCORE_OPTIONS = {'options' : TEST_SCORES };
-export const TEST_CHARACTER_CLASS_OPTIONS = {'options' : TEST_CHARCLASSOPTIONS };

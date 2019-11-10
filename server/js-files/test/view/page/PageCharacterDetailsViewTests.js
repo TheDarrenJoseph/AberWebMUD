@@ -29,6 +29,7 @@ import { CharacterDetailsBuilder } from '../../../src/model/page/CharacterDetail
 
 import * as TestCharacterDetails from '../../utils/data/TestCharacterDetails.js';
 import { TEST_CHARCLASSOPTIONS } from '../../utils/data/TestCharacterDetails'
+import * as TestWindow from '../../utils/TestWindow'
 
 export const DEFAULT_JSON = {
 	'character' : {
@@ -54,7 +55,8 @@ var TEST_TAG = '|PAGE CHARACTER-DETAILS VIEW|';
 var pageView;
 var pageCharacterDetailsView;
 
-var TEST_DOCUMENT = document;
+var TEST_DOCUMENT;
+var TEST_WINDOW;
 
 // View based events can be a little sluggish
 // These should take < 10s realistically but view init seems slow
@@ -62,13 +64,14 @@ let MAX_TIMEOUT = 10000;
 
 // Setup / assertions before any test runs
 function beforeAll (assert) {
+	TEST_WINDOW = TestWindow.buildTestWindow(TEST_TAG);
+	TEST_DOCUMENT = TEST_WINDOW.document;
 	var pageModel = new Page(TEST_DOCUMENT);
 	pageView = new PageView(pageModel);
 }
 
 // Setup / assertions before each test
 function beforeEachTest (assert) {
-
 	let detailsBuilder = new CharacterDetailsBuilder().withDefaults();
 	pageCharacterDetailsView = new PageCharacterDetailsView(pageView, detailsBuilder.build());
 	assert.ok(pageCharacterDetailsView instanceof PageCharacterDetailsView, 'Ensure the character details view is instanciated.');
@@ -79,8 +82,13 @@ function beforeEachTest (assert) {
 
 function afterEachTest (assert) {
 	// Be sure the view is destroyed
-	pageCharacterDetailsView.destroyView();
+	// pageCharacterDetauisView will be re-instanciated
+	// but we must destroy everything on the PageView above it
 	pageView.destroyView();
+}
+
+function afterAll(assert) {
+	//TEST_WINDOW.close();
 }
 
 // These are the expected values upon construction
@@ -96,7 +104,7 @@ const EXPECTED_DEFAULT_VIEW_JSON = {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('PageCharacterDetailsViewTests', { before: beforeAll, beforeEach: beforeEachTest, afterEach: afterEachTest });
+QUnit.module('PageCharacterDetailsViewTests', { before: beforeAll, beforeEach: beforeEachTest, afterEach: afterEachTest, after: afterAll });
 
 QUnit.test(TEST_TAG + 'buildView', function (assert) {
 
@@ -141,7 +149,8 @@ QUnit.test(TEST_TAG + 'Setting Character Details - Emitting', function (assert) 
 
 	// Ensure we have some valid data in the view fields
 	// Update the underlying data model, this should update the view.
-	viewCharDetails.setFromJson(TestCharacterDetails.TEST_CHARDATA);
+	let attributesJson = charDetails.extractAttributesJson(TestCharacterDetails.TEST_CHARDATA);
+	viewCharDetails.setAttributesFromJson(attributesJson);
 
 	// Bind to the testing func
 	pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.SUBMIT_STATS, statsSubmitted);
@@ -154,7 +163,8 @@ QUnit.test(TEST_TAG + 'Setting Character Details - Emitting', function (assert) 
 
 /**
  * Checks the test page character details view's underlying character details match the expected testing default options
- * @param assert
+ * In example: [ fighter, spellcaster ]
+ * @param assert qunit's assert object
  */
 function assertDefaultCharclassOptions(assert) {
 	let viewCharDetails = pageCharacterDetailsView.getCharacterDetails();
@@ -166,13 +176,11 @@ function assertDefaultCharclassOptions(assert) {
 }
 
 
-QUnit.test(TEST_TAG + 'Set Character Class Options', function (assert) {
+QUnit.test(TEST_TAG + 'Set View Character Class Options', function (assert) {
 	assert.timeout(MAX_TIMEOUT);
 
 	let currentStats = pageCharacterDetailsView.getJson();
-
 	let viewCharDetails = pageCharacterDetailsView.getCharacterDetails();
-
 	assert.deepEqual(currentStats, EXPECTED_DEFAULT_VIEW_JSON, 'Check character details are their defaults in the view.')
 	// Add some potential class options
 	viewCharDetails.setCharacterClassOptions(TestCharacterDetails.TEST_CHARCLASSOPTIONS)
@@ -188,6 +196,73 @@ QUnit.test(TEST_TAG + 'Set Character Class Options', function (assert) {
 	assert.deepEqual(currentStats, expectedUpdatedJson, 'Make sure the view data is updated with the current character class..');
 });
 
+
+QUnit.test(TEST_TAG + 'Setting Charclass Options - View Update', function (assert) {
+	assert.timeout(MAX_TIMEOUT);
+	let currentStats = pageCharacterDetailsView.getJson();
+	let viewCharDetails = pageCharacterDetailsView.getCharacterDetails();
+
+	assert.deepEqual(currentStats, EXPECTED_DEFAULT_VIEW_JSON, 'Check character details are their defaults in the view.')
+
+	const EXPECTED_JSON = {
+		'charname' : "",
+		// The first set option will be selected automatically
+		'charclass': TestCharacterDetails.TEST_CHARCLASSOPTIONS[0],
+		'attributes': {
+			'free_points' : 0,
+			'min_value' : 0,
+			'max_value' : 0,
+			'scores' : {}
+		}
+	}
+
+	// Test callback for VIEW_STATS_SET
+	let charclassCallback = assert.async(1);
+	function checkCharClassOptions() {
+		assertDefaultCharclassOptions(assert);
+
+		currentStats = pageCharacterDetailsView.getJson()
+		assert.deepEqual(currentStats, EXPECTED_JSON, 'Check updated character details are displayed in the view.');
+		console.log('Test stats set in view.');
+		charclassCallback();
+	}
+	pageCharacterDetailsView.once(pageCharacterDetailsViewEvents.VIEW_CHARCLASSES_SET, checkCharClassOptions);
+
+	viewCharDetails.setCharacterClassOptions(TestCharacterDetails.TEST_CHARCLASSOPTIONS);
+});
+
+/**
+ * Given that the character details view is bound to it's model
+ * When the CharacterDetails model is set
+ * Then view should automatically update to show these values
+ */
+QUnit.test(TEST_TAG + 'Setting Character Attributes - View Update', function (assert) {
+	assert.timeout(MAX_TIMEOUT);
+	let currentStats = pageCharacterDetailsView.getJson();
+	assert.deepEqual(currentStats, EXPECTED_DEFAULT_VIEW_JSON, 'Check character details are their defaults in the view.')
+
+	let attributesCallback = assert.async(1);
+	function checkAttributes() {
+		let expectedViewJson = {
+			'charname' : "",
+			'charclass': null,
+			'attributes': {
+				'free_points' : 5,
+				'min_value' : 0,
+				'max_value' : 100,
+				'scores' : TestCharacterDetails.TEST_SCORES
+			}
+		}
+		currentStats = pageCharacterDetailsView.getJson()
+		assert.deepEqual(currentStats, expectedViewJson, 'Check updated character details are displayed in the view.');
+		console.log('Test stats set in view.');
+		attributesCallback();
+	}
+	pageCharacterDetailsView.once(pageCharacterDetailsViewEvents.VIEW_ATTRIBUTES_SET, checkAttributes)
+	// Set some standard returned attribute scores
+	pageCharacterDetailsView.characterDetails.setAttributeScores(TestCharacterDetails.TEST_ATTRIBUTE_SCORES);
+});
+
 /**
  * Given that the character details view is bound to it's model
  * When the CharacterDetails model is set
@@ -199,9 +274,8 @@ QUnit.test(TEST_TAG + 'Setting Character Details - View Update', function (asser
 	let currentStats = pageCharacterDetailsView.getJson();
 	assert.deepEqual(currentStats, EXPECTED_DEFAULT_VIEW_JSON, 'Check character details are their defaults in the view.')
 
-	// Test callback for VIEW_STATS_SET
-	let statsSetCallback = assert.async(1);
-	function checkStats() {
+	let attributesCallback = assert.async(1);
+	function checkAttributes() {
 		let expectedViewJson = {
 			'charname' : TestCharacterDetails.TEST_CHARNAME,
 			'charclass': TestCharacterDetails.TEST_CHARCLASS,
@@ -215,15 +289,11 @@ QUnit.test(TEST_TAG + 'Setting Character Details - View Update', function (asser
 		currentStats = pageCharacterDetailsView.getJson()
 		assert.deepEqual(currentStats, expectedViewJson, 'Check updated character details are displayed in the view.');
 		console.log('Test stats set in view.');
-		statsSetCallback();
+		attributesCallback();
 	}
 
-	// Add an extra binding for when the set event is emitted
+	pageCharacterDetailsView.once(pageCharacterDetailsViewEvents.VIEW_STATS_SET, checkAttributes);
+
 	let testJson = TestCharacterDetails.testCharacterDetails.getJson();
-	pageCharacterDetailsView.on(pageCharacterDetailsViewEvents.VIEW_STATS_SET, checkStats)
-	// Ensure we have some options we can display
-	pageCharacterDetailsView.characterDetails.setCharacterClassOptions(TestCharacterDetails.TEST_CHARCLASSOPTIONS);
-	// Set some standard returned attribute scores
-	pageCharacterDetailsView.characterDetails.setAttributeScores(TestCharacterDetails.TEST_ATTRIBUTE_SCORES);
 	pageCharacterDetailsView.characterDetails.setFromJson(testJson);
 });

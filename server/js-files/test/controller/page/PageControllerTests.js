@@ -7,7 +7,7 @@ import jquery from 'libs/jquery-3.4.1.dev.js';
 import { jQueryUtils } from 'test/utils/jQueryUtils.js';
 
 import { TEST_SESSIONID, TEST_CHARUPDATE_DATA} from 'test/utils/data/TestSessionData.js';
-import { TEST_ATTRIBUTESCORES, TEST_SCORES, TEST_CHARDATA, TEST_ATTRIBUTE_SCORE_OPTIONS, TEST_CHARACTER_CLASS_OPTIONS} from 'test/utils/data/TestCharacterDetails.js';
+import { TEST_SCORES, TEST_CHARDATA, TEST_ATTRIBUTES_RESPONSE, TEST_CHARACTER_CLASS_OPTIONS} from 'test/utils/data/TestCharacterDetails.js';
 
 import { PageController, LOGIN_FAILURE_MESSAGE_PWD,
 	LOGIN_FAILURE_MESSAGE_PLAYER,
@@ -84,16 +84,19 @@ function tearDown () {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('PageContollerTests', { before: beforeAll, beforeEach: beforeEachTest, after: tearDown });
+QUnit.module('PageContollerTests', function(hooks) {
+hooks.before(beforeAll);
+hooks.beforeEach(beforeEachTest);
+hooks.after(tearDown);
 
-QUnit.skip(TEST_TAG + 'setupUI', function (assert) {
+QUnit.skip('setupUI', function (assert) {
 	pageView.destroyView();
 	assert.equal(pageView.getMainWindowJquery().length, 0, 'Check main window does not exist');
 	pageController.setupUI();
 	assert.equal(pageView.getMainWindowJquery().length, 1, 'Check main window exists');
 });
 
-QUnit.test(TEST_TAG + 'onceCharacterDetailsSet', function (assert) {
+QUnit.test('onceCharacterDetailsConfirmed', function (assert) {
 	// Clear the session character
 
 	let defaultCharacterDetails = new CharacterDetailsBuilder().withDefaults().build();
@@ -102,7 +105,7 @@ QUnit.test(TEST_TAG + 'onceCharacterDetailsSet', function (assert) {
 
 	// this must be called for this test to pass
 	let onConfirmCb = assert.async(1);
-	pageController.onceCharacterDetailsSet(onConfirmCb);
+	pageController.onceCharacterDetailsConfirmed(onConfirmCb);
 
 	pageController.characterDetails.setFromJson(DEFAULT_CHARACTERDETAILS.getJson())
 	characterDetails = pageController.characterDetails;
@@ -113,7 +116,7 @@ QUnit.test(TEST_TAG + 'onceCharacterDetailsSet', function (assert) {
 	assert.ok(characterDetailsExist, 'Check all character details have been set for the Session.');
 });
 
-QUnit.test(TEST_TAG + 'handlePlayerLoginError_blankJSON', function (assert) {
+QUnit.test('handlePlayerLoginError_blankJSON', function (assert) {
 	assert.throws ( () => {
 		pageController.handlePlayerLoginError({});
 	},
@@ -121,7 +124,7 @@ QUnit.test(TEST_TAG + 'handlePlayerLoginError_blankJSON', function (assert) {
 	'Check blank server data JSON throws a validation RangeError');
 });
 
-QUnit.test(TEST_TAG + 'handlePlayerLoginError_badPassword', function (assert) {
+QUnit.test('handlePlayerLoginError_badPassword', function (assert) {
 	// Otherwise you'll get a password error
 	pageChatView.clearMessageLog();
 	let serverData = { 'playerExists' : true };
@@ -130,14 +133,14 @@ QUnit.test(TEST_TAG + 'handlePlayerLoginError_badPassword', function (assert) {
 	assert.equal(pageChatView.getMessageLogValue(), expectedMessage);
 });
 
-QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_blankJSON', function (assert) {
+QUnit.test('handleCharacterUpdateResponse_blankJSON', function (assert) {
 	assert.throws( () => {
 		pageController.handleCharacterUpdateResponse({});
 	}, RangeError,
 	'Ensure a RangeError is thrown if no character upda data is returned.');
 });
 
-QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_noData', function (assert) {
+QUnit.test('handleCharacterUpdateResponse_noData', function (assert) {
 	// Invalid data
 	let messageData = { success: false };
 	let expectedMessage = '';
@@ -153,7 +156,7 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_noData', function (assert) 
 });
 
 
-QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_failed', function (assert) {
+QUnit.test('handleCharacterUpdateResponse_failed', function (assert) {
 	// 3. Valid data but Update failed
 	pageCharacterDetailsView.clearStatsInfoField();
 	let messageData =	JSON.parse(JSON.stringify(TEST_CHARUPDATE_DATA));
@@ -173,25 +176,26 @@ QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_failed', function (assert) 
 });
 
 
-QUnit.test(TEST_TAG + 'handleCharacterUpdateResponse_success', function (assert) {
+QUnit.test('handleCharacterUpdateResponse_success', function (assert) {
 	pageCharacterDetailsView.clearStatsInfoField();
 	let expectedMessage = serverContextTag + CHARACTER_UPDATE_SUCCESS_MESSAGE + '\n';
 	pageController.handleCharacterUpdateResponse(TEST_CHARUPDATE_DATA);
 	assert.equal(pageCharacterDetailsView.getStatsInfoFieldValue(), expectedMessage, 'Check we log update success if the response says so.');
 });
 
-QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
+QUnit.test('saveCharacterData_valid', function (assert) {
 	// 1. Valid update
 	pageCharacterDetailsView.clearStatsInfoField();
 	assert.ok(pageController.saveCharacterData(TEST_CHARDATA), 'Ensure we can save our test char data.');
 	let stats = pageCharacterDetailsView.characterDetails.getJson();
 	assert.deepEqual(stats, TEST_CHARDATA, 'Check our stats are set as expected');
+});
 
-	// 2. Bad data
-	// Copy the original and modify
+
+QUnit.test('saveCharacterData_badData', function (assert) {
 	var badResponse = {
 		'charname': 'roo',
-		'position' : { 'pos_x': 10, 'pos_y': 10 },
+		'position': { 'pos_x': 10, 'pos_y': 10 },
 		'health': 100,
 		'charclass': 'fighter',
 		'free_points': 5,
@@ -204,7 +208,10 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 		assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save bad character data.');
 	}
 
-	// 3. Empty data
+	assert.expect(2);
+});
+
+QUnit.test('saveCharacterData_emptyData', function (assert) {
 	var emptyData = {};
 	try {
 		assert.throws(pageController.saveCharacterData(emptyData),  new RangeError(),'Ensure we fail to save our bad data.');
@@ -212,7 +219,10 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 		assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save empty character data.');
 	}
 
-	// 4. Garbage data
+	assert.expect(2);
+});
+
+QUnit.test('saveCharacterData_garbageData', function (assert) {
 	var trashData = {'a': 'b', 'c': 'd'};
 	try {
 		pageController.saveCharacterData(trashData);
@@ -220,11 +230,10 @@ QUnit.test(TEST_TAG + 'saveCharacterData', function (assert) {
 		assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save crappy character data.');
 	}
 
-	// assert the total number of assertions
-	assert.expect(6);
+	assert.expect(1);
 });
 
-QUnit.test(TEST_TAG + 'handleMovementResponse', function (assert) {
+QUnit.test('handleMovementResponse', function (assert) {
 	let responseData = {'success': true};
 	let expectedMessage = serverContextTag + MOVEMENT_FAILURE_MESSAGE + '\n';
 
@@ -241,7 +250,7 @@ QUnit.test(TEST_TAG + 'handleMovementResponse', function (assert) {
 });
 
 /**
-QUnit.test(TEST_TAG + 'requestUserPassword_good', function (assert) {
+QUnit.test('requestUserPassword_good', function (assert) {
 	pageController.enableUI();
 	assert.ok(pageController.uiEnabled, 'UI Should be enabled before requesting user password.');
 
@@ -257,7 +266,7 @@ QUnit.test(TEST_TAG + 'requestUserPassword_good', function (assert) {
 	assert.ok(keyupBinding instanceof Function, 'Check message input keyup is bound to a Function');
 });
 
-QUnit.test(TEST_TAG + 'requestUserPassword_bad', function (assert) {
+QUnit.test('requestUserPassword_bad', function (assert) {
 	pageController.enableUI();
 	assert.ok(pageController.uiEnabled, 'UI Should be enabled before requesting user password.');
 
@@ -276,7 +285,7 @@ QUnit.test(TEST_TAG + 'requestUserPassword_bad', function (assert) {
 
  **/
 
-QUnit.test(TEST_TAG + 'disableUI', function (assert) {
+QUnit.test('disableUI', function (assert) {
 	pageController.enableUI();
 	assert.ok(pageController.uiEnabled, 'UI Should be enabled before attempting disable.');
 	pageController.disableUI();
@@ -293,7 +302,7 @@ QUnit.test(TEST_TAG + 'disableUI', function (assert) {
 /**
  * Test individual UI Elements get constructed / setup
  */
-QUnit.test(TEST_TAG + 'enableUI_setup', function (assert) {
+QUnit.test('enableUI_setup', function (assert) {
 	assert.notOk(pageController.isUIEnabled(), 'UI Should be disabled before attempting enable.');
 	pageController.enableUI();
 	assert.ok(pageController.isUIEnabled(), 'UI Should be enabled now.');
@@ -304,7 +313,7 @@ QUnit.test(TEST_TAG + 'enableUI_setup', function (assert) {
 });
 
 
-QUnit.test(TEST_TAG + 'enableUI_bindings', function (assert) {
+QUnit.test('enableUI_bindings', function (assert) {
 	assert.notOk(pageController.isUIEnabled(), 'UI Should be disabled before attempting enable.');
 	let sendMessageMappings = pageController.getPageChatView().getMappings(pageChatEvents.SEND_MESSAGE);
 	assert.equal(sendMessageMappings.length, 0, 'Check nothing is bound to SEND_MESSAGE');
@@ -319,4 +328,6 @@ QUnit.test(TEST_TAG + 'enableUI_bindings', function (assert) {
 	assert.equal(sendMessageMappings.length, 1, 'Check something is bound to SEND_MESSAGE');
 	submitStatsMappings = pageController.getPageChatView().getMappings(pageChatEvents.SEND_MESSAGE);
 	assert.equal(submitStatsMappings.length, 1, 'Check something is bound to SUBMIT_STATS');
+});
+
 });

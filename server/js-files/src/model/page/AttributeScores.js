@@ -1,5 +1,6 @@
 import ValidationHandler from '../../handler/ValidationHandler'
 
+export const ATTRIBUTES_NAME = 'attributes';
 export const MIN_VALUE_NAME = 'min_value';
 export const MAX_VALUE_NAME = 'max_value';
 export const FREEPOINTS_NAME = 'free_points';
@@ -31,8 +32,10 @@ export default class AttributeScores extends Map {
 		this.set(FREEPOINTS_NAME, freePoints);
 	}
 
-	static fromJson(attribsJson) {
-		console.debug('Building AttributeScores from JSON: ' + JSON.stringify(attribsJson));
+	static fromJson(json) {
+		console.debug('Building AttributeScores from JSON: ' + JSON.stringify(json));
+		let attribsJson = ValidationHandler.validateAndGetAttribute(json, ATTRIBUTES_NAME);
+
 		let minValue = ValidationHandler.validateAndGetAttribute(attribsJson, MIN_VALUE_NAME);
 		let maxValue = ValidationHandler.validateAndGetAttribute(attribsJson, MAX_VALUE_NAME);
 		let freePoints = ValidationHandler.validateAndGetAttribute(attribsJson, FREEPOINTS_NAME);
@@ -56,19 +59,25 @@ export default class AttributeScores extends Map {
 
 	getScoresJson() {
 		let output = {};
-		this.scores.forEach((value, key, map) => {
+		this.getScores().forEach((value, key, map) => {
 			output[key] = value;
 		});
 		console.debug('AttributeScoresJson : ' + JSON.stringify(output));
 		return output;
 	}
 
+	/**
+	 *
+	 * @returns a JSON representation of this object, with content keyed under a relevant name
+	 */
 	getJson() {
 		return {
-			[MIN_VALUE_NAME]:  this.get(MIN_VALUE_NAME),
-			[MAX_VALUE_NAME]:  this.get(MAX_VALUE_NAME),
-			[FREEPOINTS_NAME]:  this.get(FREEPOINTS_NAME),
-			[SCORES_NAME]: this.getScoresJson()
+			[ATTRIBUTES_NAME] : {
+				[MIN_VALUE_NAME]: this.get(MIN_VALUE_NAME),
+				[MAX_VALUE_NAME]: this.get(MAX_VALUE_NAME),
+				[FREEPOINTS_NAME]: this.get(FREEPOINTS_NAME),
+				[SCORES_NAME]: this.getScoresJson()
+			}
 		}
 	}
 
