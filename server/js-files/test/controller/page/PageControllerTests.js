@@ -32,6 +32,7 @@ import PageInventoryView from '../../../src/view/page/PageInventoryView'
 import PageLoginView from '../../../src/view/page/PageLoginView'
 import CharacterClassOptions from '../../../src/model/page/CharacterClassOptions'
 import CharacterDetailsBuilder from '../../../src/model/page/CharacterDetailsBuilder'
+import { ValidationHandler, DATA_UNDEFINED_ERROR, NO_ATTRIBUTES_ARG_ERROR, UNDEFINED_ARG_ERROR } from '../../../src/handler/ValidationHandler.js';
 
 var TEST_TAG = '|PAGE CONTROLLER|';
 
@@ -198,35 +199,33 @@ QUnit.module('PageContollerTests', { before: beforeAll, beforeEach: beforeEachTe
 			'attributes': {}
 		};
 
-		try {
-			assert.throws(pageController.saveCharacterData(badResponse), new RangeError(), 'Ensure we fail to save our bad data.');
-		} catch (err) {
-			assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save bad character data.');
-		}
+		assert.throws(
+		() => { pageController.saveCharacterData(badResponse)},
+		RangeError,
+		'Check a RangeError is thrown if we try to save bad character data.');
 
 		assert.expect(2);
 	});
 
 	QUnit.test('saveCharacterData_emptyData', function (assert) {
-		var emptyData = {};
-		try {
-			assert.throws(pageController.saveCharacterData(emptyData),  new RangeError(),'Ensure we fail to save our bad data.');
-		} catch (err) {
-			assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save empty character data.');
-		}
+		const emptyData = {};
+		assert.throws(
+		() => { pageController.saveCharacterData(emptyData) },
+		DATA_UNDEFINED_ERROR,
+		'Check a RangeError is thrown if we try to save an empty object.');
 
 		assert.expect(2);
 	});
 
 	QUnit.test('saveCharacterData_garbageData', function (assert) {
 		var trashData = {'a': 'b', 'c': 'd'};
-		try {
-			pageController.saveCharacterData(trashData);
-		} catch (err) {
-			assert.deepEqual(err, new RangeError(INVALID_JSON_CHARACTER_DATA), 'Check a RangeError is thrown if we try to save crappy character data.');
-		}
 
-		assert.expect(1);
+		assert.throws(() => {
+			pageController.saveCharacterData(trashData);
+		}, RangeError,
+		'Check a RangeError is thrown if we try to save crappy character data.');
+
+		assert.expect(2);
 	});
 
 	QUnit.test('handleMovementResponse', function (assert) {

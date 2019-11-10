@@ -311,8 +311,7 @@ export default class PageController {
 		if (CharacterDetails.validateJson(detailsJson)) {
 			// Set the underlying model so the view reacts
 			let charDetails = this.pageCharacterDetailsView.getCharacterDetails();
-			let attributesJson = charDetails.extractAttributesJson(charDetails.getJson());
-			charDetails.setAttributesFromJson(attributesJson);
+			charDetails.setFromJson(detailsJson);
 			return true;
 		} else {
 			throw new RangeError(INVALID_JSON_CHARACTER_DATA);

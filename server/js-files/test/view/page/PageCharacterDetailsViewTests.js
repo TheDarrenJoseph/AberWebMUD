@@ -150,7 +150,7 @@ QUnit.module('PageCharacterDetailsViewTests', { before: beforeAll, beforeEach: b
 
 		// Ensure we have some valid data in the view fields
 		// Update the underlying data model, this should update the view.
-		let attributesJson = charDetails.extractAttributesJson(TestCharacterDetails.TEST_CHARDATA);
+		let attributesJson = viewCharDetails.extractAttributesJson(TestCharacterDetails.TEST_CHARDATA);
 		viewCharDetails.setAttributesFromJson(attributesJson);
 
 		// Bind to the testing func
@@ -275,6 +275,10 @@ QUnit.module('PageCharacterDetailsViewTests', { before: beforeAll, beforeEach: b
 
 		let currentStats = pageCharacterDetailsView.getJson();
 		assert.deepEqual(currentStats, EXPECTED_DEFAULT_VIEW_JSON, 'Check character details are their defaults in the view.')
+
+		// Ensure we have some character class options to select from
+		pageCharacterDetailsView.characterDetails.setCharacterClassOptions(TestCharacterDetails.TEST_CHARCLASSOPTIONS)
+		assertDefaultCharclassOptions(assert);
 
 		let attributesCallback = assert.async(1);
 
