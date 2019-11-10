@@ -42,27 +42,32 @@ function beforeEachTest (assert) {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll })
+QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll }, () => {
 
-/**
- * GIVEN I have a new GameController
- * WHEN I handle the player login data from the server's login success response
- * THEN I expect the background client session model to update to reflect the values returned
- */
-QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
-	var sessionInfoJson = Session.ActiveSession.getSessionInfoJSON();
-	var blankSessionJson = {
-		'sessionId': null,
-		'username': ""
-	};
-	assert.deepEqual(sessionInfoJson, blankSessionJson, 'Check session info JSON is blank');
+	/**
+	 * GIVEN I have a new GameController
+	 * WHEN I handle the player login data from the server's login success response
+	 * THEN I expect the background client session model to update to reflect the values returned
+	 */
+	QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
+		var sessionInfoJson = Session.ActiveSession.getSessionInfoJSON();
+		var blankSessionJson = {
+			'sessionId': null,
+			'username': ""
+		};
+		assert.deepEqual(sessionInfoJson, blankSessionJson, 'Check session info JSON is blank');
 
-	var loginData = {'sessionId': TEST_SESSIONID, 'username' : TEST_USERNAME};
-	let playerLoginPromise = gameController.handlePlayerLogin(loginData);
-	let playerDataUpdated = assert.async(1);
-	playerLoginPromise.then( () => {
-		var resultingJson = Session.ActiveSession.getSessionInfoJSON();
-		assert.deepEqual(resultingJson, { 'sessionId': loginData.sessionId, 'username': loginData.username }, 'Check session info JSON is now set.');
-		playerDataUpdated();
+		var loginData = { 'sessionId': TEST_SESSIONID, 'username': TEST_USERNAME };
+		let playerLoginPromise = gameController.handlePlayerLogin(loginData);
+		let playerDataUpdated = assert.async(1);
+		playerLoginPromise.then(() => {
+			var resultingJson = Session.ActiveSession.getSessionInfoJSON();
+			assert.deepEqual(resultingJson, {
+				'sessionId': loginData.sessionId,
+				'username': loginData.username
+			}, 'Check session info JSON is now set.');
+			playerDataUpdated();
+		});
 	});
+
 });

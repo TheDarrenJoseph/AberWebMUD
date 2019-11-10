@@ -51,45 +51,50 @@ function afterEachTest () {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('PixiViewTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll, afterEach : afterEachTest  });
+QUnit.module('PixiViewTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll, afterEach : afterEachTest  }, () => {
 
-/**
- * Given that we've created a new PixiView
- * When we setup the UI
- * Then there should be a console button that's setup but invisible
- */
-QUnit.test(TEST_TAG + 'new_PixiView_consoleButton', function (assert) {
-	//There should be a console Button
-	let controlsContainer = pixiView.controlsContainer;
-	assert.ok(controlsContainer instanceof PIXI.Container, 'Check the controls container is a PIXI.Container');
-	assert.ok(controlsContainer.visible, 'Check the controls container is visible.');
+	/**
+	 * Given that we've created a new PixiView
+	 * When we setup the UI
+	 * Then there should be a console button that's setup but invisible
+	 */
+	QUnit.test(TEST_TAG + 'new_PixiView_consoleButton', function (assert) {
+		//There should be a console Button
+		let controlsContainer = pixiView.controlsContainer;
+		assert.ok(controlsContainer instanceof PIXI.Container, 'Check the controls container is a PIXI.Container');
+		assert.ok(controlsContainer.visible, 'Check the controls container is visible.');
 
-	let setupDoneAsync = assert.async(1);
-	function setupDone() {
-		setupDoneAsync();
-		let consoleButton = controlsContainer.getChildByName(CONSOLE_BUTTON_NAME);
-		assert.ok(consoleButton instanceof PIXI.Sprite, 'Check the console button is a Pixi Sprite');
-		assert.notOk(pixiView.isParentContainerVisible(), 'Check nothing in the PixiView is visible by default');
-	}
-	pixiView.setupUI().then(setupDone);
-});
+		let setupDoneAsync = assert.async(1);
 
-/**
- * Given that we've created a new PixiView
- * Then there should be health bar that's setup but invisible
- */
-QUnit.test(TEST_TAG + 'new_PixiView_statBars', function (assert) {
-	// We should have 1 stat bar which is the health bar
-	let statBars = pixiView.statBars;
-	assert.ok(statBars.length == 1, 'Check there is 1 item in the stat bars array');
-	assert.ok(statBars[0] instanceof PixiStatBar);
+		function setupDone () {
+			setupDoneAsync();
+			let consoleButton = controlsContainer.getChildByName(CONSOLE_BUTTON_NAME);
+			assert.ok(consoleButton instanceof PIXI.Sprite, 'Check the console button is a Pixi Sprite');
+			assert.notOk(pixiView.isParentContainerVisible(), 'Check nothing in the PixiView is visible by default');
+		}
 
-	// Grab it an check it's in the right spot
-	let healthBar = statBars[0];
-	let thirdMapWindowSize = Math.floor(TEST_WINDOW_SIZE / 3);
-	let healthBarPosX =  TEST_WINDOW_SIZE- thirdMapWindowSize - 2;;
-	let healthBarPosY =  0;
-	assert.equal(healthBar.posX, healthBarPosX);
-	assert.equal(healthBar.posY, healthBarPosY);
-	assert.notOk(healthBar.isVisible(), 'Check by default the Health Bar is hidden.');
+		pixiView.setupUI().then(setupDone);
+	});
+
+	/**
+	 * Given that we've created a new PixiView
+	 * Then there should be health bar that's setup but invisible
+	 */
+	QUnit.test(TEST_TAG + 'new_PixiView_statBars', function (assert) {
+		// We should have 1 stat bar which is the health bar
+		let statBars = pixiView.statBars;
+		assert.ok(statBars.length == 1, 'Check there is 1 item in the stat bars array');
+		assert.ok(statBars[0] instanceof PixiStatBar);
+
+		// Grab it an check it's in the right spot
+		let healthBar = statBars[0];
+		let thirdMapWindowSize = Math.floor(TEST_WINDOW_SIZE / 3);
+		let healthBarPosX = TEST_WINDOW_SIZE - thirdMapWindowSize - 2;
+		;
+		let healthBarPosY = 0;
+		assert.equal(healthBar.posX, healthBarPosX);
+		assert.equal(healthBar.posY, healthBarPosY);
+		assert.notOk(healthBar.isVisible(), 'Check by default the Health Bar is hidden.');
+	});
+
 });

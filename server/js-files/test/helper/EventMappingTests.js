@@ -25,83 +25,87 @@ function beforeEachTest (assert) {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('EventMappingTests', { before: beforeAll, beforeEach: beforeEachTest });
+QUnit.module('EventMappingTests', { before: beforeAll, beforeEach: beforeEachTest }, () => {
 
-QUnit.test(
-TEST_TAG + 'testMapping_noData', function (assert) {
+	QUnit.test(
+	TEST_TAG + 'testMapping_noData', function (assert) {
 
-	let helloDone = false;
-	function hello() {
-		helloDone = true;
-	}
+		let helloDone = false;
 
-	// Bind
-	eventTester.on(TEST_EVENT_NAME,hello);
-	eventTester.emit(TEST_EVENT_NAME);
+		function hello () {
+			helloDone = true;
+		}
 
-	assert.ok(helloDone, 'Ensure the callback was performed.');
-});
+		// Bind
+		eventTester.on(TEST_EVENT_NAME, hello);
+		eventTester.emit(TEST_EVENT_NAME);
 
+		assert.ok(helloDone, 'Ensure the callback was performed.');
+	});
 
-QUnit.test(
-TEST_TAG + 'testMapping_noData_multiple', function (assert) {
+	QUnit.test(
+	TEST_TAG + 'testMapping_noData_multiple', function (assert) {
 
-	let helloDone = assert.async(1);
-	let helloDone2 = assert.async(1);
+		let helloDone = assert.async(1);
+		let helloDone2 = assert.async(1);
 
-	eventTester.on(TEST_EVENT_NAME,helloDone);
-	eventTester.on(TEST_EVENT_NAME,helloDone2);
-	eventTester.emit(TEST_EVENT_NAME);
-});
+		eventTester.on(TEST_EVENT_NAME, helloDone);
+		eventTester.on(TEST_EVENT_NAME, helloDone2);
+		eventTester.emit(TEST_EVENT_NAME);
+	});
 
-QUnit.test(
-TEST_TAG + 'testMapping_data', function (assert) {
+	QUnit.test(
+	TEST_TAG + 'testMapping_data', function (assert) {
 
-	let helloDone = false;
-	function hello(data) {
-		assert.equal(data, TEST_EVENT_DATA, 'Check function called with test data');
-		helloDone = true;
-	}
+		let helloDone = false;
 
-	// Bind
-	eventTester.on(TEST_EVENT_NAME,hello);
-	eventTester.emit(TEST_EVENT_NAME, TEST_EVENT_DATA);
+		function hello (data) {
+			assert.equal(data, TEST_EVENT_DATA, 'Check function called with test data');
+			helloDone = true;
+		}
 
-	assert.ok(helloDone, 'Ensure the callback was performed.');
-});
+		// Bind
+		eventTester.on(TEST_EVENT_NAME, hello);
+		eventTester.emit(TEST_EVENT_NAME, TEST_EVENT_DATA);
 
-QUnit.test(
-TEST_TAG + 'testMapping_singleShot', function (assert) {
+		assert.ok(helloDone, 'Ensure the callback was performed.');
+	});
 
-	let helloDone = false;
-	function hello() {
-		helloDone = true;
-	}
+	QUnit.test(
+	TEST_TAG + 'testMapping_singleShot', function (assert) {
 
-	// Bind
-	eventTester.once(TEST_EVENT_NAME,hello);
-	eventTester.emit(TEST_EVENT_NAME);
+		let helloDone = false;
 
-	assert.ok(helloDone, 'Ensure the callback was performed.');
+		function hello () {
+			helloDone = true;
+		}
 
-	// Reset helloDone
-	helloDone = false;
-	eventTester.emit(TEST_EVENT_NAME);
-	assert.notOk(helloDone, 'Ensure the callback was not performed a second time.');
-});
+		// Bind
+		eventTester.once(TEST_EVENT_NAME, hello);
+		eventTester.emit(TEST_EVENT_NAME);
 
-QUnit.test(
-TEST_TAG + 'testMapping_on_unsupported_event', function (assert) {
-	assert.throws(() => { eventTester.on('BANANA', () => {}) },
-	RangeError,
-	'Ensure trying to on map to an unsupported event throws a RangeError'
-	);
-});
+		assert.ok(helloDone, 'Ensure the callback was performed.');
 
-QUnit.test(
-TEST_TAG + 'testMapping_on_unsupported_event', function (assert) {
-	assert.throws(() => { eventTester.once('BANANA', () => {}) },
-	RangeError,
-	'Ensure trying to once map to an unsupported event throws a RangeError'
-	);
+		// Reset helloDone
+		helloDone = false;
+		eventTester.emit(TEST_EVENT_NAME);
+		assert.notOk(helloDone, 'Ensure the callback was not performed a second time.');
+	});
+
+	QUnit.test(
+	TEST_TAG + 'testMapping_on_unsupported_event', function (assert) {
+		assert.throws(() => { eventTester.on('BANANA', () => {}) },
+		RangeError,
+		'Ensure trying to on map to an unsupported event throws a RangeError'
+		);
+	});
+
+	QUnit.test(
+	TEST_TAG + 'testMapping_on_unsupported_event', function (assert) {
+		assert.throws(() => { eventTester.once('BANANA', () => {}) },
+		RangeError,
+		'Ensure trying to once map to an unsupported event throws a RangeError'
+		);
+	});
+
 });
