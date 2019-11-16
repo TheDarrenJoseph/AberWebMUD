@@ -10,11 +10,10 @@ STATIC_FOLDER = '../../static'
 
 
 class FlaskHandler:
-    gameController = None
     _APP = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
 
-    def __init__(self, gameController):
-        self.gameController = gameController
+    def __init__(self, game_controller):
+        self.game_controller = game_controller
         self._APP.add_url_rule('/', '/', self.main, methods=['GET'])
         self._APP.add_url_rule('/test', 'test', self.test, methods=['GET'])
         self._APP.add_url_rule('/attributes', 'attributes', self.get_attributes, methods=['GET'])
@@ -92,7 +91,7 @@ class FlaskHandler:
 
     def get_attributes_class_options(self):
         if FlaskHandler.check_authentication(request):
-            class_options = self.gameController.get_attributes_class_options()
+            class_options = self.game_controller.get_attributes_class_options()
             if class_options is not None:
                 logging.debug('GET /character-class-options - RESPONSE\n' + str(class_options))
                 return class_options
@@ -106,7 +105,7 @@ class FlaskHandler:
             username = FlaskHandler.get_active_username(request)
             try:
                 sid = self.get_sid(request)
-                player_json = self.gameController.validate_and_get_player_json(username)
+                player_json = self.game_controller.validate_and_get_player_json(username)
                 if player_json is not None:
                     logging.debug('GET /player - RESPONSE\n' + str(player_json))
                     return player_json

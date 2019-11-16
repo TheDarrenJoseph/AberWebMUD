@@ -14,7 +14,15 @@ from pyfiles.model.session import SESSION_ID_JSON_NAME, SESSION_USERNAME_JSON_NA
 
 class SocketHandler:
 
-    gameController = None
+    def __init__(self, _APP, game_controller, **kwargs):
+        self.flaskApp = _APP
+        self.game_controller = game_controller
+        logging.info('Creating new SocketIO handler.. ')
+        self.socketHandler = SocketIO(_APP, **kwargs)
+        logging.info('Setting up SocketIO event callbacks..')
+        self.hookup_callbacks()
+        logging.info('Running SocketIO/Flask Application..')
+        self.socketHandler.run(_APP)
 
     def get_rooms(self):
         return self.socketHandler.server.rooms(sid=request.sid)
@@ -350,15 +358,3 @@ class SocketHandler:
                 logging.info('Creating a new player! ' + str(username) + str(password))
                 if playerController.new_player(username, password) is not None:
                     self.login_user(requested_sid, username)
-
-
-    def __init__(self, _APP, gameController, **kwargs):
-        self.flaskApp = _APP
-        self.gameController = gameController
-        logging.info('Creating new SocketIO handler.. ')
-        self.gameController = gameController
-        self.socketHandler = SocketIO(_APP, **kwargs)
-        logging.info('Setting up SocketIO event callbacks..')
-        self.hookup_callbacks()
-        logging.info('Running SocketIO/Flask Application..')
-        self.socketHandler.run(_APP)
