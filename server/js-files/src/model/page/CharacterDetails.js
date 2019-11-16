@@ -96,6 +96,10 @@ export default class CharacterDetails extends EventMapping {
 		return this.detailsConfirmed;
 	}
 
+	setDetailsConfirmed(detailsConfirmed) {
+		this.detailsConfirmed = detailsConfirmed;
+	}
+
 	onceCharacterDetailsConfirmed (onConfirmedCb) {
 		// Single-shot mapping for setting of the details to something
 		this.once(EVENTS.CONFIRM_DETAILS, onConfirmedCb);

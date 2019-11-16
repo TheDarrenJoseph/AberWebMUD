@@ -16,10 +16,10 @@ import 'test/controller/pixi/PixiControllerTests.js'
 import 'test/model/page/CharacterClassOptionsTests.js'
 import 'test/model/page/CharacterDetailsBuilderTests.js'
 import 'test/model/page/CharacterDetailsTests.js'
-import 'test/view/pixi/PixiMapViewTests.js'
-import 'test/view/pixi/PixiViewTests.js'
 import 'test/view/page/PageCharacterDetailsViewTests.js'
 import 'test/view/page/PageChatViewTests.js'
+import 'test/view/pixi/PixiMapViewTests.js'
+import 'test/view/pixi/PixiViewTests.js'
 QUnit.testStart( function(testDetails) {
 	console.info('=== ' + testDetails.module + ' ' + testDetails.name + '===');
 });

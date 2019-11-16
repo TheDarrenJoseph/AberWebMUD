@@ -1,7 +1,8 @@
 import logging, pdb
 
-import flaskHandler
+from pyfiles.flask import flaskHandler
 from pyfiles import playerController, characterController
+from pyfiles.controller import gameController
 from pyfiles.db import database
 #from pyfiles.db import player
 
@@ -10,8 +11,9 @@ from pyfiles.db import database
 
 #Sets up players, maps, etc
 from pyfiles.sockets.socketHandler import SocketHandler
+from pyfiles.flask.flaskHandler import FlaskHandler
 
-from pony.orm import  db_session
+from pony.orm import db_session
 
 def setup_instance(_dbHandler):
 
@@ -38,10 +40,8 @@ if __name__ == "__main__":
 
     setup_instance(DB_HANDLER) #Run DB and data setup
 
-    # SOCKET_HANDLER = SocketIO(flaskHandler._APP, engineio_logger=True)
-    logging.info('Initialising SocketHandler..')
-    SOCKET_HANDLER = pdb.runcall(SocketHandler(flaskHandler._APP, logger=False, engineio_logger=False))
-    SOCKET_IO = SOCKET_HANDLER.socketHandler
+    logging.info('Initialising GameController..')
+    GAME_CONTROLLER = gameController.GameController()
 
     #DB_HANDLER.show_tables()
 

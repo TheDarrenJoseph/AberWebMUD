@@ -312,7 +312,15 @@ export default class PageController {
 			// Set the underlying model so the view reacts
 			let charDetails = this.pageCharacterDetailsView.getCharacterDetails();
 			charDetails.setFromJson(detailsJson);
-			return true;
+
+			let attribScores = charDetails.getAttributeScores();
+
+			if (charDetails.characterDetailsExist() && attribScores.isAllFreePointsSpent() ) {
+				charDetails.setDetailsConfirmed(true);
+				return true;
+			} else {
+				return false;
+			}
 		} else {
 			throw new RangeError(INVALID_JSON_CHARACTER_DATA);
 		}

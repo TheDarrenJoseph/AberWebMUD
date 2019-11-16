@@ -119,6 +119,18 @@ export default class AttributeScores extends Map {
 		}
 	}
 
+	/**
+	 * Checks whether these attributes have been properly initialised (Non-zero)
+	 * and that all free points have been spent
+ 	 */
+	isAllFreePointsSpent() {
+		let minVal = 1;
+		let maxVal = this.getMaximumAttributeValue();
+		this.validateAttributes(minVal, maxVal);
+		let freePoints = this.getFreePoints();
+		return freePoints === 0;
+	}
+
 	validate() {
 		if (this.size > 0) {
 			let minVal = this.getMinimumAttributeValue();

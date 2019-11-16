@@ -5,6 +5,8 @@ from pyfiles import crypto, characterController
 from pony.orm.core import ObjectNotFound
 from pony.orm import db_session
 
+NO_PLAYER_FOUND = ValueError('Unable to find a player with that username')
+
 #Checks for the Player in the DB using PonyORM
 @db_session
 def find_player(username: str) -> player.Player or None:
@@ -14,6 +16,15 @@ def find_player(username: str) -> player.Player or None:
     except ObjectNotFound:
         logging.error('Could not find a Player for the given username: ' + username)
         return None
+
+#Checks an unhashed password against the salt/hash in the DB using passlib
+def check_player_password(username, password):
+    found_player = find_player(username)
+    valid_password = False
+    if found_player is not None:
+        valid_password = crypto.verify_password(password, found_player.password)
+        return found_player, valid_password
+    return False, valid_password
 
 @db_session
 def get_player_pos(username: str) -> (int, int) or None:
@@ -62,6 +73,22 @@ def get_json(username: str) -> dict or None:
     if find_player(username) is not None:
         return player.Player[username].get_json()
     return None
+
+"""
+GIVEN A Player has logged in
+WHEN They request their Player details
+AND Character details are invalid (not set?)
+THEN a ValueError is thrown to indicate this
+OTHERWISE the data, or None is returned as normal
+"""
+@db_session
+def validate_and_get_json(username: str) -> dict or None:
+    if find_player(username) is not None:
+        this_player = player.Player[username]
+        this_player.validate_character_details()
+        return get_json()
+    else:
+        raise NO_PLAYER_FOUND
 
 #Creates a new player database object
 @db_session

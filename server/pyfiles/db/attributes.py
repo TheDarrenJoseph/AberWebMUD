@@ -14,6 +14,7 @@ ATTRIBUTE_FREEPOINTS_JSON_NAME = 'free_points'
 class Attributes(db_instance.DatabaseInstance._database.Entity):
     # 1-1 Reverse attribute
     character = Required('Character', unique=True)
+    # min is zero (default) but technically invalid
     min_value = Required(int, default=0)
     max_value = Required(int, default=100)
     free_points = Required(int, default=5)
@@ -32,6 +33,13 @@ class Attributes(db_instance.DatabaseInstance._database.Entity):
                                           description='Your ability to move undetected by other creatures and players.')
         ]
         return self
+
+    def validate_details(self):
+        for score in self.attribute_scores:
+            if (score.value <= self.min_value or score.value > self.max_value):
+                raise ValueError('Score value for score: ' + score.name + ' : ' + score.value +
+                                 ' must be within bounds: [' + self.min_value + ' - ' + self.max_value + ']')
+        return True
 
     @db_session
     def get_attribute(self, name):

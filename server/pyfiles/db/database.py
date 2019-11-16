@@ -11,16 +11,6 @@ class DatabaseHandler():
     def db_exists(self) -> bool:
         return self._db_instance._database is not None
 
-    #Checks an unhashed password against the salt/hash in the DB using passlib
-    @staticmethod
-    def check_player_password(username, password) -> bool:
-        found_player = playerController.find_player(username)
-
-        if found_player is not None:
-            return (True, crypto.verify_password(password, found_player.password))
-        return (False, False)
-
-
     @pony.orm.db_session
     def print_version(self) -> None:
         """ Logs DB build info to logging """

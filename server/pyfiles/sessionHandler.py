@@ -103,11 +103,11 @@ def contains_session_json(data: dict) -> bool:
     # The client should pass this param in
     return 'sessionJson' in data and 'sessionId' in data['sessionJson'] and 'username' in data['sessionJson']
 
-def extract_session_json(self, json_data):
+def extract_session_json(json_data):
     return json_data[session.SESSION_JSON_NAME]
 
 # Returns True if there's a connected or active session
-def is_sessionid_connected_or_active(self, sid):
+def is_sessionid_connected_or_active(sid):
     logging.info('Validating SID: ')
     logging.info(sid)
     if not connected_session_exists(sid) and not active_session_exists(sid):

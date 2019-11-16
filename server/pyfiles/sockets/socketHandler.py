@@ -11,7 +11,10 @@ from pyfiles.model import overworld, characterClass
 from pyfiles.db import database, attributes
 from pyfiles.model.session import SESSION_ID_JSON_NAME, SESSION_USERNAME_JSON_NAME, SESSION_JSON_NAME
 
+
 class SocketHandler:
+
+    gameController = None
 
     def get_rooms(self):
         return self.socketHandler.server.rooms(sid=request.sid)
@@ -64,6 +67,8 @@ class SocketHandler:
             logging.info(self.get_rooms())
             emit('invalid-sid', sid, room=request.sid)
 
+    def request_character_details(self, sid):
+        emit('request-character-details', sid, room=request.sid)
 
     def get_session_id(self, session_json):
         session_json = sessionHandler.extract_session_json(session_json)
@@ -327,7 +332,7 @@ class SocketHandler:
             logging.info('Session Exists!')
         else:
             #Calling the static method to check player details
-            auth_result = database.DatabaseHandler.check_player_password(username, password)
+            auth_result = playerController.check_player_password(username, password)
             found_player = auth_result[0]
             password_correct = auth_result[1]
 
@@ -347,13 +352,13 @@ class SocketHandler:
                     self.login_user(requested_sid, username)
 
 
-
-    def __init__(self, _APP, **kwargs) -> SocketIO:
+    def __init__(self, _APP, gameController, **kwargs):
         self.flaskApp = _APP
+        self.gameController = gameController
         logging.info('Creating new SocketIO handler.. ')
+        self.gameController = gameController
         self.socketHandler = SocketIO(_APP, **kwargs)
         logging.info('Setting up SocketIO event callbacks..')
         self.hookup_callbacks()
         logging.info('Running SocketIO/Flask Application..')
         self.socketHandler.run(_APP)
-        return None
