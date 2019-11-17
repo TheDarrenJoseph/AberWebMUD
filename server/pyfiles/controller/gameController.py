@@ -18,7 +18,19 @@ class GameController:
     def __init__(self):
         self.flask_handler = flaskHandler.FlaskHandler(self)
         flask_app = self.flask_handler.get_flask_app()
-        self.socket_handler = socketHandler.SocketHandler(flask_app, self, logger=False, engineio_logger=False)
+        self.flask_socketio_server = socketHandler.SocketHandler(flask_app, self, logger=False, engineio_logger=False)
+
+    """
+        Registers all network based callback functions (HTTP Endpoints, SocketIO events)
+    """
+    def register_callbacks(self):
+        logging.info('Registering SocketIO event callbacks..')
+        self.flask_socketio_server.register_callbacks()
+        logging.info('Registering Flask endpoints..')
+        self.flask_handler.register_endpoints()
+
+    def run_server(self):
+        self.flask_socketio_server.run_server()
 
     @staticmethod
     def get_attributes_class_options():
@@ -43,5 +55,4 @@ class GameController:
             return json
         except ValueError as error:
             if error == CHARACTER_VALIDATION_ERROR:
-                logging.debug(self.socket_handler)
-                self.socket_handler.request_character_details()
+                logging.info('Player data is invalid, not returning: ' + str(error))

@@ -10,10 +10,12 @@ STATIC_FOLDER = '../../static'
 
 
 class FlaskHandler:
-    _APP = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
 
     def __init__(self, game_controller):
+        self._APP = Flask(__name__, static_folder=STATIC_FOLDER, template_folder=TEMPLATE_FOLDER)
         self.game_controller = game_controller
+
+    def register_endpoints(self):
         self._APP.add_url_rule('/', '/', self.main, methods=['GET'])
         self._APP.add_url_rule('/test', 'test', self.test, methods=['GET'])
         self._APP.add_url_rule('/attributes', 'attributes', self.get_attributes, methods=['GET'])

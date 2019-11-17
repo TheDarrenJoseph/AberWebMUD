@@ -103,7 +103,7 @@ export class GameControllerClass {
 		//	pageController.handleCharacterClassOptions(data)
 		//});
 
-		this.socketHandler.bind('request-character-details', this.handleRequestCharacterDetails);
+		this.socketHandler.bind('request-character-details', () => { this.handleRequestCharacterDetails() } );
 
 		//  Request for existing password
 		this.socketHandler.bind('request-password',  (username) => {

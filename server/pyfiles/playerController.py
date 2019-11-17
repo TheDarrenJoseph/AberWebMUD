@@ -12,14 +12,20 @@ NO_PLAYER_FOUND = ValueError('Unable to find a player with that username')
 def find_player(username: str) -> player.Player or None:
     try:
         return player.Player[username]
-
     except ObjectNotFound:
         logging.error('Could not find a Player for the given username: ' + username)
         return None
 
+def find_player_or_throw(username: str) -> player.Player :
+    this_player = find_player(username)
+    if this_player is not None:
+        return this_player
+    else:
+        raise NO_PLAYER_FOUND
+
 #Checks an unhashed password against the salt/hash in the DB using passlib
 def check_player_password(username, password):
-    found_player = find_player(username)
+    found_player = find_player_or_throw(username)
     valid_password = False
     if found_player is not None:
         valid_password = crypto.verify_password(password, found_player.password)
@@ -28,39 +34,34 @@ def check_player_password(username, password):
 
 @db_session
 def get_player_pos(username: str) -> (int, int) or None:
-    if find_player(username) is not None:
-        this_player = player.Player[username]
-
-        if this_player is not None:
-            position = this_player.character.position
-            return(position.pos_x, position.pos_y)
-        return None
+    this_player = find_player_or_throw(username)
+    position = this_player.character.position
+    return(position.pos_x, position.pos_y)
 
 @db_session
 def get_player_character(username: str):
-    if find_player(username) is not None:
-        this_player = player.Player[username]
-        this_character = this_player.get_character()
-        if this_character is not None:
-            return this_character
-        else:
-            logging.error('Could not find a player character for the username: ' + username)
-            return None
+    this_player = find_player_or_throw(username)
+    this_character = this_player.get_character()
+    if this_character is not None:
+        return this_character
+    else:
+        return None
 
 @db_session
 def get_character_attributes(username: str):
     this_character = get_player_character(username)
     if this_character is not None:
         return this_character.get_attributes()
+    else:
+        raise None
 
 @db_session
 def get_character_json(username: str) -> dict or None:
-    if find_player(username) is not None:
-        this_player = player.Player[username]
-        if this_player.character is not None:
-            this_json = this_player.character.get_json()
-            logging.info('Found character JSON: '+str(this_json))
-            return this_json
+    this_player = find_player_or_throw(username)
+    if this_player.character is not None:
+        this_json = this_player.character.get_json()
+        logging.info('Found character JSON: '+str(this_json))
+        return this_json
     else:
         logging.error('Could not find a character for the given username: ' + username)
     return {}
@@ -74,6 +75,11 @@ def get_json(username: str) -> dict or None:
         return player.Player[username].get_json()
     return None
 
+
+@db_session
+def validate_character_details(username):
+    find_player_or_throw(username).get_character().validate_details()
+
 """
 GIVEN A Player has logged in
 WHEN They request their Player details
@@ -83,12 +89,7 @@ OTHERWISE the data, or None is returned as normal
 """
 @db_session
 def validate_and_get_json(username: str) -> dict or None:
-    if find_player(username) is not None:
-        this_player = player.Player[username]
-        this_player.validate_character_details()
-        return get_json()
-    else:
-        raise NO_PLAYER_FOUND
+    find_player_or_throw(username).get_json()
 
 #Creates a new player database object
 @db_session

@@ -26,9 +26,6 @@ class Player(db_instance.DatabaseInstance._database.Entity):
         if this_character is not None:
             self.character = this_character
 
-    def validate_character_details(self):
-        self.character.validate_details()
-
     """         
         Returns client-compatible JSON of this object
     """

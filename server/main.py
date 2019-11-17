@@ -42,6 +42,8 @@ if __name__ == "__main__":
 
     logging.info('Initialising GameController..')
     GAME_CONTROLLER = gameController.GameController()
+    GAME_CONTROLLER.register_callbacks()
+    GAME_CONTROLLER.run_server()
 
     #DB_HANDLER.show_tables()
 
