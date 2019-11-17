@@ -11,6 +11,7 @@ import {
 	FREEPOINTS_NAME,
 	SCORES_NAME
 } from 'src/model/page/AttributeScores.js'
+import { ATTRIBUTES_NAME } from './AttributeScores'
 
 export var CHARACTER_UPDATE_ATTRIBS = ['success', 'character']
 export var CHARACTER_DATA_ATTRIBS = ['charname', 'pos_x', 'pos_y', 'health', 'charclass', 'free_points', 'attributes']
@@ -21,6 +22,7 @@ export var CHARACTER_DATA_ATTRIBS = ['charname', 'pos_x', 'pos_y', 'health', 'ch
 // TODO This does not belong in the model, refactor/dynamically generate!
 export const EVENTS = {
 	SET_DETAILS: 'set-details', // For full setter calls
+	CONFIRM_DETAILS: 'confirm-details', // For first-time setting of stats, in response to server confirmation
 	SET_ATTRIB_SCORES: 'set-attribute-scores', //Any attrib score updates
 	SET_CLASS_OPTIONS: 'set-class-options'  // Any class option update
 }
@@ -86,6 +88,21 @@ export default class CharacterDetails extends EventMapping {
 		this.attributeClassOptions = characterClassOptions;
 		this.defaultAttributeScores = new AttributeScores(attributeScores, minScoreValue, maxScoreValue, freePoints);
 		this.attributeScores = new AttributeScores(attributeScores, minScoreValue, maxScoreValue, freePoints);
+		// We cannot trust our character details until they are confirmed by the server
+		this.detailsConfirmed = false;
+	}
+
+	isDetailsConfirmed() {
+		return this.detailsConfirmed;
+	}
+
+	setDetailsConfirmed(detailsConfirmed) {
+		this.detailsConfirmed = detailsConfirmed;
+	}
+
+	onceCharacterDetailsConfirmed (onConfirmedCb) {
+		// Single-shot mapping for setting of the details to something
+		this.once(EVENTS.CONFIRM_DETAILS, onConfirmedCb);
 	}
 
 	getAttributeNames () {
@@ -98,10 +115,13 @@ export default class CharacterDetails extends EventMapping {
 	 * @returns {boolean}
 	 */
 	characterDetailsExist () {
+		// TODO String validation
 		let nameGood = (this.charname !== undefined && this.charname !== null)
 		let attributes = (this.attributeScores !== undefined && this.attributeScores !== null)
 		let charclassGood = (this.charclass !== undefined && this.charclass !== null)
 		let healthGood = (this.health !== undefined && this.health !== null)
+
+		//TODO Validate Attributes
 
 		return (nameGood && attributes && charclassGood && healthGood)
 	};
@@ -169,7 +189,7 @@ export default class CharacterDetails extends EventMapping {
 
 			let coreDataExists = characterDataExists && ValidationHandler.checkDataAttributes(characterData, coreAttribs)
 			let positionExists = characterDataExists && ValidationHandler.checkDataAttributes(positionData, positionAttribs)
-			let attributesExist = characterDataExists && AttributeScores.validateAttributesJson(characterData[ATTRIBUTES_JSON_NAME])
+			let attributesExist = characterDataExists && AttributeScores.validateAttributesJson(characterData)
 
 			if (!characterDataExists) {
 				throw new RangeError('\'character\' data not defined')
@@ -226,25 +246,26 @@ export default class CharacterDetails extends EventMapping {
 	setFromJson (characterDetailsJson) {
 		if (CharacterDetails.validateJson(characterDetailsJson)) {
 			console.debug('Setting CharacterDetails from data: ' + JSON.stringify(characterDetailsJson));
-			let characterData = characterDetailsJson[CHARACTER_JSON_NAME]
+			let characterData = characterDetailsJson[CHARACTER_JSON_NAME];
 
-			let charname = characterData[CHARNAME_JSON_NAME]
-			this.setCharacterName(charname)
+			let charname = characterData[CHARNAME_JSON_NAME];
+			this.setCharacterName(charname);
 
-			let charclass = characterData[CHARCLASS_JSON_NAME]
-			this.setCharacterClass(charclass)
+			let charclass = characterData[CHARCLASS_JSON_NAME];
+			this.setCharacterClass(charclass);
 
-			let position = characterData[POSITION_JSON_NAME]
-			this.posX = position[POSITION_X_JSON_NAME]
-			this.posY = position[POSITION_Y_JSON_NAME]
-			this.health = characterData[HEALTH_JSON_NAME]
+			let position = characterData[POSITION_JSON_NAME];
+			this.posX = position[POSITION_X_JSON_NAME];
+			this.posY = position[POSITION_Y_JSON_NAME];
+			this.health = characterData[HEALTH_JSON_NAME];
 
 			// Copy each of the stat attribs over
-			let attributes = characterData[ATTRIBUTES_JSON_NAME]
-			this.setAttributesFromJson(attributes)
+			this.setAttributesFromJson(characterData);
 
 			this.emit(EVENTS.SET_DETAILS)
-			return this
+			// If this is the first time updating these details, we can confirm their validity
+			if (!this.detailsConfirmed) this.emit(EVENTS.CONFIRM_DETAILS);
+			return this;
 		} else {
 			throw new RangeError(INVALID_CHAR_UPDATE_DATA_ERROR + JSON.stringify(characterDetailsJson))
 		}
@@ -293,17 +314,26 @@ export default class CharacterDetails extends EventMapping {
 			this.attributeScores = attributeScores
 			this.emit(EVENTS.SET_ATTRIB_SCORES, this.getAttributeScores())
 		} else {
-			throw new RangeError('Expected an instance of AttributeScores! received: ' + attributeScoresJson)
+			throw new RangeError('Expected an instance of AttributeScores! received: ' + attributeScores)
 		}
 	}
 
 	/**
-	 *
-	 * @param attribsJson i.e {'scores' : {A:1, B:2}, 'free_points': 1}
+	 * Extracts the 'attributes' JSON living underneath the 'character' json data
+	 * returns a JSON object with 'attributes' as it's only key
+	 */
+	extractAttributesJson(characterDetailsJson) {
+		let characterJson = ValidationHandler.validateAndGetAttribute(characterDetailsJson, CHARACTER_JSON_NAME);
+		let attribsJson = ValidationHandler.validateAndGetAttribute(characterJson, ATTRIBUTES_NAME);
+		return { [ATTRIBUTES_NAME] : attribsJson };
+	}
+
+	/*
+	 * @param attribsJson, json data containing an attributes object keyed by it's name
 	 */
 	setAttributesFromJson (attribsJson) {
 		if (AttributeScores.validateAttributesJson(attribsJson)) {
-			this.setAttributeScores(AttributeScores.fromJson(attribsJson))
+			this.setAttributeScores(AttributeScores.fromJson(attribsJson));
 		}
 	}
 
@@ -327,7 +357,7 @@ export default class CharacterDetails extends EventMapping {
 					'pos_y': this.posY
 				},
 				'health': this.health,
-				'attributes': this.attributeScores.getJson()
+				'attributes': this.attributeScores.getJson()['attributes']
 			}
 		}
 	}

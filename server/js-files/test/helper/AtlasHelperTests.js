@@ -13,10 +13,12 @@ function beforeEachTest (assert) {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('AtlasHelperTests', { before: beforeAll, beforeEach: beforeEachTest })
+QUnit.module('AtlasHelperTests', { before: beforeAll, beforeEach: beforeEachTest }, () => {
 
 // Ensure the pixi map view data builds as we expect it to
-QUnit.skip(
-TEST_TAG + 'promiseAtlasSubtexture', function (assert) {
-	// var spriteTexture = AtlasHelper.promiseAtlasSubtexture(tileAtlasPath, subtileName);
+	QUnit.skip(
+	TEST_TAG + 'promiseAtlasSubtexture', function (assert) {
+		// var spriteTexture = AtlasHelper.promiseAtlasSubtexture(tileAtlasPath, subtileName);
+	});
+
 });

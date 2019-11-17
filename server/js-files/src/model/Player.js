@@ -1,6 +1,7 @@
 import MapCharacter from '../model/pixi/map/MapCharacter.js'
 import CharacterDetailsBuilder from './page/CharacterDetailsBuilder'
 import ValidationHandler from '../handler/ValidationHandler'
+import { CHARACTER_JSON_NAME } from './page/CharacterDetails'
 
 export const INVALID_USERNAME_MSG = 'Cannot set invalid username: ';
 
@@ -52,14 +53,15 @@ export default class Player {
 
 	/**
 	 * @throws RangeError on any failed validation of update data
-	 * @param jsonData
+	 * @param jsonData in the format of { 'username' : string, 'character' : characterJson }
 	 */
 	updateFromJson (jsonData) {
 		ValidationHandler.validateAttribute(jsonData, 'username')
 		this.setUsername(jsonData['username'])
 
 		ValidationHandler.validateAttribute(jsonData, 'character')
-		this.getMapCharacter().getCharacterDetails().setFromJson(jsonData);
+		let attributesJson = ValidationHandler.validateAndGetAttribute(jsonData, CHARACTER_JSON_NAME);
+		this.getMapCharacter().getCharacterDetails().setAttributesFromJson(attributesJson);
 	}
 
 	static validUsername(username) {

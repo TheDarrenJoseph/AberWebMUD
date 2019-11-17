@@ -29,10 +29,10 @@ export default class FetchHandler {
 		let sessionInfo = Session.ActiveSession.getSessionInfoJSON();
 		let username = sessionInfo.username;
 		let sessionId = sessionInfo.sessionId;
-		console.debug('Building authentication from: ' + username + ':' + sessionId);
+		//console.debug('Building authentication from: ' + username + ':' + sessionId);
 		let appendedValue = username+':'+sessionId;
 		let encodedValue = window.btoa(appendedValue);
-		console.debug('Base64 Encoded value: ' + encodedValue);
+		//console.debug('Base64 Encoded value: ' + encodedValue);
 		return encodedValue;
 	}
 
@@ -41,7 +41,6 @@ export default class FetchHandler {
 	}
 
 	promiseGetJson(url){
-		if (DEBUG) console.debug('GET: ' + url)
 		return fetch(this.baseUrl + url, {
 			method: 'GET',
 			headers: {
@@ -52,8 +51,6 @@ export default class FetchHandler {
 	}
 
 	promisePostJson(url, dataObject) {
-		if (DEBUG) console.debug('POST: ' + url)
-
 		return fetch(this.baseUrl + url, {
 			method: 'POST',
 			mode: 'cors',

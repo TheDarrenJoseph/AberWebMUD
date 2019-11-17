@@ -109,7 +109,7 @@ export default class ViewController {
 
 		// EventMappings
 		// Once the character details are set, confirm that we have some
-		this.pageController.onceCharacterDetailsSet(this.characterDetailsConfirmed);
+		this.pageController.onceCharacterDetailsConfirmed(() => { this.characterDetailsConfirmed() });
 	}
 
 }

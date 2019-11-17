@@ -26,9 +26,8 @@ class Player(db_instance.DatabaseInstance._database.Entity):
         if this_character is not None:
             self.character = this_character
 
-    """ 
-        Returns player data needed for the client as a dict/JSON format
-        This gets given to the client as a status response for a player
+    """         
+        Returns client-compatible JSON of this object
     """
     def get_json(self) -> dict:
         response = {'username': self.username}

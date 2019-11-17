@@ -34,56 +34,58 @@ function afterAll () {
 
 
 // Hookup before each test setup / assertion
-QUnit.module('ViewControllerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll })
+QUnit.module('ViewControllerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll }, () => {
 
-/**
- * GIVEN I have a new instance of ViewController
- * WHEN I call setupUI and it's promise resolves
- * THEN I expect all UI components to be initialised, with the canvas blank and all windows hidden.
- */
-QUnit.test(TEST_TAG + 'setupUI', function (assert) {
-	assert.timeout(MAX_TIMEOUT);
+	/**
+	 * GIVEN I have a new instance of ViewController
+	 * WHEN I call setupUI and it's promise resolves
+	 * THEN I expect all UI components to be initialised, with the canvas blank and all windows hidden.
+	 */
+	QUnit.test(TEST_TAG + 'setupUI', function (assert) {
+		assert.timeout(MAX_TIMEOUT);
 
-	let viewSetup = assert.async(1);
-	viewController.setupUI().then(() =>{
+		let viewSetup = assert.async(1);
+		viewController.setupUI().then(() => {
 
-		let pageController = viewController.getPageController();
-		let pageView = pageController.getPageView();
-		let pageCharacterDetailsView = pageController.getPageCharacterDetailsView();
-		let pageInventoryView = pageController.getPageInventoryView();
-		let pageChatView = pageController.getPageChatView();
+			let pageController = viewController.getPageController();
+			let pageView = pageController.getPageView();
+			let pageCharacterDetailsView = pageController.getPageCharacterDetailsView();
+			let pageInventoryView = pageController.getPageInventoryView();
+			let pageChatView = pageController.getPageChatView();
 
-		// --- Page View
-		assert.ok(pageView.isElementVisible(_MAIN_WINDOW_ID), 'Main window div should be visible')
-		assert.ok(pageView.isElementVisible(_GAME_WINDOW_ID), 'Game window div should be visible')
+			// --- Page View
+			assert.ok(pageView.isElementVisible(_MAIN_WINDOW_ID), 'Main window div should be visible')
+			assert.ok(pageView.isElementVisible(_GAME_WINDOW_ID), 'Game window div should be visible')
 
-		assert.notOk(pageCharacterDetailsView.isElementVisible(_STATS_WINDOW_ID), 'Stat window div should be hidden')
-		assert.notOk(pageInventoryView.isElementVisible(_INVENTORY_WINDOW_ID), 'Inventory window div should be hidden')
-		assert.notOk(pageChatView.isElementVisible(_MESSAGE_WINDOW_ID), 'Message window div should be hidden')
+			assert.notOk(pageCharacterDetailsView.isElementVisible(_STATS_WINDOW_ID), 'Stat window div should be hidden')
+			assert.notOk(pageInventoryView.isElementVisible(_INVENTORY_WINDOW_ID), 'Inventory window div should be hidden')
+			assert.notOk(pageChatView.isElementVisible(_MESSAGE_WINDOW_ID), 'Message window div should be hidden')
 
-		// --- Pixi View
-		let pixiController = viewController.getPixiController();
-		let pixiView = pixiController.getPixiView();
+			// --- Pixi View
+			let pixiController = viewController.getPixiController();
+			let pixiView = pixiController.getPixiView();
 
-		// Pixi View Controls should be hidden
-		// Stats bars (health)
-		let healthBar = pixiView.getStatBar(STATBAR_ID_HEALTH)
-		assert.notOk(healthBar.isVisible(), 'Ensure the Pixi UI Health bar is hidden.');
+			// Pixi View Controls should be hidden
+			// Stats bars (health)
+			let healthBar = pixiView.getStatBar(STATBAR_ID_HEALTH)
+			assert.notOk(healthBar.isVisible(), 'Ensure the Pixi UI Health bar is hidden.');
 
-		// Control buttons
-		let consoleButton 	= pixiView.getContextControl(CONSOLE_BUTTON_NAME);
-		let statsButton 		= pixiView.getContextControl(STATS_BUTTON_NAME);
-		let inventoryButton = pixiView.getContextControl(INVENTORY_BUTTON_NAME);
-		assert.notOk(consoleButton.visible, 'Ensure the console button is not displayed.');
-		assert.notOk(statsButton.visible, 'Ensure the stats button is not displayed.');
-		assert.notOk(inventoryButton.visible, 'Ensure the inventory button is not displayed.');
+			// Control buttons
+			let consoleButton = pixiView.getContextControl(CONSOLE_BUTTON_NAME);
+			let statsButton = pixiView.getContextControl(STATS_BUTTON_NAME);
+			let inventoryButton = pixiView.getContextControl(INVENTORY_BUTTON_NAME);
+			assert.notOk(consoleButton.visible, 'Ensure the console button is not displayed.');
+			assert.notOk(statsButton.visible, 'Ensure the stats button is not displayed.');
+			assert.notOk(inventoryButton.visible, 'Ensure the inventory button is not displayed.');
 
-		viewSetup();
-	})
-	.catch(rejection => {
-		console.error(rejection);
-	})
+			viewSetup();
+		})
+		.catch(rejection => {
+			console.error(rejection);
+		})
 
-	assert.expect(9);
-}
-);
+		assert.expect(9);
+	}
+	);
+
+});

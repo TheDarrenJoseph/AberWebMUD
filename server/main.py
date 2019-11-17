@@ -1,7 +1,8 @@
 import logging, pdb
 
-import flaskHandler
-from pyfiles import playerController
+from pyfiles.flask import flaskHandler
+from pyfiles import playerController, characterController
+from pyfiles.controller import gameController
 from pyfiles.db import database
 #from pyfiles.db import player
 
@@ -10,14 +11,18 @@ from pyfiles.db import database
 
 #Sets up players, maps, etc
 from pyfiles.sockets.socketHandler import SocketHandler
+from pyfiles.flask.flaskHandler import FlaskHandler
 
+from pony.orm import db_session
 
 def setup_instance(_dbHandler):
-    player1 = playerController.new_player('foo', 'test')
-    player2 = playerController.new_player('who', 'test')
+
+    with db_session:
+        player1 = playerController.new_player('foo', 'test')
+        character1 = characterController.new_character('', 'foo')
+        player1.set_character(character1)
 
     logging.info('TEST PLAYER 1:'+str(player1))
-    logging.info('TEST PLAYER 2:'+str(player2))
 
 #Checks that this is the first instance/main instance of the module
 if __name__ == "__main__":
@@ -35,10 +40,10 @@ if __name__ == "__main__":
 
     setup_instance(DB_HANDLER) #Run DB and data setup
 
-    # SOCKET_HANDLER = SocketIO(flaskHandler._APP, engineio_logger=True)
-    logging.info('Initialising SocketHandler..')
-    SOCKET_HANDLER = pdb.runcall(SocketHandler(flaskHandler._APP, logger=False, engineio_logger=False))
-    SOCKET_IO = SOCKET_HANDLER.socketHandler
+    logging.info('Initialising GameController..')
+    GAME_CONTROLLER = gameController.GameController()
+    GAME_CONTROLLER.register_callbacks()
+    GAME_CONTROLLER.run_server()
 
     #DB_HANDLER.show_tables()
 

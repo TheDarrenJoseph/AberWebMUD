@@ -99,9 +99,11 @@ export class GameControllerClass {
 
 		this.socketHandler.bind('character-details-update',  (data) => { pageController.handleCharacterUpdateResponse(data) });
 
-		this.socketHandler.bind('attribute-class-options', (data) => {
-			pageController.handleCharacterClassOptions(data)
-		});
+		//this.socketHandler.bind('character-class-options', (data) => {
+		//	pageController.handleCharacterClassOptions(data)
+		//});
+
+		this.socketHandler.bind('request-character-details', () => { this.handleRequestCharacterDetails() } );
 
 		//  Request for existing password
 		this.socketHandler.bind('request-password',  (username) => {
@@ -131,21 +133,30 @@ export class GameControllerClass {
 		return this.fetchHandler.get('/player');
 	}
 
+	/**
+	 * Given the server has requested character details, we can safely assume we're missing them/have never set them
+	 */
+	handleRequestCharacterDetails() {
+		// Almost guaranteed this is a data validation issue, missing player/character data.
+		this.viewController.pageController.handleCharacterDetailsMissing();
+	}
+
 	handlePlayerData(data) {
 		try {
 			Session.ActiveSession.updatePlayer(data);
-			console.debug('Updated Player to: ' + JSON.stringify(Session.ActiveSession.getPlayer()))
+			let player = Session.ActiveSession.getPlayer();
+			console.debug('Updated Player to: ' + JSON.stringify(player))
 		} catch(updateError) {
 			console.error(updateError);
-			// Almost guaranteed this is a data validation issue, missing player/character data.
-			this.viewController.pageController.handleCharacterDetailsMissing();
 		}
 	}
 
 	retrieveAndUpdatePlayerData(){
 		return this.fetchPlayerData().then(jsonData => {
-			console.debug('Recieved player data: ' + JSON.stringify(jsonData))
+			console.debug('Received player data: ' + JSON.stringify(jsonData))
 			this.handlePlayerData(jsonData)
+		}).catch(reason => {
+			console.debug('Error during Player fetch: ' + JSON.stringify(reason));
 		})
 	}
 

@@ -1,6 +1,10 @@
 var MOVEMENT_UPDATE_ATTRIBS = ['username', 'old_position', 'position'];
 var POSITION_TYPE_ATTRIBS = ['old_position', 'position'];
-var POSITION_ATTRIBS = [ 'pos_x', 'pos_y']
+var POSITION_ATTRIBS = [ 'pos_x', 'pos_y'];
+
+export var DATA_UNDEFINED_ERROR = new RangeError('Data input undefined / not an object with keys!');
+export var NO_ATTRIBUTES_ARG_ERROR = new RangeError('No attributes provided to check for!');
+export var UNDEFINED_ARG_ERROR = new RangeError('Argument undefined!');
 
 /**
  * Static data validation helper methods
@@ -13,6 +17,11 @@ export default class ValidationHandler {
 		} else {
 			throw new RangeError (' Expected property \'' + expectedAttribute + '\' in jsonData: ' + JSON.stringify(jsonData));
 		}
+	}
+
+	static validateAndGetAttribute(jsonData, expectedAttribute) {
+		this.validateAttribute(jsonData, expectedAttribute);
+		return jsonData[expectedAttribute];
 	}
 
 	/**
@@ -29,11 +38,11 @@ export default class ValidationHandler {
 		attributeNamesArray.length > 0);
 
 		if (!dataDefined) {
-			throw new RangeError('Data input undefined / not an object with keys!');
+			throw DATA_UNDEFINED_ERROR;
 		}
 
 		if (!attribsDefined) {
-			throw new RangeError('No attributes provided to check for!');
+			throw NO_ATTRIBUTES_ARG_ERROR;
 		}
 
 		for (var i = 0; i < attributeNamesArray.length; i++) {
@@ -76,7 +85,7 @@ export default class ValidationHandler {
 				return topLevelAttribsExist && positionAttribsExist;
 			}
 		} else {
-			throw new RangeError('Arguement undefined!');
+			throw new RangeError(UNDEFINED_ARG_ERROR);
 		}
 		
 		return false;

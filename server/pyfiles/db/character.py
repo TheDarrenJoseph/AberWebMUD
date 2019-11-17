@@ -3,17 +3,23 @@ from pyfiles.model import characterClass
 from pyfiles.db.attributes import ATTRIBUTES_JSON_NAME, ATTRIBUTE_SCORES_JSON_NAME
 from pony.orm import Required, Optional, db_session
 
+import re
+
 CHARACTER_DATA_JSON_NAME = 'character'
+
+CHARACTER_VALIDATION_ERROR = ValueError('Character Details Invalid')
 
 class Character(db_instance.DatabaseInstance._database.Entity):
     # char_id = PrimaryKey(int, auto=True)
-    charname = Required(str, unique=True)
+    charname = Optional(str, unique=False, default='')
+    charname_regex = re.compile('[a-z, ]+', re.IGNORECASE)
     charclass = Required(str, default=characterClass.CharacterClass.Fighter.value)
     player = Required('Player', unique=True)
     # Positions are stored relative to the map
     position = Required('Position')
     health_val = Required(int, default=100)
     attributes = Optional(attributes.Attributes, cascade_delete=True)
+    details_valid = False
 
     def get_charname(self) -> str:
         return self.charname
@@ -78,6 +84,22 @@ class Character(db_instance.DatabaseInstance._database.Entity):
         # Pick out only the 'attributes' from 'data'
         self.attributes.update_from_json(character)
         return True
+
+    def validate_charname(self):
+        length_valid = len(self.charname) > 0
+        characters_valid = self.charname_regex.match(self.charname)
+        if length_valid and characters_valid:
+            return True
+        else:
+            raise ValueError('Character name is required to be non-zero and matching the following pattern: ' + str(self.charname_regex))
+
+    def validate_details(self):
+        try:
+            self.validate_charname()
+            self.attributes.validate_details()
+        except ValueError as validation_error:
+            # Raise a generic validation error with the _cause wrapped
+            raise CHARACTER_VALIDATION_ERROR from validation_error
 
     def get_json(self) -> dict:
         response = {

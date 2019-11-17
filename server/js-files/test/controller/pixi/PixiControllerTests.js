@@ -56,47 +56,49 @@ function afterEachTest () {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('PixiControllerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll, afterEach : afterEachTest });
+QUnit.module('PixiControllerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll, afterEach : afterEachTest }, ()  => {
 
-/**
- * Given that the PixiController is setup
- * When the UI is enabled
- * Then there should be contextButton Sprites in the controls container
- */
-QUnit.test(TEST_TAG + 'enableUI_contextButtons', function (assert) {
-	//There should be a console Button
-	let controlsContainer = pixiController.pixiView.controlsContainer;
-	assert.ok(controlsContainer instanceof PIXI.Container, 'Check the controls container is a PIXI.Container');
-	assert.ok(controlsContainer.visible, 'Check the controls container is visible.');
+	/**
+	 * Given that the PixiController is setup
+	 * When the UI is enabled
+	 * Then there should be contextButton Sprites in the controls container
+	 */
+	QUnit.test(TEST_TAG + 'enableUI_contextButtons', function (assert) {
+		//There should be a console Button
+		let controlsContainer = pixiController.pixiView.controlsContainer;
+		assert.ok(controlsContainer instanceof PIXI.Container, 'Check the controls container is a PIXI.Container');
+		assert.ok(controlsContainer.visible, 'Check the controls container is visible.');
 
-	// 1 tile distance from the botton of the window
-	let singleTileOffsetPos = TEST_WINDOW_SIZE - DEFAULT_TILE_SIZE;
+		// 1 tile distance from the botton of the window
+		let singleTileOffsetPos = TEST_WINDOW_SIZE - DEFAULT_TILE_SIZE;
 
-	let inventoryButton = controlsContainer.getChildByName(INVENTORY_BUTTON_NAME);
-	assert.ok(inventoryButton instanceof PIXI.Sprite, 'Check the inventory button is a Pixi Sprite');
-	assert.ok(inventoryButton.visible, 'Check the chat inventory button is displayed/visible.');
-	let expectedInventoryButtonPos = new PIXI.Point(TEST_WINDOW_SIZE - (DEFAULT_TILE_SIZE * 2), singleTileOffsetPos);
-	assert.ok(expectedInventoryButtonPos.equals(inventoryButton.position));
+		let inventoryButton = controlsContainer.getChildByName(INVENTORY_BUTTON_NAME);
+		assert.ok(inventoryButton instanceof PIXI.Sprite, 'Check the inventory button is a Pixi Sprite');
+		assert.ok(inventoryButton.visible, 'Check the chat inventory button is displayed/visible.');
+		let expectedInventoryButtonPos = new PIXI.Point(TEST_WINDOW_SIZE - (DEFAULT_TILE_SIZE * 2), singleTileOffsetPos);
+		assert.ok(expectedInventoryButtonPos.equals(inventoryButton.position));
 
-	let statsButton = controlsContainer.getChildByName(STATS_BUTTON_NAME);
-	assert.ok(statsButton instanceof PIXI.Sprite, 'Check the stats button is a Pixi Sprite');
-	assert.ok(statsButton.visible, 'Check the chat stats button is displayed/visible.');
-	let expectedStatsButtonPos = new PIXI.Point(TEST_WINDOW_SIZE - (DEFAULT_TILE_SIZE * 4), singleTileOffsetPos);
-	assert.ok(expectedStatsButtonPos.equals(statsButton.position));
-});
+		let statsButton = controlsContainer.getChildByName(STATS_BUTTON_NAME);
+		assert.ok(statsButton instanceof PIXI.Sprite, 'Check the stats button is a Pixi Sprite');
+		assert.ok(statsButton.visible, 'Check the chat stats button is displayed/visible.');
+		let expectedStatsButtonPos = new PIXI.Point(TEST_WINDOW_SIZE - (DEFAULT_TILE_SIZE * 4), singleTileOffsetPos);
+		assert.ok(expectedStatsButtonPos.equals(statsButton.position));
+	});
 
-/**
- * Given that the PixiController is setup
- * When the UI is enabled
- * Then there should be a health bar in the top-right of screen
- */
-QUnit.test(TEST_TAG + 'enableUI_statBars', function (assert) {
-	// We should have 1 stat bar which is the health bar
-	let statBars = pixiController.pixiView.statBars;
-	assert.ok(statBars.length == 1, 'Check there is 1 item in the stat bars array');
-	assert.ok(statBars[0] instanceof PixiStatBar);
+	/**
+	 * Given that the PixiController is setup
+	 * When the UI is enabled
+	 * Then there should be a health bar in the top-right of screen
+	 */
+	QUnit.test(TEST_TAG + 'enableUI_statBars', function (assert) {
+		// We should have 1 stat bar which is the health bar
+		let statBars = pixiController.pixiView.statBars;
+		assert.ok(statBars.length == 1, 'Check there is 1 item in the stat bars array');
+		assert.ok(statBars[0] instanceof PixiStatBar);
 
-	// And it's visible
-	let healthBar = statBars[0];
-	assert.ok(healthBar.isVisible(), 'Check the health bar is visible');
+		// And it's visible
+		let healthBar = statBars[0];
+		assert.ok(healthBar.isVisible(), 'Check the health bar is visible');
+	});
+
 });

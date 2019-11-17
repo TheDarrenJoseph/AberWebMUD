@@ -1,7 +1,7 @@
 import sinon from 'libs/sinon-7.4.1.js';
 
-import {TEST_SESSIONID, TEST_CHARUPDATE_DATA} from '../utils/data/TestSessionData.js';
-import {TEST_SCORES, TEST_CHARDATA, TEST_ATTRIBUTE_SCORE_OPTIONS, TEST_CHARACTER_CLASS_OPTIONS} from '../utils/data/TestCharacterDetails.js';
+import {TEST_SESSIONID, TEST_USERNAME, TEST_CHARUPDATE_DATA} from '../utils/data/TestSessionData.js';
+import {TEST_SCORES, TEST_CHARDATA, TEST_ATTRIBUTES_RESPONSE, TEST_CHARACTER_CLASS_OPTIONS} from '../utils/data/TestCharacterDetails.js';
 
 import { GameControllerClass } from '../../src/controller/GameController.js';
 import { CharacterDetails } from '../../src/model/page/CharacterDetails.js'
@@ -24,7 +24,7 @@ function beforeAll (assert) {
 	let pageController = gameController.getViewController().getPageController();
 
 	// Stub out HTTP calls with promises for testing data
-	let fetchAttributeScoresStub = sinon.stub(pageController, 'fetchAttributeScores').resolves(TEST_ATTRIBUTE_SCORE_OPTIONS);
+	let fetchAttributesStub = sinon.stub(pageController, 'fetchAttributes').resolves(TEST_ATTRIBUTES_RESPONSE);
 	let fetchCharacterClassOptionsStub = sinon.stub(pageController, 'fetchCharacterClassOptions').resolves(TEST_CHARACTER_CLASS_OPTIONS);
 	let fetchPlayerDataStub = sinon.stub(gameController, 'fetchPlayerData').resolves(TEST_CHARUPDATE_DATA);
 }
@@ -42,28 +42,32 @@ function beforeEachTest (assert) {
 }
 
 // Hookup before each test setup / assertion
-QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll })
+QUnit.module('GameContollerTests', { before: beforeAll, beforeEach: beforeEachTest, after: afterAll }, () => {
 
-/**
- * GIVEN I have a new GameController
- * WHEN I handle the player login data from the server's login success response
- * THEN I expect the background client session model to update to reflect the values returned
- */
-QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
-	var sessionInfoJson = Session.ActiveSession.getSessionInfoJSON();
-	var blankSessionJson = {
-		'sessionId': null,
-		'username': ""
-	};
-	assert.deepEqual(sessionInfoJson, blankSessionJson, 'Check session info JSON is blank');
+	/**
+	 * GIVEN I have a new GameController
+	 * WHEN I handle the player login data from the server's login success response
+	 * THEN I expect the background client session model to update to reflect the values returned
+	 */
+	QUnit.test(TEST_TAG + 'handlePlayerLogin_updateSessionData', function (assert) {
+		var sessionInfoJson = Session.ActiveSession.getSessionInfoJSON();
+		var blankSessionJson = {
+			'sessionId': null,
+			'username': ""
+		};
+		assert.deepEqual(sessionInfoJson, blankSessionJson, 'Check session info JSON is blank');
 
-	assert.ok(CharacterDetails.validateJson(TEST_CHARDATA), 'Check our test char data is valid');
-	var loginData = {'sessionId': TEST_SESSIONID};
-	let playerLoginPromise = gameController.handlePlayerLogin(loginData);
-	let playerDataUpdated = assert.async(1);
-	playerLoginPromise.then( () => {
-		var resultingJson = Session.ActiveSession.getSessionInfoJSON();
-		assert.deepEqual(resultingJson, { 'sessionId': loginData.sessionId, 'username': 'foo' }, 'Check session info JSON is now set.');
-		playerDataUpdated();
+		var loginData = { 'sessionId': TEST_SESSIONID, 'username': TEST_USERNAME };
+		let playerLoginPromise = gameController.handlePlayerLogin(loginData);
+		let playerDataUpdated = assert.async(1);
+		playerLoginPromise.then(() => {
+			var resultingJson = Session.ActiveSession.getSessionInfoJSON();
+			assert.deepEqual(resultingJson, {
+				'sessionId': loginData.sessionId,
+				'username': loginData.username
+			}, 'Check session info JSON is now set.');
+			playerDataUpdated();
+		});
 	});
+
 });

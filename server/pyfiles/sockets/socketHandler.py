@@ -10,11 +10,22 @@ from pyfiles import playerController, characterController, userInput, sessionHan
 from pyfiles.model import overworld, characterClass
 from pyfiles.db import database, attributes
 from pyfiles.model.session import SESSION_ID_JSON_NAME, SESSION_USERNAME_JSON_NAME, SESSION_JSON_NAME
+import socketio
 
 class SocketHandler:
 
+    def __init__(self, flask_app, game_controller, **kwargs):
+        self.game_controller = game_controller
+        logging.info('Creating new SocketIO server.. ')
+        self.flask_socketio_server = SocketIO(flask_app, **kwargs)
+        self.flask_app = flask_app
+
+    def run_server(self):
+        logging.info('Running SocketIO Application..')
+        self.flask_socketio_server.run(self.flask_app)
+
     def get_rooms(self):
-        return self.socketHandler.server.rooms(sid=request.sid)
+        return self.flask_socketio_server.server.rooms(sid=request.sid)
 
     """
     Socket 'connect' event handler
@@ -29,7 +40,7 @@ class SocketHandler:
         emit('connection-response', {'chat-data': 'Welcome to AberWebMUD! Please create a character or login by typing \'user [username]\' ', SESSION_ID_JSON_NAME: request.sid}, room=request.sid)
         #emit('status-response',statusResponse)
         sessionHandler.list_sessions()
-        client_rooms = self.socketHandler.server.rooms(sid=request.sid);
+        client_rooms = self.flask_socketio_server.server.rooms(sid=request.sid);
         logging.info('Client rooms for ' + request.sid + ': ' + json.dumps(client_rooms))
 
         for joined_room in client_rooms:
@@ -64,6 +75,8 @@ class SocketHandler:
             logging.info(self.get_rooms())
             emit('invalid-sid', sid, room=request.sid)
 
+    def request_character_details(self, sid):
+        emit('request-character-details', sid, room=request.sid)
 
     def get_session_id(self, session_json):
         session_json = sessionHandler.extract_session_json(session_json)
@@ -84,26 +97,26 @@ class SocketHandler:
         return all(valid)
 
 
-    def hookup_callbacks(self):
-        self.socketHandler.on_event('connect', self.handle_connect)
-        self.socketHandler.on_event('disconnect', self.handle_disconnect)
-        self.socketHandler.on_event('join', self.handle_join)
-        self.socketHandler.on_event('leave', self.handle_leave)
+    def register_callbacks(self):
+        self.flask_socketio_server.on_event('connect', self.handle_connect)
+        self.flask_socketio_server.on_event('disconnect', self.handle_disconnect)
+        self.flask_socketio_server.on_event('join', self.handle_join)
+        self.flask_socketio_server.on_event('leave', self.handle_leave)
 
-        self.socketHandler.on_event('validate-sid', lambda sid: self.check_session_id(sid))
+        self.flask_socketio_server.on_event('validate-sid', lambda sid: self.check_session_id(sid))
 
         # Messages can be received at any point, so no active session check
-        self.socketHandler.on_event('new-chat-message', lambda data: self.handle_message(data))
+        self.flask_socketio_server.on_event('new-chat-message', lambda data: self.handle_message(data))
 
         # pass authentication directly to our handler
-        self.socketHandler.on_event('client-auth', lambda data: self.authenticate_user(data))
+        self.flask_socketio_server.on_event('client-auth', lambda data: self.authenticate_user(data))
 
-        self.socketHandler.on_event('map-data-request', lambda: sessionHandler.verify_active_and_call(self.send_map_data, request.get_json()))
-        self.socketHandler.on_event('movement-command', lambda json: sessionHandler.verify_active_and_call(self.handle_movement, json))
+        self.flask_socketio_server.on_event('map-data-request', lambda: sessionHandler.verify_active_and_call(self.send_map_data, request.get_json()))
+        self.flask_socketio_server.on_event('movement-command', lambda json: sessionHandler.verify_active_and_call(self.handle_movement, json))
 
         #socket_server.on_event('request-character-details', send_char_details)
-        self.socketHandler.on_event('character-details', lambda json : sessionHandler.verify_active_and_call(self.handle_char_details, json))
-        # self.socketHandler.on('get-attribute-class-options', lambda json_data: sessionHandler.verify_active_and_call(self.handle_get_attribute_class_options, json_data))
+        self.flask_socketio_server.on_event('character-details', lambda json : sessionHandler.verify_active_and_call(self.handle_char_details, json))
+        # self.flask_socketio_server.on('get-attribute-class-options', lambda json_data: sessionHandler.verify_active_and_call(self.handle_get_attribute_class_options, json_data))
 
     def send_server_message(self, message : dict or str, toAll : bool) -> None:
         """ Builds an ad-hoc sessionJson for the server and passes on the message data """
@@ -294,12 +307,25 @@ class SocketHandler:
         else:
             logging.info('IN| Malformed protocol message for char details')
 
+    """
+        Logs in the user (adds session to active list, sends success event, and checks that their details are filled in,
+        otherwise sending an event to prompt for them
+    """
     def login_user(self, sid : str, username : str) -> None:
         logging.info('Logging in.. '+sid)
         sessionHandler.add_active_session(sid, username)
 
-        if playerController.find_player(username) is not None:
+        player = playerController.find_player(username)
+        if player is not None:
             self.send_login_success(username, sid)
+
+            # Once the player has logged in, we should check they've filled in their character details
+            try:
+                playerController.validate_character_details(username)
+            except ValueError:
+                logging.info('Player details are invalid. Requesting detail submission.')
+                self.request_character_details(sid)
+
 
     """ Authenticates/logs in a user through username and password 
         Uses decoration for @socketio.on so we can directly invoke this instead of checking session validity
@@ -327,7 +353,7 @@ class SocketHandler:
             logging.info('Session Exists!')
         else:
             #Calling the static method to check player details
-            auth_result = database.DatabaseHandler.check_player_password(username, password)
+            auth_result = playerController.check_player_password(username, password)
             found_player = auth_result[0]
             password_correct = auth_result[1]
 
@@ -345,15 +371,3 @@ class SocketHandler:
                 logging.info('Creating a new player! ' + str(username) + str(password))
                 if playerController.new_player(username, password) is not None:
                     self.login_user(requested_sid, username)
-
-
-
-    def __init__(self, _APP, **kwargs) -> SocketIO:
-        self.flaskApp = _APP
-        logging.info('Creating new SocketIO handler.. ')
-        self.socketHandler = SocketIO(_APP, **kwargs)
-        logging.info('Setting up SocketIO event callbacks..')
-        self.hookup_callbacks()
-        logging.info('Running SocketIO/Flask Application..')
-        self.socketHandler.run(_APP)
-        return None

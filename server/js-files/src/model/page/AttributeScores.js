@@ -1,4 +1,6 @@
+import ValidationHandler from '../../handler/ValidationHandler'
 
+export const ATTRIBUTES_NAME = 'attributes';
 export const MIN_VALUE_NAME = 'min_value';
 export const MAX_VALUE_NAME = 'max_value';
 export const FREEPOINTS_NAME = 'free_points';
@@ -30,16 +32,16 @@ export default class AttributeScores extends Map {
 		this.set(FREEPOINTS_NAME, freePoints);
 	}
 
-	static fromJson(attribsJson) {
+	static fromJson(json) {
+		console.debug('Building AttributeScores from JSON: ' + JSON.stringify(json));
+		let attribsJson = ValidationHandler.validateAndGetAttribute(json, ATTRIBUTES_NAME);
 
-		console.debug('Building AttributeScores from JSON: ' + JSON.stringify(attribsJson))
-		let minValue = attribsJson[MIN_VALUE_NAME];
-		let maxValue = attribsJson[MAX_VALUE_NAME];
-		let freePoints = attribsJson[FREEPOINTS_NAME];
-		let attribScores = attribsJson[SCORES_NAME];
-
-		let scores = new AttributeScores(attribScores, minValue, maxValue, freePoints)
-		console.debug('Created new AttributeScores: ' + JSON.stringify(scores.getJson()))
+		let minValue = ValidationHandler.validateAndGetAttribute(attribsJson, MIN_VALUE_NAME);
+		let maxValue = ValidationHandler.validateAndGetAttribute(attribsJson, MAX_VALUE_NAME);
+		let freePoints = ValidationHandler.validateAndGetAttribute(attribsJson, FREEPOINTS_NAME);
+		let attribScores = ValidationHandler.validateAndGetAttribute(attribsJson, SCORES_NAME);
+		let scores = new AttributeScores(attribScores, minValue, maxValue, freePoints);
+		console.debug('Created new AttributeScores: ' + JSON.stringify(scores.getJson()));
 		return scores;
 	}
 
@@ -57,19 +59,25 @@ export default class AttributeScores extends Map {
 
 	getScoresJson() {
 		let output = {};
-		this.scores.forEach((value, key, map) => {
+		this.getScores().forEach((value, key, map) => {
 			output[key] = value;
 		});
 		console.debug('AttributeScoresJson : ' + JSON.stringify(output));
 		return output;
 	}
 
+	/**
+	 *
+	 * @returns a JSON representation of this object, with content keyed under a relevant name
+	 */
 	getJson() {
 		return {
-			[MIN_VALUE_NAME]:  this.get(MIN_VALUE_NAME),
-			[MAX_VALUE_NAME]:  this.get(MAX_VALUE_NAME),
-			[FREEPOINTS_NAME]:  this.get(FREEPOINTS_NAME),
-			[SCORES_NAME]: this.getScoresJson()
+			[ATTRIBUTES_NAME] : {
+				[MIN_VALUE_NAME]: this.get(MIN_VALUE_NAME),
+				[MAX_VALUE_NAME]: this.get(MAX_VALUE_NAME),
+				[FREEPOINTS_NAME]: this.get(FREEPOINTS_NAME),
+				[SCORES_NAME]: this.getScoresJson()
+			}
 		}
 	}
 
@@ -109,6 +117,18 @@ export default class AttributeScores extends Map {
 		} else {
 				throw new RangeError('No attribute scores defined!');
 		}
+	}
+
+	/**
+	 * Checks whether these attributes have been properly initialised (Non-zero)
+	 * and that all free points have been spent
+ 	 */
+	isAllFreePointsSpent() {
+		let minVal = 1;
+		let maxVal = this.getMaximumAttributeValue();
+		this.validateAttributes(minVal, maxVal);
+		let freePoints = this.getFreePoints();
+		return freePoints === 0;
 	}
 
 	validate() {

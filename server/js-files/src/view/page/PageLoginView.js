@@ -115,6 +115,7 @@ export default class PageLoginView extends PageHtmlView {
 		let usernameLabel = this.createElement('label', _USERNAME_LABEL_ID);
 		usernameLabel.setAttribute('class', _LOGIN_LABEL_CLASS)
 		usernameLabel.innerHTML = 'Username';
+
 		let usernameInput = this.createInputField(_USERNAME_INPUT_ID, 'text');
 		usernameInput.setAttribute('class', _LOGIN_TEXTINPUT_CLASS)
 		usernameDiv.appendChild(usernameLabel);

@@ -5,6 +5,7 @@ import { TEST_CHARDATA } from 'test/utils/data/TestCharacterDetails.js'
 
 // Default human attributeScores w/ 27 free points
 export const TEST_SESSIONID = '12345678';
+export const TEST_USERNAME = 'foo';
 
 // For the 'character-details-update' event response
 export const TEST_CHARUPDATE_DATA = {'success': true, 'username': 'foo', 'character' : TEST_CHARDATA['character'], 'sessionId' : TEST_SESSIONID };

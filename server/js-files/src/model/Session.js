@@ -110,7 +110,7 @@ class SessionModel extends EventMapping {
 	//	return this.clientSession.characterDetails;
 	//}
 
-	//setFromJson (charDetails) {
+	//setAttributesFromJson (charDetails) {
 	//	this.clientSession.characterDetails = charDetails;
 	//}
 
