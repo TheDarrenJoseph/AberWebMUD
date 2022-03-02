@@ -14,7 +14,7 @@
 	"devDependencies": {
 		"gulp": ">=4.0.2",
 		"delete": ">=1.1.0",
-		"karma": ">=3.1.1",
+		"karma": ">=6.3.16",
 		"karma-firefox-launcher": ">=1.1.0",
 		"karma-qunit": ">=2.1.0",
 		"karma-sourcemap-loader": ">=0.3",
